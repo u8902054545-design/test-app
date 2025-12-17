@@ -171,7 +171,8 @@
     <main class="py-6">
         <div class="content-container px-4 sm:px-6 space-y-3"> 
             
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
+            <!-- Кнопка "Расписание" с новой функцией goToSchedule() -->
+            <button onclick="goToSchedule()" class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
                         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
@@ -296,6 +297,9 @@
         
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
+        // URL для кнопки "Расписание"
+        const SCHEDULE_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/'; 
+        
         const INTERVAL_MS = 3000; 
 
         // --- СОСТОЯНИЕ ---
@@ -331,6 +335,11 @@
         function showLoading() { if (loadingOverlay) loadingOverlay.classList.add('visible'); }
         function hideLoading() { if (loadingOverlay) loadingOverlay.classList.remove('visible'); }
         function setUserInfo(fullName, email) { userFullNameEl.textContent = fullName; userContactEl.textContent = email; }
+
+        // --- ФУНКЦИЯ ДЛЯ КНОПКИ "РАСПИСАНИЕ" ---
+        function goToSchedule() {
+            window.location.href = SCHEDULE_URL;
+        }
 
         // --- АВТОРИЗАЦИЯ ---
         async function checkUserAuthentication(isSilent = false) {
@@ -606,4 +615,4 @@
         });
     </script>
 </body>
-                            </html>
+    </html>
