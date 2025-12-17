@@ -25,20 +25,16 @@
     </script>
     
     <style>
-        /* Стили из Файла 1 */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0F0F0F; /* Основной темный фон */
+            background-color: #0F0F0F;
             padding: 0;
             margin: 0;
             user-select: none; 
             -webkit-user-select: none; 
-            -moz-user-select: none; 
-            -ms-user-select: none; 
             overscroll-behavior-y: none; 
         }
         
-        /* Текстура шума */
         .bg-noise {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -46,7 +42,6 @@
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        /* Glass Panel */
         .glass-panel {
             background: rgba(23, 23, 23, 0.7);
             backdrop-filter: blur(16px);
@@ -54,36 +49,17 @@
             border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        /* Active Scale */
-        .active-scale:active {
-            transform: scale(0.96);
-        }
-
-        /* Скрытие скроллбара */
+        .active-scale:active { transform: scale(0.96); }
         ::-webkit-scrollbar { width: 0; }
-
-        /* Адаптивный контейнер */
-        .content-container {
-            max-width: 960px; 
-            margin: 0 auto;
-        }
+        .content-container { max-width: 960px; margin: 0 auto; }
         
-        /* Дополнительный блеск для кнопок при наведении */
-        .btn-hover-effect:hover svg {
-            transform: scale(1.05);
-            transition: transform 0.2s ease;
-        }
-
-        /* Анимация появления для кнопки и карточки */
-        .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
-        }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
         
-        /* --- СТИЛИ ДЛЯ BOTTOM SHEET --- */
+        /* BOTTOM SHEET */
         .bottom-sheet-overlay {
             position: fixed;
             inset: 0;
@@ -93,10 +69,7 @@
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0.3s; 
         }
-        .bottom-sheet-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
+        .bottom-sheet-overlay.active { opacity: 1; visibility: visible; }
         .bottom-sheet {
             position: fixed;
             bottom: 0;
@@ -113,145 +86,45 @@
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             padding: 0 0 16px 0; 
         }
-        .bottom-sheet.active {
-            transform: translateY(0);
-        }
+        .bottom-sheet.active { transform: translateY(0); }
 
-        /* --- СТИЛИ ДЛЯ TOAST NOTIFICATION --- */
-        @keyframes slideIn {
-            from { transform: translateY(-100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes fadeOut {
-            from { transform: scale(1); opacity: 1; }
-            to { transform: scale(0.95); opacity: 0; }
-        }
+        /* TOAST */
+        @keyframes slideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeOut { from { transform: scale(1); opacity: 1; } to { transform: scale(0.95); opacity: 0; } }
         .toast-enter { animation: slideIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         .toast-leave { animation: fadeOut 0.3s ease-out forwards; }
 
-
-        /* ------------------ Стили Спиннера и Оверлея ------------------ */
-        .spinner {
-            width: 60px; 
-            height: 60px;
-            animation: rotate 2s linear infinite; 
-            transform-origin: center center;
-        }
-
-        .path {
-            stroke: #0000FF; 
-            stroke-linecap: round;
-            stroke-width: 4; 
-            stroke-dasharray: 1, 150; 
-            animation: dash 1.5s ease-in-out infinite; 
-        }
-
-        @keyframes rotate {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
+        /* SPINNER */
+        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; transform-origin: center center; }
+        .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
         @keyframes dash {
-            0% {
-                stroke-dasharray: 1, 150;
-                stroke-dashoffset: 0;
-            }
-            50% {
-                stroke-dasharray: 70, 150; 
-                stroke-dashoffset: -25px;
-            }
-            100% {
-                stroke-dasharray: 70, 150;
-                stroke-dashoffset: -125px;
-            }
+            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 70, 150; stroke-dashoffset: -25px; }
+            100% { stroke-dasharray: 70, 150; stroke-dashoffset: -125px; }
         }
         
         #loadingOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: rgba(15, 15, 15, 0.8); 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100; 
-            
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            opacity: 0; 
-            visibility: hidden;
-            pointer-events: none; 
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; transition: opacity 0.3s ease, visibility 0.3s ease;
+            opacity: 0; visibility: hidden; pointer-events: none; 
         }
-
-        #loadingOverlay.visible {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto; /* Блокируем клики под оверлеем */
-        }
-        /* ----------------------------------------------------------------- */
+        #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
     </style>
 </head>
 <body class="min-h-screen text-white">
 
     <div class="bg-noise"></div>
 
-    <div id="toast-container" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-3 w-full max-w-sm pointer-events-none px-4">
-        </div>
+    <div id="toast-container" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-3 w-full max-w-sm pointer-events-none px-4"></div>
     
     <header class="w-full bg-neutral-800/70 backdrop-blur-md px-4 py-6 sm:px-6 sm:py-8 rounded-b-3xl shadow-xl border-b border-neutral-700/50">
         <div class="content-container">
-            
-            <p id="status-indicator" class="text-xl font-bold text-white mb-2 text-left">
-                Нет подтверждённых слотов
-            </p>
-            
-            <h1 id="user-full-name" class="text-base font-normal text-gray-400 mb-0.5 text-left">
-                Загрузка имени...
-            </h1>
-            
-            <p id="user-contact" class="text-base font-normal text-gray-400 text-left mb-4">
-                Загрузка контакта...
-            </p>
-
-            <!-- НОВОЕ: Динамическая Карточка Активного Слота -->
-            <div id="current-shift-card-container" class="mt-4 hidden fade-in">
-                <div class="w-full bg-blue-900/10 text-white p-3 rounded-xl shadow-lg flex justify-between items-center transition duration-300 border border-blue-800/50">
-                    
-                    <!-- Левая часть: Статус и Время -->
-                    <div class="flex items-center space-x-2">
-                        
-                        <!-- Кружочек статуса: Синий с иконкой "молния" -->
-                        <div id="shift-icon-circle" class="flex-shrink-0 w-7 h-7 rounded-full bg-custom-blue flex items-center justify-center">
-                            <!-- Иконка молнии (активный слот) -->
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white">
-                                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                        </div>
-
-                        <!-- Информация о смене -->
-                        <div>
-                            <!-- Динамический Статус -->
-                            <span id="shift-status-text" class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-blue-900/30 text-blue-400">
-                                Активен
-                            </span>
-                            <!-- Время слота -->
-                            <p id="shift-time-range" class="text-lg font-bold mt-1">
-                                00:00 — Сейчас
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Правая часть: Длительность смены -->
-                    <div class="flex-shrink-0 text-right">
-                        <p id="shift-duration" class="text-xl font-bold text-white">
-                            0 ч
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <!-- КОНЕЦ КАРТОЧКИ -->
+            <p id="status-indicator" class="text-xl font-bold text-white mb-2 text-left">Загрузка статуса...</p>
+            <h1 id="user-full-name" class="text-base font-normal text-gray-400 mb-0.5 text-left text-ellipsis overflow-hidden">Загрузка имени...</h1>
+            <p id="user-contact" class="text-base font-normal text-gray-400 text-left">Загрузка контакта...</p>
 
             <div id="info-message" class="mt-4 p-3 flex items-start gap-3 bg-yellow-900/20 border border-yellow-600/30 rounded-2xl">
                 <div class="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center mt-0.5">
@@ -260,743 +133,262 @@
                     </svg>
                 </div>
                 <p class="text-sm font-medium text-yellow-100/90 leading-relaxed pt-1">
-                    Открой <span class="text-yellow-400">«Расписание»</span> и укажи, когда хочешь выполнять задачи. Потом дождись подтверждения слотов.
+                    Открой <span class="text-yellow-400">«Расписание»</span> и укажи время. Смену можно открыть за 1 час до начала.
                 </p>
             </div>
+
             <div class="mt-5 flex gap-3 h-[52px]">
-                
                 <button id="close-slot-btn" onclick="showStopSlotConfirmation()" class="hidden w-[52px] h-full flex-shrink-0 border-2 border-red-500 rounded-xl items-center justify-center text-red-500 hover:bg-red-500/20 transition duration-150 active:scale-95 fade-in">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M13 2L3 14h9v8l10-12h-9z"></path>
                     </svg>
                 </button>
 
-                <button id="main-action-btn" onclick="toggleSlot()" class="flex-1 bg-custom-blue text-white text-base font-semibold rounded-xl shadow-lg hover:bg-blue-700 transition duration-150 active:scale-[0.98] flex justify-center items-center gap-2">
+                <button id="main-action-btn" class="flex-1 bg-custom-blue text-white text-base font-semibold rounded-xl shadow-lg transition duration-150 active:scale-[0.98] flex justify-center items-center gap-2 opacity-50 cursor-not-allowed">
                     <span id="main-btn-text">Начать слот</span>
                     <svg id="main-btn-icon" class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path id="main-btn-icon-path" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                 </button>
             </div>
-            </div>
+        </div>
     </header>
 
     <main class="py-6">
         <div class="content-container px-4 sm:px-6 space-y-3"> 
-
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
+            <button class="w-full group flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
-                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                    </div>
-                    
-                    <span class="text-[17px] font-medium text-gray-200">
-                        Расписание
-                    </span>
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
+                    <span class="text-[17px] font-medium text-gray-200">Расписание</span>
                 </div>
-                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
-                </svg>
+                <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
             </button>
-            
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
+            <button class="w-full group flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
-                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                    </div>
-
-                    <span class="text-[17px] font-medium text-gray-200">
-                        Твои результаты
-                    </span>
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg></div>
+                    <span class="text-[17px] font-medium text-gray-200">Твои результаты</span>
                 </div>
-                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
-                </svg>
+                <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
             </button>
-
-            <!-- НОВАЯ КНОПКА: Выплаты -->
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
+            <button onclick="showLogoutConfirmation()" class="w-full group flex items-center justify-start p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-red-900/10 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
-                        <!-- Иконка Монеты / Выплаты -->
-                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                            <!-- Патч: Круг (монета) и стрелка вниз (выплата) -->
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v10m-3-3l3 3 3-3M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-
-                    <span class="text-[17px] font-medium text-gray-200">
-                        Выплаты
-                    </span>
-                </div>
-                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </button>
-            <!-- КОНЕЦ НОВОЙ КНОПКИ -->
-
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
-                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </div>
-
-                    <span class="text-[17px] font-medium text-gray-200">
-                        Настройки
-                    </span>
-                </div>
-                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </button>
-
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
-                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                        </svg>
-                    </div>
-
-                    <span class="text-[17px] font-medium text-gray-200">
-                        Пригласи друга
-                    </span>
-                </div>
-                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </button>
-
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
-                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                    </div>
-
-                    <span class="text-[17px] font-medium text-gray-200">
-                        Написать в поддержку
-                    </span>
-                </div>
-                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </button>
-
-            <button onclick="showLogoutConfirmation()" class="w-full group btn-hover-effect flex items-center justify-start p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-red-900/10 hover:border-red-900/30 transition duration-200 active:scale-[0.99]">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-red-500/20 transition-colors">
-                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                    </div>
-
-                    <span class="text-[17px] font-medium text-red-400 group-hover:text-red-300 transition-colors">
-                        Выйти из аккаунта
-                    </span>
+                    <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg></div>
+                    <span class="text-[17px] font-medium text-red-400">Выйти из аккаунта</span>
                 </div>
             </button>
-            
         </div>
     </main>
     
     <div id="bottom-sheet-overlay" class="bottom-sheet-overlay"></div> 
-
     <div id="bottom-sheet" class="bottom-sheet">
-        <div class="flex justify-center my-3">
-            <div class="w-10 h-1 bg-neutral-600 rounded-full"></div>
-        </div>
-
+        <div class="flex justify-center my-3"><div class="w-10 h-1 bg-neutral-600 rounded-full"></div></div>
         <div class="px-4"> 
             <div class="flex justify-between items-start mb-4">
                 <h2 id="bsTitle" class="text-[20px] font-bold text-white pr-4"></h2>
                 <button onclick="hideBottomSheet()" class="text-neutral-400 hover:text-white transition p-1 flex-shrink-0 -mt-3 -mr-3">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
-
-            <p id="bsSubtitle" class="text-base text-neutral-400 mb-8">
-            </p>
-
+            <p id="bsSubtitle" class="text-base text-neutral-400 mb-8"></p>
             <div class="flex flex-col gap-3">
-                <button id="bsConfirmBtn" class="text-white text-base font-semibold rounded-xl shadow-lg transition duration-150 active:scale-[0.99] py-3 px-4">
-                </button>
-                
-                <button id="bsCancelBtn" onclick="hideBottomSheet()" class="text-base font-semibold rounded-xl transition duration-150 active:scale-[0.99] py-3 px-4">
-                </button>
+                <button id="bsConfirmBtn" class="text-white text-base font-semibold rounded-xl shadow-lg transition duration-150 py-3 px-4"></button>
+                <button id="bsCancelBtn" onclick="hideBottomSheet()" class="text-base font-semibold rounded-xl border-2 border-custom-blue text-custom-blue py-3 px-4 transition"></button>
             </div>
         </div>
     </div>
     
     <div id="loadingOverlay">
-        <svg id="loader" class="spinner" viewBox="25 25 50 50">
-            <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10" />
-        </svg>
+        <svg id="loader" class="spinner" viewBox="25 25 50 50"><circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10" /></svg>
     </div>
 
     <script>
-        // *** КОНФИГУРАЦИЯ GOOGLE APPS SCRIPT ***
-        // ОБНОВЛЕНО: Новый URL-адрес, предоставленный пользователем.
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby7vSdkhaauUoqcqL3ehe1Fc1lgsIdD2FuYLjvi0ZFw4POItJ600QHuvndjOH7dhT4XA/exec';
+        // *** КОНФИГУРАЦИЯ ***
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7TuUwyjotJU0DlFweH_-5mRqlZJHqYCmyCDQ2d7nHhbF0IRia5cA1EB86zSj77FkXzQ/exec';
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
-        const BOTTOM_SHEET_ANIMATION_DURATION = 300; 
-        const INTERVAL_MS = 3000; // Интервал в миллисекундах (3 секунды)
+        const INTERVAL_MS = 5000;
 
-        // --- СОСТОЯНИЕ ---
         let isSlotActive = false;
+        let canOpenSlot = false;
         let notificationTimeout;
 
-        // --- ПЕРЕМЕННЫЕ ЭЛЕМЕНТОВ DOM ---
+        // DOM Elements
         const statusIndicator = document.getElementById('status-indicator'); 
         const infoMessage = document.getElementById('info-message'); 
+        const mainBtn = document.getElementById('main-action-btn');
         const mainBtnText = document.getElementById('main-btn-text');
         const closeSlotBtn = document.getElementById('close-slot-btn');
         const mainBtnIconPath = document.getElementById('main-btn-icon-path'); 
-        
-        // Новые элементы для отображения данных пользователя
         const userFullNameEl = document.getElementById('user-full-name');
         const userContactEl = document.getElementById('user-contact');
-
-        // Элементы Bottom Sheet
+        const loadingOverlay = document.getElementById('loadingOverlay');
         const bottomSheet = document.getElementById('bottom-sheet');
         const bottomSheetOverlay = document.getElementById('bottom-sheet-overlay');
         const bsTitle = document.getElementById('bsTitle');
         const bsSubtitle = document.getElementById('bsSubtitle');
         const bsConfirmBtn = document.getElementById('bsConfirmBtn');
-        const bsCancelBtn = document.getElementById('bsCancelBtn');
-
-        // Элементы Toast
         const toastContainer = document.getElementById('toast-container');
-        
-        // Элементы Loading Overlay
-        const loadingOverlay = document.getElementById('loadingOverlay');
 
-        // Элементы Карточки Активного Слота (НОВЫЕ)
-        const currentShiftCardContainer = document.getElementById('current-shift-card-container');
-        const shiftStatusText = document.getElementById('shift-status-text');
-        const shiftTimeRange = document.getElementById('shift-time-range');
-        const shiftDuration = document.getElementById('shift-duration');
-        const shiftIconCircle = document.getElementById('shift-icon-circle');
-
-        // Определяем пути для иконок
         const lightningPathD = "M13 10V3L4 14h7v7l9-11h-7z"; 
         const arrowPathD = "M9 5l7 7-7 7"; 
 
-        // Присваиваем универсальный обработчик для закрытия при клике на оверлей
-        bottomSheetOverlay.onclick = hideBottomSheet;
+        function showLoading() { loadingOverlay.classList.add('visible'); }
+        function hideLoading() { loadingOverlay.classList.remove('visible'); }
 
-
-        // --- ГЛОБАЛЬНЫЕ ФУНКЦИИ ЗАГРУЗКИ ---
-        
-        /**
-         * Показывает блокирующий оверлей загрузки.
-         */
-        function showLoading() {
-            if (loadingOverlay) loadingOverlay.classList.add('visible');
-        }
-
-        /**
-         * Скрывает блокирующий оверлей загрузки.
-         */
-        function hideLoading() {
-            if (loadingOverlay) loadingOverlay.classList.remove('visible');
-        }
-
-        /**
-         * *** НОВАЯ ФУНКЦИЯ: Показывает индикатор загрузки только если он не видим,
-         * но не блокирует экран. ***
-         */
-        function silentShowLoading() {
-            // Оставляем без изменений, так как оверлей нужен только для блокирующих операций
-        }
-        
-        /**
-         * *** НОВАЯ ФУНКЦИЯ: Скрывает индикатор загрузки. ***
-         */
-        function silentHideLoading() {
-            // Оставляем без изменений, так как оверлей нужен только для блокирующих операций
-        }
-        
-        // ------------------------------------
-        
-        /**
-         * Устанавливает имя и контакт пользователя в заголовок.
-         * @param {string} fullName - Полное имя пользователя.
-         * @param {string} email - Адрес электронной почты.
-         */
-        function setUserInfo(fullName, email) {
-            userFullNameEl.textContent = fullName;
-            userContactEl.textContent = email; // Отображаем Email вместо телефона
-        }
-
-        // --- ЛОГИКА АУТЕНТИФИКАЦИИ ---
-        
-        /**
-         * Проверяет токен и почту в localStorage с данными на сервере.
-         * Если не совпадает или статус Inactive, перенаправляет на страницу авторизации.
-         * @param {boolean} isSilent - Если true, не показывает оверлей и тост при успехе.
-         */
         async function checkUserAuthentication(isSilent = false) {
-            if (!isSilent) showLoading(); // Используем блокирующий лоадер при первой загрузке
-            
+            if (!isSilent) showLoading();
             const email = localStorage.getItem('userEmail');
             const token = localStorage.getItem('authToken');
-            
-            // 1. Проверка локального хранилища
-            if (!email || !token) {
-                console.warn("Аутентификация: Отсутствуют данные в LocalStorage. Перенаправление.");
-                redirectToAuth();
-                return false; 
-            }
-            
-            // 2. Отправка данных на сервер для проверки
+            if (!email || !token) { redirectToAuth(); return false; }
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8' 
-                    },
-                    body: JSON.stringify({ 
-                        auth: true, 
-                        email: email, 
-                        token: token 
-                    })
+                    body: JSON.stringify({ auth: true, email: email, token: token })
                 });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
                 const data = await response.json();
-                
                 if (data.status === 'success' && data.auth_ok) {
-                    // Аутентификация успешна, устанавливаем данные пользователя
-                    setUserInfo(data.user.fullName, data.user.email);
-                    if (!isSilent) {
-                        // Тост показываем только при НЕ-тихой проверке (например, при логине)
-                        showToast("Авторизация", "Успешный вход.");
-                    }
+                    userFullNameEl.textContent = data.user.fullName;
+                    userContactEl.textContent = data.user.email;
                     return true;
-                } else {
-                    // Аутентификация не пройдена (токен/email не совпал или статус 'Inactive')
-                    console.warn(`Аутентификация: Сервер отклонил. Причина: ${data.message || 'Неизвестная ошибка.'}. Перенаправление.`);
-                    redirectToAuth(data.message);
-                    return false;
                 }
-
-            } catch (error) {
-                console.error('Fetch Auth error:', error);
-                // При сетевой ошибке, сообщаем пользователю, но не редиректим
-                showToast("Ошибка сети", "Не удалось связаться с сервером для проверки аутентификации.");
-                return true; // Временно позволяем продолжить, но данные не обновятся
-            } finally {
-                if (!isSilent) hideLoading(); // Скрываем блокирующий лоадер
-            }
-        }
-        
-        /**
-         * Очищает локальное хранилище и перенаправляет пользователя.
-         */
-        function redirectToAuth(message = "Перенаправление на страницу авторизации...") {
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('authToken');
-            
-            // Если мы уже показываем лоадер, не показываем тост
-            if (!loadingOverlay.classList.contains('visible')) {
-                showLoading();
-            }
-            
-            showToast("Внимание", message);
-            
-            setTimeout(() => {
-                window.location.href = LOGOUT_URL; 
-            }, 1000); 
+                redirectToAuth(); return false;
+            } catch (e) { return true; } finally { if (!isSilent) hideLoading(); }
         }
 
-        // --- ЛОГИКА ВЗАИМОДЕЙСТВИЯ С GOOGLE ТАБЛИЦЕЙ (СТАТУС СМЕНЫ) ---
-
-        /**
-         * Выполняет запрос к серверу для получения текущего статуса смены.
-         * НОВОЕ: Передает Email пользователя в параметрах запроса.
-         */
-        async function fetchShiftStatus(showLoader = true) {
+        async function syncState(showLoader = false) {
             if (showLoader) showLoading();
-            
-            // НОВОЕ: Получаем Email пользователя из localStorage
-            const userEmail = localStorage.getItem('userEmail');
-            if (!userEmail) {
-                console.error("Email не найден. Невозможно получить статус.");
-                redirectToAuth();
-                return null;
-            }
-            
-            // НОВОЕ: Добавляем Email в URL как параметр
-            const urlWithParams = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`;
-
+            const email = localStorage.getItem('userEmail');
             try {
-                const response = await fetch(urlWithParams, {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache'
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
+                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(email)}`);
                 const data = await response.json();
-                
                 if (data.status === 'success') {
-                    return data.shiftStatus;
-                } else {
-                    console.error("Error fetching status:", data.message);
-                    if (data.message.includes("Missing email parameter")) {
-                         showToast("Ошибка", "Сервер не получил ваш Email для запроса статуса.");
-                    }
-                    return null;
+                    isSlotActive = (data.shiftStatus === 'Open');
+                    canOpenSlot = data.canOpen;
+                    updateUI();
                 }
-
-            } catch (error) {
-                console.error('Fetch error:', error);
-                if (showLoader) {
-                    showToast("Ошибка сети", "Не удалось получить статус смены.");
-                }
-                return null;
-            } finally {
-                if (showLoader) hideLoading(); 
-            }
-        }
-        
-        /**
-         * Отправляет новый статус смены в Google Таблицу.
-         * НОВОЕ: Передает Email пользователя в теле запроса.
-         */
-        async function updateShiftStatus(newStatus) {
-            showLoading(); 
-            
-            // НОВОЕ: Получаем Email пользователя из localStorage
-            const userEmail = localStorage.getItem('userEmail');
-            if (!userEmail) {
-                console.error("Email не найден. Невозможно обновить статус.");
-                redirectToAuth();
-                return false;
-            }
-
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8' 
-                    },
-                    // НОВОЕ: Передаем Email в теле запроса
-                    body: JSON.stringify({ 
-                        newStatus: newStatus, 
-                        userEmail: userEmail,
-                        userFullName: userFullNameEl.textContent // Для записи в историю
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                if (data.status === 'success') {
-                    return true;
-                } else {
-                    console.error("Error updating status:", data.message);
-                    showToast("Ошибка обновления", `Сервер вернул ошибку: ${data.message}`);
-                    return false;
-                }
-
-            } catch (error) {
-                console.error('Update error:', error);
-                showToast("Ошибка сети", "Не удалось отправить новый статус. Проверьте соединение.");
-                return false;
-            } finally {
-                hideLoading(); 
-            }
+            } catch (e) { console.error('Sync error:', e); } finally { if (showLoader) hideLoading(); }
         }
 
-
-        // --- ЛОГИКА СМЕНЫ ---
-
-        async function startSlot() {
-            const success = await updateShiftStatus('Open');
-            if (success) {
-                setSlotState(true);
-                showToast("Смена открыта", "Задачи уже ждут вас. Удачной работы!");
-            }
-        }
-
-        async function endSlot() {
-            const success = await updateShiftStatus('Closed');
-            if (success) {
-                setSlotState(false);
-                showToast("Смена завершена", "Спасибо за работу! Данные сохранены.");
-                hideBottomSheet();
-            }
-        }
-        
-        /**
-         * Устанавливает состояние слота и обновляет весь UI, включая карточку смены.
-         * @param {boolean} active - true, если слот активен ('Open').
-         * @param {boolean} updateIsSlotActive - Нужно ли обновлять глобальную переменную.
-         */
-        function setSlotState(active, updateIsSlotActive = true) {
-            if (updateIsSlotActive) {
-                isSlotActive = active;
-            }
-            
-            if (active) {
+        function updateUI() {
+            if (isSlotActive) {
                 statusIndicator.textContent = "Слот активен";
-                statusIndicator.classList.add('text-green-400');
-                statusIndicator.classList.remove('text-white');
-                infoMessage.classList.add('hidden'); 
-                
+                statusIndicator.className = "text-xl font-bold text-green-400 mb-2 text-left";
+                infoMessage.classList.add('hidden');
                 mainBtnText.textContent = 'Перейти к задачам';
-                mainBtnIconPath.setAttribute('d', arrowPathD); 
-                
-                closeSlotBtn.classList.remove('hidden');
+                mainBtnIconPath.setAttribute('d', arrowPathD);
+                closeSlotBtn.classList.remove('hidden', 'flex');
                 closeSlotBtn.classList.add('flex');
-
-                document.getElementById('main-action-btn').onclick = goToTasks;
-
-                // --- Управление Карточкой (Активен) ---
-                currentShiftCardContainer.classList.remove('hidden');
-                currentShiftCardContainer.classList.add('fade-in');
-                
-                shiftStatusText.textContent = 'Активен';
-                // Временно используем заглушки, пока API не предоставляет время старта
-                shiftTimeRange.textContent = '00:00 — Сейчас'; 
-                shiftDuration.textContent = '0 ч';
-                // --- Конец Управления Карточкой ---
-
+                mainBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                mainBtn.onclick = () => window.location.href = TASKS_URL;
             } else {
                 statusIndicator.textContent = "Нет подтверждённых слотов";
-                statusIndicator.classList.add('text-white');
-                statusIndicator.classList.remove('text-green-400');
-                infoMessage.classList.remove('hidden'); 
-
+                statusIndicator.className = "text-xl font-bold text-white mb-2 text-left";
+                infoMessage.classList.remove('hidden');
                 mainBtnText.textContent = 'Начать слот';
-                mainBtnIconPath.setAttribute('d', lightningPathD); 
-                
+                mainBtnIconPath.setAttribute('d', lightningPathD);
                 closeSlotBtn.classList.add('hidden');
                 closeSlotBtn.classList.remove('flex');
                 
-                document.getElementById('main-action-btn').onclick = toggleSlot;
-
-                // --- Управление Карточкой (Неактивен) ---
-                currentShiftCardContainer.classList.add('hidden');
-                currentShiftCardContainer.classList.remove('fade-in');
-                // --- Конец Управления Карточкой ---
+                if (canOpenSlot) {
+                    mainBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    mainBtn.onclick = startSlot;
+                } else {
+                    mainBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    mainBtn.onclick = () => showToast("Доступ закрыт", "Слот можно открыть только по расписанию.");
+                }
             }
         }
-        
-        async function goToTasks() {
+
+        async function startSlot() {
             showLoading();
-            // Получаем статус, используя новую логику с Email
-            const actualStatus = await fetchShiftStatus(false);
-            hideLoading();
-            
-            if (actualStatus === 'Open') {
-                showToast("Смена активна", "Перенаправление к задачам...");
-                setTimeout(() => {
-                    window.location.href = TASKS_URL;
-                }, 500);
-            } else {
-                showToast("Смена закрыта", "Для перехода к задачам необходимо начать смену.");
-                setSlotState(false);
-            }
+            const email = localStorage.getItem('userEmail');
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ newStatus: 'Open', userEmail: email })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    isSlotActive = true;
+                    updateUI();
+                    showToast("Успех", "Смена открыта!");
+                } else {
+                    showToast("Ошибка", data.message || "Не удалось открыть слот");
+                }
+            } catch (e) { showToast("Ошибка сети", "Нет связи с сервером"); }
+            finally { hideLoading(); }
         }
 
-        function toggleSlot() {
-            if (!isSlotActive) {
-                startSlot();
-            } else {
-                goToTasks();
-            }
-        }
-        
-        // --- ЛОГИКА BOTTOM SHEET (Без изменений) ---
-
-        function showBottomSheet() {
-            bottomSheetOverlay.classList.add('active');
-            bottomSheet.classList.add('active');
-        }
-
-        function hideBottomSheet() {
-            bottomSheetOverlay.classList.remove('active');
-            bottomSheet.classList.remove('active');
-        }
-
-
-        // --- ЛОГИКА ПОДТВЕРЖДЕНИЯ ЗАКРЫТИЯ СЛОТА (Без изменений) ---
-
-        function showStopSlotConfirmation() {
-            if (!isSlotActive) return; 
-
-            bsTitle.innerText = "Завершить слот?";
-            bsSubtitle.innerText = "Убедитесь, что вы закончили текущие задачи. После завершения вы перестанете получать новые заказы.";
-            
-            bsConfirmBtn.innerText = "Да, завершить";
-            bsConfirmBtn.onclick = endSlot; 
-            bsConfirmBtn.className = "bg-red-600 text-white text-base font-semibold rounded-xl shadow-lg hover:bg-red-700 transition duration-150 active:scale-[0.99] py-3 px-4";
-
-            bsCancelBtn.innerText = "Отмена";
-            bsCancelBtn.className = "border-2 border-custom-blue text-custom-blue text-base font-semibold rounded-xl hover:bg-blue-900/10 transition duration-150 active:scale-[0.99] py-3 px-4";
-            
-            showBottomSheet();
+        async function endSlot() {
+            showLoading();
+            const email = localStorage.getItem('userEmail');
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ newStatus: 'Closed', userEmail: email })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    isSlotActive = false;
+                    updateUI();
+                    hideBottomSheet();
+                    showToast("Завершено", "Смена закрыта.");
+                }
+            } catch (e) { showToast("Ошибка сети", "Нет связи"); }
+            finally { hideLoading(); }
         }
 
-
-        // --- ЛОГИКА ВЫХОДА ИЗ АККАУНТА (Изменена confirmLogout) ---
-        
-        function showLogoutConfirmation() {
-            const subtitleOpen = "Изменённые настройки не сбросятся, активные задачи и слот сохранятся";
-            const subtitleClosed = "При следующей авторизации, придётся ввести данные заново"; // Изменено
-            
-            bsTitle.innerText = "Выйти из аккаунта?";
-            bsSubtitle.innerText = isSlotActive ? subtitleOpen : subtitleClosed;
-            
-            bsConfirmBtn.innerText = "Выйти";
-            bsConfirmBtn.onclick = confirmLogout; // Вызовет новую функцию
-            bsConfirmBtn.className = "bg-red-600 text-white text-base font-semibold rounded-xl shadow-lg hover:bg-red-700 transition duration-150 active:scale-[0.99] py-3 px-4";
-
-            bsCancelBtn.innerText = "Не выходить";
-            bsCancelBtn.className = "border-2 border-custom-blue text-custom-blue text-base font-semibold rounded-xl hover:bg-blue-900/10 transition duration-150 active:scale-[0.99] py-3 px-4";
-
-            showBottomSheet();
+        function redirectToAuth(m) { 
+            localStorage.clear(); 
+            window.location.href = LOGOUT_URL; 
         }
 
-        /**
-         * Новая функция: очищает хранилище и перенаправляет.
-         */
-        function confirmLogout() {
-            hideBottomSheet();
-            redirectToAuth("Выход...");
-        }
-
-        // --- ЛОГИКА TOAST (Без изменений) ---
-        
         function showToast(title, message) {
-            
             const toast = document.createElement('div');
-            
-            const isSuccess = title.includes("активна") || title.includes("открыта") || title.includes("Успешный");
-            const isError = title.includes("Ошибка") || title.includes("закрыта") || title.includes("Внимание");
-            
-            let bgClass = isSuccess ? 'bg-green-600/10 border-green-500/30' : 
-                          isError ? 'bg-red-600/10 border-red-500/30' : 
-                                    'bg-neutral-700/60 border-neutral-600/30';
-            
+            const isSuccess = title.includes("Успех") || title.includes("открыта") || title.includes("Завершено");
+            const isError = title.includes("Ошибка") || title.includes("закрыта") || title.includes("Доступ");
+            let bgClass = isSuccess ? 'bg-green-600/10 border-green-500/30' : isError ? 'bg-red-600/10 border-red-500/30' : 'bg-neutral-700/60 border-neutral-600/30';
             let iconColor = isSuccess ? 'text-green-500' : isError ? 'text-red-500' : 'text-custom-blue';
-            let iconSvg = isSuccess ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>' : 
-                          isError ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.332 16c-.77 1.333.192 3 1.732 3z"/>' :
-                                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
-
-            
-            toast.className = `
-                toast-enter glass-panel backdrop-blur-md 
-                ${bgClass} border
-                rounded-xl 
-                shadow-2xl 
-                flex 
-                items-center 
-                gap-3 
-                px-4 
-                py-3 
-                min-w-[300px] 
-                pointer-events-auto
-                cursor-pointer
-                relative
-                text-white
-            `;
-
-            toast.innerHTML = `
-                <div class="w-8 h-8 rounded-full ${iconColor} flex items-center justify-center flex-shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">${iconSvg}</svg>
-                </div>
-                <div>
-                    <span class="font-semibold text-sm select-none">${title}</span>
-                    <p class="text-xs text-neutral-400 mt-0.5">${message}</p>
-                </div>
-            `;
-
+            toast.className = `toast-enter glass-panel ${bgClass} border rounded-xl shadow-2xl flex items-center gap-3 px-4 py-3 min-w-[300px] pointer-events-auto cursor-pointer relative text-white`;
+            toast.innerHTML = `<div class="w-8 h-8 rounded-full ${iconColor} flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div><div><span class="font-semibold text-sm">${title}</span><p class="text-xs text-neutral-400 mt-0.5">${message}</p></div>`;
             if (notificationTimeout) clearTimeout(notificationTimeout);
-            
             toastContainer.innerHTML = '';
             toastContainer.appendChild(toast);
-
-            const removeToast = () => {
-                toast.classList.remove('toast-enter');
-                toast.classList.add('toast-leave');
-                
-                toast.addEventListener('animationend', () => {
-                    if (toast.parentElement) {
-                        toast.remove();
-                    }
-                });
-            };
-
-            toast.addEventListener('click', removeToast);
-
+            const removeToast = () => { toast.classList.add('toast-leave'); setTimeout(() => toast.remove(), 300); };
+            toast.onclick = removeToast;
             notificationTimeout = setTimeout(removeToast, 4000);
         }
 
-        // --- ИНИЦИАЛИЗАЦИЯ И АВТОМАТИЧЕСКОЕ ОБНОВЛЕНИЕ ---
-        
-        document.addEventListener('DOMContentLoaded', async () => {
-            // 1. ПЕРВАЯ И КРИТИЧЕСКАЯ ПРОВЕРКА: АУТЕНТИФИКАЦИЯ
-            const isAuthenticated = await checkUserAuthentication(false);
-            
-            if (!isAuthenticated) {
-                return;
-            }
+        function showBottomSheet() { bottomSheetOverlay.classList.add('active'); bottomSheet.classList.add('active'); }
+        function hideBottomSheet() { bottomSheetOverlay.classList.remove('active'); bottomSheet.classList.remove('active'); }
+        function showStopSlotConfirmation() {
+            bsTitle.innerText = "Завершить слот?";
+            bsSubtitle.innerText = "Убедитесь, что вы закончили текущие задачи.";
+            bsConfirmBtn.innerText = "Да, завершить";
+            bsConfirmBtn.onclick = endSlot;
+            bsConfirmBtn.className = "bg-red-600 text-white text-base font-semibold rounded-xl shadow-lg py-3 px-4 active:scale-95";
+            showBottomSheet();
+        }
+        function showLogoutConfirmation() {
+            bsTitle.innerText = "Выйти из аккаунта?";
+            bsSubtitle.innerText = isSlotActive ? "Активный слот сохранится в системе." : "Придётся войти заново.";
+            bsConfirmBtn.innerText = "Выйти";
+            bsConfirmBtn.onclick = () => { hideBottomSheet(); redirectToAuth(); };
+            bsConfirmBtn.className = "bg-red-600 text-white text-base font-semibold rounded-xl shadow-lg py-3 px-4 active:scale-95";
+            showBottomSheet();
+        }
 
-            // 2. Загружаем статус смены только после успешной аутентификации
-            // Теперь fetchShiftStatus использует Email из localStorage
-            const initialStatus = await fetchShiftStatus(true); 
-            if (initialStatus) {
-                setSlotState(initialStatus === 'Open', false);
-            } else {
-                setSlotState(false, false); 
+        document.addEventListener('DOMContentLoaded', async () => {
+            const auth = await checkUserAuthentication(false);
+            if (auth) {
+                await syncState(true);
+                setInterval(() => syncState(false), INTERVAL_MS);
             }
-            
-            // 3. Настраиваем регулярное обновление статуса
-            setInterval(async () => {
-                // Перед обновлением статуса, убедимся, что пользователь все еще авторизован.
-                const isStillAuthenticated = await checkUserAuthentication(true);
-                
-                if (isStillAuthenticated) {
-                    // Обновляем статус смены без оверлея
-                    const status = await fetchShiftStatus(false); 
-                    if (status) {
-                         setSlotState(status === 'Open', true);
-                    }
-                }
-            }, INTERVAL_MS);
-            
-            // Защита от случайного копирования
             document.addEventListener('contextmenu', e => e.preventDefault());
         });
+        bottomSheetOverlay.onclick = hideBottomSheet;
     </script>
-    
 </body>
-    </html>
+</html>
