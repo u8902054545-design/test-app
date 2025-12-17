@@ -72,8 +72,8 @@
             animation: fadeIn 0.3s ease-in-out;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         /* --- BOTTOM SHEET --- */
@@ -116,22 +116,6 @@
             opacity: 0; visibility: hidden; pointer-events: none; 
         }
         #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
-
-        /* --- SKELETON LOADER (ШАПКА ПРОФИЛЯ) --- */
-        @keyframes shimmer {
-            0% { background-position: -400px 0; }
-            100% { background-position: 400px 0; }
-        }
-        .skeleton-block {
-            background-color: #262626; /* neutral-800 */
-            background-image: linear-gradient(90deg, #262626 0%, #3f3f46 30%, #262626 60%); /* neutral-800, neutral-700 */
-            background-size: 800px 100%;
-            animation: shimmer 1.5s infinite linear;
-            border-radius: 8px;
-            height: 100%;
-            width: 100%;
-            display: block;
-        }
     </style>
 </head>
 <body class="min-h-screen text-white">
@@ -143,31 +127,30 @@
     <header class="w-full bg-neutral-800/70 backdrop-blur-md px-4 py-6 sm:px-6 sm:py-8 rounded-b-3xl shadow-xl border-b border-neutral-700/50">
         <div class="content-container">
             
-            <!-- Профиль: Skeleton Block vs. Real Data -->
-            <div id="profile-info-container">
-                
-                <!-- Skeleton Loader (Виден по умолчанию) -->
-                <div id="skeleton-loader" class="space-y-2 mb-2">
-                    <div class="h-6 w-3/4 skeleton-block"></div> <!-- Статус -->
-                    <div class="h-4 w-1/2 skeleton-block"></div> <!-- Имя -->
-                    <div class="h-4 w-5/12 skeleton-block"></div> <!-- Контакт -->
-                </div>
-
-                <!-- Actual Data Content (Скрыт по умолчанию) -->
-                <div id="data-content" class="hidden">
-                    <p id="status-indicator" class="text-xl font-bold text-gray-400 mb-2 text-left">
-                        <!-- Сюда попадет статус -->
-                    </p>
-                    <h1 id="user-full-name" class="text-base font-normal text-gray-400 mb-0.5 text-left">
-                        <!-- Сюда попадет имя -->
-                    </h1>
-                    <p id="user-contact" class="text-base font-normal text-gray-400 text-left">
-                        <!-- Сюда попадет контакт -->
-                    </p>
-                </div>
-                
+            <!-- СКЕЛЕТОН (Skeleton Block) - Виден по умолчанию -->
+            <div id="profile-skeleton" class="animate-pulse space-y-3 mb-5">
+                <!-- Статус Skeleton -->
+                <div class="h-6 bg-neutral-700 rounded-lg w-1/2"></div>
+                <!-- Имя Skeleton -->
+                <div class="h-5 bg-neutral-700 rounded-lg w-3/4"></div>
+                <!-- Контакт Skeleton -->
+                <div class="h-5 bg-neutral-700 rounded-lg w-2/5"></div>
             </div>
-            <!-- Конец блока Профиля -->
+
+            <!-- КОНТЕНТ ПРОФИЛЯ - Скрыт по умолчанию, показывается при загрузке данных -->
+            <div id="profile-content" class="hidden">
+                <p id="status-indicator" class="text-xl font-bold text-gray-400 mb-2 text-left">
+                    <!-- Загрузка статуса... -->
+                </p>
+                
+                <h1 id="user-full-name" class="text-base font-normal text-gray-400 mb-0.5 text-left">
+                    <!-- Загрузка имени... -->
+                </h1>
+                
+                <p id="user-contact" class="text-base font-normal text-gray-400 text-left">
+                    <!-- Загрузка контакта... -->
+                </p>
+            </div>
 
             <div id="info-message" class="mt-4 p-3 flex items-start gap-3 bg-yellow-900/20 border border-yellow-600/30 rounded-2xl hidden">
                 <div class="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center mt-0.5">
@@ -201,7 +184,7 @@
     <main class="py-6">
         <div class="content-container px-4 sm:px-6 space-y-3"> 
             
-            <!-- Кнопка "Расписание" -->
+            <!-- Кнопка "Расписание" с функцией goToSchedule() -->
             <button onclick="goToSchedule()" class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
@@ -214,7 +197,6 @@
                 <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
             
-            <!-- Кнопка "Твои результаты" -->
             <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
@@ -227,7 +209,6 @@
                 <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <!-- Кнопка "Выплаты" -->
             <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
@@ -240,7 +221,7 @@
                 <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <!-- Кнопка "Настройки" (С ИЗМЕНЕННОЙ ССЫЛКОЙ) -->
+            <!-- Кнопка "Настройки" с функцией goToSettings() -->
             <button onclick="goToSettings()" class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
@@ -254,7 +235,6 @@
                 <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <!-- Кнопка "Пригласи друга" -->
             <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
@@ -267,7 +247,6 @@
                 <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <!-- Кнопка "Написать в поддержку" -->
             <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
@@ -280,7 +259,6 @@
                 <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <!-- Кнопка "Выйти из аккаунта" -->
             <button onclick="showLogoutConfirmation()" class="w-full group btn-hover-effect flex items-center justify-start p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-red-900/10 hover:border-red-900/30 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-red-500/20 transition-colors">
@@ -328,16 +306,14 @@
     </div>
 
     <script>
-        // *** НОВЫЙ URL ОТ ПОЛЬЗОВАТЕЛЯ ***
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAtGgnNaGTtzmlMS6I1vIGxv1lHLLXQuYFImdxdTSgpDOO591KUf5vaNQn5J32SbWw/exec'; // Изменил URL, чтобы избежать проблем с CORS/безопасностью
-
+        // --- КОНСТАНТЫ И URL ---
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAtGgnNaGTtzmlMS6I1vIGxv1lHLLXQuYFImdxdTSgpDOO591KUf5vaNQ0nV5J32SbWw/exec';
         
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
-        // URL для кнопки "Расписание"
         const SCHEDULE_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/'; 
-        // НОВЫЙ URL для кнопки "Настройки"
-        const SETTINGS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Settings/';
+        // НОВЫЙ URL ДЛЯ НАСТРОЕК
+        const SETTINGS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Settings/'; 
         
         const INTERVAL_MS = 3000; 
 
@@ -345,22 +321,26 @@
         let isSlotActive = false;
         let canStartSlot = false; // Разрешено ли начинать смену (проверка времени)
         let notificationTimeout;
+        let isProfileDataLoaded = false; // Флаг для управления скелетоном
 
         // --- ЭЛЕМЕНТЫ ---
+        // Элементы для отображения данных
         const statusIndicator = document.getElementById('status-indicator'); 
+        const userFullNameEl = document.getElementById('user-full-name');
+        const userContactEl = document.getElementById('user-contact');
+
+        // Элементы для управления скелетоном
+        const profileSkeleton = document.getElementById('profile-skeleton');
+        const profileContent = document.getElementById('profile-content');
+        
+        // Остальные элементы
         const infoMessage = document.getElementById('info-message'); 
         const mainBtn = document.getElementById('main-action-btn');
         const mainBtnText = document.getElementById('main-btn-text');
         const mainBtnIconPath = document.getElementById('main-btn-icon-path'); 
         const closeSlotBtn = document.getElementById('close-slot-btn');
-        const userFullNameEl = document.getElementById('user-full-name');
-        const userContactEl = document.getElementById('user-contact');
         
-        // Элементы для Skeleton Block
-        const skeletonLoader = document.getElementById('skeleton-loader');
-        const dataContent = document.getElementById('data-content');
-        
-        // Bottom Sheet
+        // Bottom Sheet & Toast
         const bottomSheet = document.getElementById('bottom-sheet');
         const bottomSheetOverlay = document.getElementById('bottom-sheet-overlay');
         const bsTitle = document.getElementById('bsTitle');
@@ -377,44 +357,38 @@
 
         function showLoading() { if (loadingOverlay) loadingOverlay.classList.add('visible'); }
         function hideLoading() { if (loadingOverlay) loadingOverlay.classList.remove('visible'); }
-        
+
         /**
-         * Переключает видимость Skeleton Block и реальных данных профиля.
-         * @param {boolean} isLoaded - true, если данные загружены и должны быть показаны.
+         * Скрывает скелетон и показывает загруженные данные профиля
          */
-        function toggleProfileDataLoaded(isLoaded) {
-            if (isLoaded) {
-                skeletonLoader.classList.add('hidden');
-                dataContent.classList.remove('hidden');
-            } else {
-                skeletonLoader.classList.remove('hidden');
-                dataContent.classList.add('hidden');
+        function showProfileData() {
+            if (!isProfileDataLoaded) {
+                profileSkeleton.classList.add('hidden');
+                profileContent.classList.remove('hidden');
+                profileContent.classList.add('fade-in');
+                isProfileDataLoaded = true;
             }
         }
         
-        /**
-         * Устанавливает имя и контакт, и показывает реальные данные.
-         */
         function setUserInfo(fullName, email) { 
             userFullNameEl.textContent = fullName; 
             userContactEl.textContent = email; 
-            // Показываем реальные данные (скрываем скелетон)
-            toggleProfileDataLoaded(true); 
+            showProfileData(); // Показываем данные при успешной авторизации
         }
 
-        // --- ФУНКЦИИ ПЕРЕХОДА ---
+        // --- ФУНКЦИИ ДЛЯ КНОПОК ---
         function goToSchedule() {
             window.location.href = SCHEDULE_URL;
         }
         
+        // НОВАЯ ФУНКЦИЯ ДЛЯ КНОПКИ "НАСТРОЙКИ"
         function goToSettings() {
             window.location.href = SETTINGS_URL;
         }
 
         // --- АВТОРИЗАЦИЯ ---
         async function checkUserAuthentication(isSilent = false) {
-            if (!isSilent) showLoading(); // Показываем общий лоадер
-            
+            if (!isSilent) showLoading();
             const email = localStorage.getItem('userEmail');
             const token = localStorage.getItem('authToken');
             
@@ -429,7 +403,7 @@
 
                 const data = await response.json();
                 if (data.status === 'success' && data.auth_ok) {
-                    setUserInfo(data.user.fullName, data.user.email); // Устанавливает имя/контакт и скрывает скелетон
+                    setUserInfo(data.user.fullName, data.user.email);
                     if (!isSilent) showToast("Авторизация", "Успешный вход.");
                     return true;
                 } else {
@@ -439,6 +413,9 @@
             } catch (error) {
                 console.error('Auth error:', error);
                 showToast("Ошибка сети", "Нет связи с сервером.");
+                // Разрешаем дальнейшую работу, чтобы показать скелетон, если данные не пришли,
+                // но при этом не блокируем приложение.
+                showProfileData(); 
                 return true; 
             } finally {
                 if (!isSilent) hideLoading();
@@ -455,6 +432,7 @@
 
         // --- API ТАБЛИЦЫ ---
         
+        // Возвращает полный объект данных (статус, info, canStart)
         async function fetchShiftStatusData(showLoader = true) {
             if (showLoader) showLoading();
             const userEmail = localStorage.getItem('userEmail');
@@ -465,7 +443,7 @@
                 const response = await fetch(urlWithParams, { method: 'GET', mode: 'cors', cache: 'no-cache' });
                 const data = await response.json();
                 if (data.status === 'success') {
-                    return data; 
+                    return data; // Возвращаем ВЕСЬ объект { shiftStatus, canStart, info }
                 } else {
                     console.error("Error fetching:", data.message);
                     return null;
@@ -511,6 +489,8 @@
          */
         function updateUI(data) {
             if (!data) return;
+            
+            showProfileData(); // Если данные пришли, показываем контент (скрываем скелетон)
 
             const status = data.shiftStatus; // 'Open' or 'Closed'
             const infoText = data.info;      // Сообщение (напр. "Слот начнется в 10:00")
@@ -518,12 +498,6 @@
 
             isSlotActive = (status === 'Open');
             canStartSlot = _canStart;
-            
-            // Если скелетон еще виден, скрыть его (на случай, если Auth пропустил)
-            if (skeletonLoader && !skeletonLoader.classList.contains('hidden')) {
-                 toggleProfileDataLoaded(true);
-            }
-
 
             if (isSlotActive) {
                 // --- СЛОТ ОТКРЫТ (АКТИВЕН) ---
@@ -618,7 +592,7 @@
             }
         }
 
-        // --- CONFIRMATIONS ---
+        // --- CONFIRMATIONS / MODALS ---
         function showStopSlotConfirmation() {
             if (!isSlotActive) return; 
             bsTitle.innerText = "Завершить слот?";
@@ -671,13 +645,10 @@
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', async () => {
-            // Скелетон виден по умолчанию, пока данные не загружены
-            
             const isAuthenticated = await checkUserAuthentication(false);
             if (!isAuthenticated) return;
 
             // Первичная загрузка статуса
-            // (Скелетон уже скрыт функцией setUserInfo, вызванной из checkUserAuthentication)
             const initialData = await fetchShiftStatusData(true); 
             updateUI(initialData);
             
@@ -694,4 +665,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
