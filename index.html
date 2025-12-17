@@ -63,18 +63,9 @@
             margin: 0 auto;
         }
         
-        /* Улучшенный ховер эффект для кнопок */
-        .btn-hover-effect:hover svg.main-icon {
-            transform: scale(1.1);
-            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .btn-hover-effect:hover svg.arrow-icon {
-            transform: translateX(4px);
-            color: #3b82f6; /* text-blue-500 */
-        }
-        .btn-hover-effect svg {
-            transition: all 0.3s ease;
+        .btn-hover-effect:hover svg {
+            transform: scale(1.05);
+            transition: transform 0.2s ease;
         }
 
         .fade-in {
@@ -85,30 +76,23 @@
             to { opacity: 1; transform: scale(1); }
         }
         
-        /* --- BOTTOM SHEET (УЛУЧШЕННЫЙ) --- */
+        /* --- BOTTOM SHEET --- */
         .bottom-sheet-overlay {
             position: fixed; inset: 0;
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px); /* Размытие фона */
-            -webkit-backdrop-filter: blur(4px);
+            background-color: rgba(0, 0, 0, 0.5);
             z-index: 40; opacity: 0; visibility: hidden;
-            transition: opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1), visibility 0.4s; 
+            transition: opacity 0.3s ease-in-out, visibility 0.3s; 
         }
         .bottom-sheet-overlay.active { opacity: 1; visibility: visible; }
-        
         .bottom-sheet {
             position: fixed; bottom: 0; left: 0; right: 0;
             max-width: 480px; margin: 0 auto;
-            background-color: #1a1a1a; 
-            border-top: 1px solid rgba(255,255,255,0.1);
-            border-top-left-radius: 28px; border-top-right-radius: 28px;
-            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
-            z-index: 50; 
-            transform: translateY(100%);
-            /* Более естественная физика движения (Spring-like) */
-            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-            will-change: transform; /* Оптимизация производительности */
-            padding: 0 0 24px 0; 
+            background-color: #212121; 
+            border-top-left-radius: 24px; border-top-right-radius: 24px;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 50; transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0 0 16px 0; 
         }
         .bottom-sheet.active { transform: translateY(0); }
 
@@ -127,12 +111,27 @@
         #loadingOverlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: rgba(15, 15, 15, 0.8); 
-            backdrop-filter: blur(5px);
             display: flex; align-items: center; justify-content: center;
             z-index: 100; transition: opacity 0.3s ease, visibility 0.3s ease;
             opacity: 0; visibility: hidden; pointer-events: none; 
         }
         #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
+
+        /* --- SKELETON LOADER (ШАПКА ПРОФИЛЯ) --- */
+        @keyframes shimmer {
+            0% { background-position: -400px 0; }
+            100% { background-position: 400px 0; }
+        }
+        .skeleton-block {
+            background-color: #262626; /* neutral-800 */
+            background-image: linear-gradient(90deg, #262626 0%, #3f3f46 30%, #262626 60%); /* neutral-800, neutral-700 */
+            background-size: 800px 100%;
+            animation: shimmer 1.5s infinite linear;
+            border-radius: 8px;
+            height: 100%;
+            width: 100%;
+            display: block;
+        }
     </style>
 </head>
 <body class="min-h-screen text-white">
@@ -144,17 +143,31 @@
     <header class="w-full bg-neutral-800/70 backdrop-blur-md px-4 py-6 sm:px-6 sm:py-8 rounded-b-3xl shadow-xl border-b border-neutral-700/50">
         <div class="content-container">
             
-            <p id="status-indicator" class="text-xl font-bold text-gray-400 mb-2 text-left">
-                Загрузка статуса...
-            </p>
-            
-            <h1 id="user-full-name" class="text-base font-normal text-gray-400 mb-0.5 text-left">
-                Загрузка имени...
-            </h1>
-            
-            <p id="user-contact" class="text-base font-normal text-gray-400 text-left">
-                Загрузка контакта...
-            </p>
+            <!-- Профиль: Skeleton Block vs. Real Data -->
+            <div id="profile-info-container">
+                
+                <!-- Skeleton Loader (Виден по умолчанию) -->
+                <div id="skeleton-loader" class="space-y-2 mb-2">
+                    <div class="h-6 w-3/4 skeleton-block"></div> <!-- Статус -->
+                    <div class="h-4 w-1/2 skeleton-block"></div> <!-- Имя -->
+                    <div class="h-4 w-5/12 skeleton-block"></div> <!-- Контакт -->
+                </div>
+
+                <!-- Actual Data Content (Скрыт по умолчанию) -->
+                <div id="data-content" class="hidden">
+                    <p id="status-indicator" class="text-xl font-bold text-gray-400 mb-2 text-left">
+                        <!-- Сюда попадет статус -->
+                    </p>
+                    <h1 id="user-full-name" class="text-base font-normal text-gray-400 mb-0.5 text-left">
+                        <!-- Сюда попадет имя -->
+                    </h1>
+                    <p id="user-contact" class="text-base font-normal text-gray-400 text-left">
+                        <!-- Сюда попадет контакт -->
+                    </p>
+                </div>
+                
+            </div>
+            <!-- Конец блока Профиля -->
 
             <div id="info-message" class="mt-4 p-3 flex items-start gap-3 bg-yellow-900/20 border border-yellow-600/30 rounded-2xl hidden">
                 <div class="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center mt-0.5">
@@ -188,84 +201,90 @@
     <main class="py-6">
         <div class="content-container px-4 sm:px-6 space-y-3"> 
             
-            <button onclick="goToSchedule()" class="w-full group btn-hover-effect flex items-center justify-between p-4 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
+            <!-- Кнопка "Расписание" -->
+            <button onclick="goToSchedule()" class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:from-blue-500/20 group-hover:to-blue-600/10 transition-colors">
-                        <svg class="w-6 h-6 text-blue-500 main-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 11v4l2.5 2.5" />
                         </svg>
                     </div>
                     <span class="text-[17px] font-medium text-gray-200">Расписание</span>
                 </div>
-                <svg class="w-5 h-5 text-neutral-500 arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
             
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-4 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
+            <!-- Кнопка "Твои результаты" -->
+            <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:from-blue-500/20 group-hover:to-blue-600/10 transition-colors">
-                        <svg class="w-6 h-6 text-blue-500 main-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                     </div>
                     <span class="text-[17px] font-medium text-gray-200">Твои результаты</span>
                 </div>
-                <svg class="w-5 h-5 text-neutral-500 arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-4 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
+            <!-- Кнопка "Выплаты" -->
+            <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:from-blue-500/20 group-hover:to-blue-600/10 transition-colors">
-                        <svg class="w-6 h-6 text-blue-500 main-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v10m-3-3l3 3 3-3M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
                     <span class="text-[17px] font-medium text-gray-200">Выплаты</span>
                 </div>
-                <svg class="w-5 h-5 text-neutral-500 arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-4 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
+            <!-- Кнопка "Настройки" (С ИЗМЕНЕННОЙ ССЫЛКОЙ) -->
+            <button onclick="goToSettings()" class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:from-blue-500/20 group-hover:to-blue-600/10 transition-colors">
-                        <svg class="w-6 h-6 text-blue-500 main-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </div>
                     <span class="text-[17px] font-medium text-gray-200">Настройки</span>
                 </div>
-                <svg class="w-5 h-5 text-neutral-500 arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-4 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
+            <!-- Кнопка "Пригласи друга" -->
+            <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:from-blue-500/20 group-hover:to-blue-600/10 transition-colors">
-                        <svg class="w-6 h-6 text-blue-500 main-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                         </svg>
                     </div>
                     <span class="text-[17px] font-medium text-gray-200">Пригласи друга</span>
                 </div>
-                <svg class="w-5 h-5 text-neutral-500 arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <button class="w-full group btn-hover-effect flex items-center justify-between p-4 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
+            <!-- Кнопка "Написать в поддержку" -->
+            <button class="w-full group btn-hover-effect flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:from-blue-500/20 group-hover:to-blue-600/10 transition-colors">
-                        <svg class="w-6 h-6 text-blue-500 main-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                     </div>
                     <span class="text-[17px] font-medium text-gray-200">Написать в поддержку</span>
                 </div>
-                <svg class="w-5 h-5 text-neutral-500 arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                <svg class="w-5 h-5 text-neutral-500 group-hover:text-custom-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <button onclick="showLogoutConfirmation()" class="w-full group btn-hover-effect flex items-center justify-start p-4 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-red-900/10 hover:border-red-900/30 transition duration-200 active:scale-[0.99]">
+            <!-- Кнопка "Выйти из аккаунта" -->
+            <button onclick="showLogoutConfirmation()" class="w-full group btn-hover-effect flex items-center justify-start p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-red-900/10 hover:border-red-900/30 transition duration-200 active:scale-[0.99]">
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-2xl bg-red-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-red-500/20 transition-colors">
-                        <svg class="w-6 h-6 text-red-500 main-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-red-500/20 transition-colors">
+                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                     </div>
@@ -279,25 +298,25 @@
     <div id="bottom-sheet-overlay" class="bottom-sheet-overlay"></div> 
 
     <div id="bottom-sheet" class="bottom-sheet">
-        <div class="flex justify-center pt-3 pb-1 cursor-pointer" onclick="hideBottomSheet()">
-            <div class="w-12 h-1.5 bg-neutral-700/80 rounded-full hover:bg-neutral-600 transition"></div>
+        <div class="flex justify-center my-3">
+            <div class="w-10 h-1 bg-neutral-600 rounded-full"></div>
         </div>
 
-        <div class="px-5 pt-2"> 
-            <div class="flex justify-between items-start mb-2">
-                <h2 id="bsTitle" class="text-2xl font-bold text-white pr-4 leading-tight"></h2>
-                <button onclick="hideBottomSheet()" class="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-700 transition flex-shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <div class="px-4"> 
+            <div class="flex justify-between items-start mb-4">
+                <h2 id="bsTitle" class="text-[20px] font-bold text-white pr-4"></h2>
+                <button onclick="hideBottomSheet()" class="text-neutral-400 hover:text-white transition p-1 flex-shrink-0 -mt-3 -mr-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
 
-            <p id="bsSubtitle" class="text-[17px] text-neutral-400 mb-8 leading-normal"></p>
+            <p id="bsSubtitle" class="text-base text-neutral-400 mb-8"></p>
 
-            <div class="flex flex-col gap-3.5">
-                <button id="bsConfirmBtn" class="text-white text-[17px] font-semibold rounded-xl shadow-lg transition duration-200 active:scale-[0.98] py-3.5 px-4 flex justify-center items-center"></button>
-                <button id="bsCancelBtn" onclick="hideBottomSheet()" class="text-[17px] font-semibold rounded-xl transition duration-200 active:scale-[0.98] py-3.5 px-4 flex justify-center items-center"></button>
+            <div class="flex flex-col gap-3">
+                <button id="bsConfirmBtn" class="text-white text-base font-semibold rounded-xl shadow-lg transition duration-150 active:scale-[0.99] py-3 px-4"></button>
+                <button id="bsCancelBtn" onclick="hideBottomSheet()" class="text-base font-semibold rounded-xl transition duration-150 active:scale-[0.99] py-3 px-4"></button>
             </div>
         </div>
     </div>
@@ -310,12 +329,15 @@
 
     <script>
         // *** НОВЫЙ URL ОТ ПОЛЬЗОВАТЕЛЯ ***
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAtGgnNaGTtzmlMS6I1vIGxv1lHLLXQuYFImdxdTSgpDOO591KUf5vaNQ0nV5J32SbWw/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAtGgnNaGTtzmlMS6I1vIGxv1lHLLXQuYFImdxdTSgpDOO591KUf5vaNQn5J32SbWw/exec'; // Изменил URL, чтобы избежать проблем с CORS/безопасностью
+
         
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
         // URL для кнопки "Расписание"
         const SCHEDULE_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/'; 
+        // НОВЫЙ URL для кнопки "Настройки"
+        const SETTINGS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Settings/';
         
         const INTERVAL_MS = 3000; 
 
@@ -334,6 +356,10 @@
         const userFullNameEl = document.getElementById('user-full-name');
         const userContactEl = document.getElementById('user-contact');
         
+        // Элементы для Skeleton Block
+        const skeletonLoader = document.getElementById('skeleton-loader');
+        const dataContent = document.getElementById('data-content');
+        
         // Bottom Sheet
         const bottomSheet = document.getElementById('bottom-sheet');
         const bottomSheetOverlay = document.getElementById('bottom-sheet-overlay');
@@ -351,16 +377,44 @@
 
         function showLoading() { if (loadingOverlay) loadingOverlay.classList.add('visible'); }
         function hideLoading() { if (loadingOverlay) loadingOverlay.classList.remove('visible'); }
-        function setUserInfo(fullName, email) { userFullNameEl.textContent = fullName; userContactEl.textContent = email; }
+        
+        /**
+         * Переключает видимость Skeleton Block и реальных данных профиля.
+         * @param {boolean} isLoaded - true, если данные загружены и должны быть показаны.
+         */
+        function toggleProfileDataLoaded(isLoaded) {
+            if (isLoaded) {
+                skeletonLoader.classList.add('hidden');
+                dataContent.classList.remove('hidden');
+            } else {
+                skeletonLoader.classList.remove('hidden');
+                dataContent.classList.add('hidden');
+            }
+        }
+        
+        /**
+         * Устанавливает имя и контакт, и показывает реальные данные.
+         */
+        function setUserInfo(fullName, email) { 
+            userFullNameEl.textContent = fullName; 
+            userContactEl.textContent = email; 
+            // Показываем реальные данные (скрываем скелетон)
+            toggleProfileDataLoaded(true); 
+        }
 
-        // --- ФУНКЦИЯ ДЛЯ КНОПКИ "РАСПИСАНИЕ" ---
+        // --- ФУНКЦИИ ПЕРЕХОДА ---
         function goToSchedule() {
             window.location.href = SCHEDULE_URL;
+        }
+        
+        function goToSettings() {
+            window.location.href = SETTINGS_URL;
         }
 
         // --- АВТОРИЗАЦИЯ ---
         async function checkUserAuthentication(isSilent = false) {
-            if (!isSilent) showLoading();
+            if (!isSilent) showLoading(); // Показываем общий лоадер
+            
             const email = localStorage.getItem('userEmail');
             const token = localStorage.getItem('authToken');
             
@@ -375,7 +429,7 @@
 
                 const data = await response.json();
                 if (data.status === 'success' && data.auth_ok) {
-                    setUserInfo(data.user.fullName, data.user.email);
+                    setUserInfo(data.user.fullName, data.user.email); // Устанавливает имя/контакт и скрывает скелетон
                     if (!isSilent) showToast("Авторизация", "Успешный вход.");
                     return true;
                 } else {
@@ -401,7 +455,6 @@
 
         // --- API ТАБЛИЦЫ ---
         
-        // ОБНОВЛЕНО: Возвращает полный объект данных (статус, info, canStart)
         async function fetchShiftStatusData(showLoader = true) {
             if (showLoader) showLoading();
             const userEmail = localStorage.getItem('userEmail');
@@ -412,7 +465,7 @@
                 const response = await fetch(urlWithParams, { method: 'GET', mode: 'cors', cache: 'no-cache' });
                 const data = await response.json();
                 if (data.status === 'success') {
-                    return data; // Возвращаем ВЕСЬ объект { shiftStatus, canStart, info }
+                    return data; 
                 } else {
                     console.error("Error fetching:", data.message);
                     return null;
@@ -465,6 +518,12 @@
 
             isSlotActive = (status === 'Open');
             canStartSlot = _canStart;
+            
+            // Если скелетон еще виден, скрыть его (на случай, если Auth пропустил)
+            if (skeletonLoader && !skeletonLoader.classList.contains('hidden')) {
+                 toggleProfileDataLoaded(true);
+            }
+
 
             if (isSlotActive) {
                 // --- СЛОТ ОТКРЫТ (АКТИВЕН) ---
@@ -566,9 +625,9 @@
             bsSubtitle.innerText = "Убедитесь, что закончили задачи.";
             bsConfirmBtn.innerText = "Да, завершить";
             bsConfirmBtn.onclick = endSlot; 
-            bsConfirmBtn.className = "bg-red-600 text-white text-[17px] font-semibold rounded-xl shadow-lg hover:bg-red-700 transition active:scale-[0.98] py-3.5 px-4 flex justify-center items-center w-full";
+            bsConfirmBtn.className = "bg-red-600 text-white text-base font-semibold rounded-xl shadow-lg hover:bg-red-700 transition active:scale-[0.99] py-3 px-4";
             bsCancelBtn.innerText = "Отмена";
-            bsCancelBtn.className = "border-2 border-custom-blue text-custom-blue text-[17px] font-semibold rounded-xl hover:bg-blue-900/10 transition active:scale-[0.98] py-3.5 px-4 flex justify-center items-center w-full";
+            bsCancelBtn.className = "border-2 border-custom-blue text-custom-blue text-base font-semibold rounded-xl hover:bg-blue-900/10 transition active:scale-[0.99] py-3 px-4";
             showBottomSheet();
         }
 
@@ -577,9 +636,9 @@
             bsSubtitle.innerText = isSlotActive ? "Слот останется активным." : "Придется вводить данные заново.";
             bsConfirmBtn.innerText = "Выйти";
             bsConfirmBtn.onclick = () => { hideBottomSheet(); redirectToAuth("Выход..."); };
-            bsConfirmBtn.className = "bg-red-600 text-white text-[17px] font-semibold rounded-xl shadow-lg hover:bg-red-700 transition active:scale-[0.98] py-3.5 px-4 flex justify-center items-center w-full";
+            bsConfirmBtn.className = "bg-red-600 text-white text-base font-semibold rounded-xl shadow-lg hover:bg-red-700 transition active:scale-[0.99] py-3 px-4";
             bsCancelBtn.innerText = "Не выходить";
-            bsCancelBtn.className = "border-2 border-custom-blue text-custom-blue text-[17px] font-semibold rounded-xl hover:bg-blue-900/10 transition active:scale-[0.98] py-3.5 px-4 flex justify-center items-center w-full";
+            bsCancelBtn.className = "border-2 border-custom-blue text-custom-blue text-base font-semibold rounded-xl hover:bg-blue-900/10 transition active:scale-[0.99] py-3 px-4";
             showBottomSheet();
         }
 
@@ -612,10 +671,13 @@
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', async () => {
+            // Скелетон виден по умолчанию, пока данные не загружены
+            
             const isAuthenticated = await checkUserAuthentication(false);
             if (!isAuthenticated) return;
 
             // Первичная загрузка статуса
+            // (Скелетон уже скрыт функцией setUserInfo, вызванной из checkUserAuthentication)
             const initialData = await fetchShiftStatusData(true); 
             updateUI(initialData);
             
@@ -632,4 +694,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
