@@ -11,14 +11,8 @@
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: {
-                sans: ['Inter', 'sans-serif'],
-            },
-            colors: {
-              'custom-blue': '#0000FF', 
-              dark: '#0a0a0a', 
-              card: '#171717', 
-            }
+            fontFamily: { sans: ['Inter', 'sans-serif'] },
+            colors: { 'custom-blue': '#0000FF', dark: '#0a0a0a', card: '#171717' }
           }
         }
       }
@@ -28,88 +22,49 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #0F0F0F;
-            padding: 0;
-            margin: 0;
-            user-select: none; 
-            -webkit-user-select: none; 
+            padding: 0; margin: 0;
+            user-select: none; -webkit-user-select: none;
             overscroll-behavior-y: none; 
         }
-        
         .bg-noise {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: -1; opacity: 0.04;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
-
         .glass-panel {
             background: rgba(23, 23, 23, 0.7);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.06);
         }
-
         .active-scale:active { transform: scale(0.96); }
         ::-webkit-scrollbar { width: 0; }
         .content-container { max-width: 960px; margin: 0 auto; }
-        
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         
-        /* BOTTOM SHEET */
+        /* Bottom Sheet */
         .bottom-sheet-overlay {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 40;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease-in-out, visibility 0.3s; 
+            position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.5);
+            z-index: 40; opacity: 0; visibility: hidden; transition: 0.3s;
         }
         .bottom-sheet-overlay.active { opacity: 1; visibility: visible; }
         .bottom-sheet {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-width: 480px; 
-            margin: 0 auto;
-            background-color: #212121; 
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
-            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
-            z-index: 50;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 0 0 16px 0; 
+            position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto;
+            background-color: #212121; border-top-left-radius: 24px; border-top-right-radius: 24px;
+            z-index: 50; transform: translateY(100%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .bottom-sheet.active { transform: translateY(0); }
 
-        /* TOAST */
-        @keyframes slideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes fadeOut { from { transform: scale(1); opacity: 1; } to { transform: scale(0.95); opacity: 0; } }
-        .toast-enter { animation: slideIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-        .toast-leave { animation: fadeOut 0.3s ease-out forwards; }
-
-        /* SPINNER */
-        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; transform-origin: center center; }
+        /* Loader */
+        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; }
         .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
         @keyframes rotate { 100% { transform: rotate(360deg); } }
-        @keyframes dash {
-            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
-            50% { stroke-dasharray: 70, 150; stroke-dashoffset: -25px; }
-            100% { stroke-dasharray: 70, 150; stroke-dashoffset: -125px; }
-        }
-        
+        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 70, 150; stroke-dashoffset: -25px; } 100% { stroke-dasharray: 70, 150; stroke-dashoffset: -125px; } }
         #loadingOverlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: rgba(15, 15, 15, 0.8); 
-            display: flex; align-items: center; justify-content: center;
-            z-index: 100; transition: opacity 0.3s ease, visibility 0.3s ease;
-            opacity: 0; visibility: hidden; pointer-events: none; 
+            background-color: rgba(15, 15, 15, 0.8); display: flex; align-items: center; justify-content: center;
+            z-index: 100; transition: 0.3s; opacity: 0; visibility: hidden; pointer-events: none;
         }
         #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
     </style>
@@ -117,34 +72,26 @@
 <body class="min-h-screen text-white">
 
     <div class="bg-noise"></div>
-
     <div id="toast-container" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-3 w-full max-w-sm pointer-events-none px-4"></div>
     
-    <header class="w-full bg-neutral-800/70 backdrop-blur-md px-4 py-6 sm:px-6 sm:py-8 rounded-b-3xl shadow-xl border-b border-neutral-700/50">
+    <header class="w-full bg-neutral-800/70 backdrop-blur-md px-4 py-6 rounded-b-3xl border-b border-neutral-700/50">
         <div class="content-container">
-            <p id="status-indicator" class="text-xl font-bold text-white mb-2 text-left">Загрузка статуса...</p>
-            <h1 id="user-full-name" class="text-base font-normal text-gray-400 mb-0.5 text-left text-ellipsis overflow-hidden">Загрузка имени...</h1>
-            <p id="user-contact" class="text-base font-normal text-gray-400 text-left">Загрузка контакта...</p>
+            <p id="status-indicator" class="text-xl font-bold mb-2">Загрузка...</p>
+            <h1 id="user-full-name" class="text-base font-normal text-gray-400">...</h1>
+            <p id="user-contact" class="text-base font-normal text-gray-400">...</p>
 
             <div id="info-message" class="mt-4 p-3 flex items-start gap-3 bg-yellow-900/20 border border-yellow-600/30 rounded-2xl">
-                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center mt-0.5">
-                    <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.346 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>
-                </div>
-                <p class="text-sm font-medium text-yellow-100/90 leading-relaxed pt-1">
-                    Открой <span class="text-yellow-400">«Расписание»</span> и укажи время. Смену можно открыть за 1 час до начала.
+                <p class="text-sm font-medium text-yellow-100/90">
+                    Открой <span class="text-yellow-400">«Расписание»</span> и укажи время. Слот можно открыть за 1 час до начала.
                 </p>
             </div>
 
             <div class="mt-5 flex gap-3 h-[52px]">
-                <button id="close-slot-btn" onclick="showStopSlotConfirmation()" class="hidden w-[52px] h-full flex-shrink-0 border-2 border-red-500 rounded-xl items-center justify-center text-red-500 hover:bg-red-500/20 transition duration-150 active:scale-95 fade-in">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M13 2L3 14h9v8l10-12h-9z"></path>
-                    </svg>
+                <button id="close-slot-btn" onclick="showStopSlotConfirmation()" class="hidden w-[52px] h-full border-2 border-red-500 rounded-xl items-center justify-center text-red-500 active:scale-95 fade-in">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2L3 14h9v8l10-12h-9z"></path></svg>
                 </button>
 
-                <button id="main-action-btn" class="flex-1 bg-custom-blue text-white text-base font-semibold rounded-xl shadow-lg transition duration-150 active:scale-[0.98] flex justify-center items-center gap-2 opacity-50 cursor-not-allowed">
+                <button id="main-action-btn" onclick="handleMainAction()" class="flex-1 bg-custom-blue text-white text-base font-semibold rounded-xl shadow-lg active:scale-[0.98] flex justify-center items-center gap-2 disabled:bg-neutral-700 disabled:text-gray-500 disabled:cursor-not-allowed">
                     <span id="main-btn-text">Начать слот</span>
                     <svg id="main-btn-icon" class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path id="main-btn-icon-path" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -155,240 +102,150 @@
     </header>
 
     <main class="py-6">
-        <div class="content-container px-4 sm:px-6 space-y-3"> 
-            <button class="w-full group flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
-                    <span class="text-[17px] font-medium text-gray-200">Расписание</span>
-                </div>
+        <div class="content-container px-4 space-y-3"> 
+            <button class="w-full flex items-center justify-between p-4 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl active:scale-[0.99]">
+                <div class="flex items-center gap-4"><span class="text-[17px] font-medium">Расписание</span></div>
                 <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
             </button>
-            <button class="w-full group flex items-center justify-between p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-neutral-800 transition duration-200 active:scale-[0.99]">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg></div>
-                    <span class="text-[17px] font-medium text-gray-200">Твои результаты</span>
-                </div>
-                <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
-            </button>
-            <button onclick="showLogoutConfirmation()" class="w-full group flex items-center justify-start p-3.5 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl shadow-sm hover:bg-red-900/10 transition duration-200 active:scale-[0.99]">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg></div>
-                    <span class="text-[17px] font-medium text-red-400">Выйти из аккаунта</span>
-                </div>
+            <button class="w-full flex items-center justify-between p-4 bg-neutral-800/60 border border-neutral-700/40 rounded-2xl active:scale-[0.99]">
+                <div class="flex items-center gap-4"><span class="text-[17px] font-medium text-red-400" onclick="showLogoutConfirmation()">Выйти из аккаунта</span></div>
             </button>
         </div>
     </main>
     
     <div id="bottom-sheet-overlay" class="bottom-sheet-overlay"></div> 
     <div id="bottom-sheet" class="bottom-sheet">
-        <div class="flex justify-center my-3"><div class="w-10 h-1 bg-neutral-600 rounded-full"></div></div>
-        <div class="px-4"> 
-            <div class="flex justify-between items-start mb-4">
-                <h2 id="bsTitle" class="text-[20px] font-bold text-white pr-4"></h2>
-                <button onclick="hideBottomSheet()" class="text-neutral-400 hover:text-white transition p-1 flex-shrink-0 -mt-3 -mr-3">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-            </div>
-            <p id="bsSubtitle" class="text-base text-neutral-400 mb-8"></p>
+        <div class="p-6">
+            <h2 id="bsTitle" class="text-xl font-bold mb-2"></h2>
+            <p id="bsSubtitle" class="text-neutral-400 mb-6"></p>
             <div class="flex flex-col gap-3">
-                <button id="bsConfirmBtn" class="text-white text-base font-semibold rounded-xl shadow-lg transition duration-150 py-3 px-4"></button>
-                <button id="bsCancelBtn" onclick="hideBottomSheet()" class="text-base font-semibold rounded-xl border-2 border-custom-blue text-custom-blue py-3 px-4 transition"></button>
+                <button id="bsConfirmBtn" class="py-3 rounded-xl font-bold"></button>
+                <button onclick="hideBottomSheet()" class="py-3 rounded-xl font-bold bg-neutral-700">Отмена</button>
             </div>
         </div>
     </div>
     
-    <div id="loadingOverlay">
-        <svg id="loader" class="spinner" viewBox="25 25 50 50"><circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10" /></svg>
-    </div>
+    <div id="loadingOverlay"><svg class="spinner" viewBox="25 25 50 50"><circle class="path" cx="50" cy="50" r="20" fill="none"/></svg></div>
 
     <script>
-        // *** КОНФИГУРАЦИЯ ***
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7TuUwyjotJU0DlFweH_-5mRqlZJHqYCmyCDQ2d7nHhbF0IRia5cA1EB86zSj77FkXzQ/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzp7G3ES81qgUzs10lEYgXV4vD5CLk90pW7Hs29tCQmI-r2OKY9gxUq6XNcQov4moGHIw/exec';
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
-        const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
-        const INTERVAL_MS = 5000;
+        const AUTH_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/';
 
         let isSlotActive = false;
-        let canOpenSlot = false;
-        let notificationTimeout;
+        let canStartSlot = false;
 
-        // DOM Elements
-        const statusIndicator = document.getElementById('status-indicator'); 
-        const infoMessage = document.getElementById('info-message'); 
+        // Элементы
         const mainBtn = document.getElementById('main-action-btn');
         const mainBtnText = document.getElementById('main-btn-text');
-        const closeSlotBtn = document.getElementById('close-slot-btn');
-        const mainBtnIconPath = document.getElementById('main-btn-icon-path'); 
-        const userFullNameEl = document.getElementById('user-full-name');
-        const userContactEl = document.getElementById('user-contact');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const bottomSheet = document.getElementById('bottom-sheet');
-        const bottomSheetOverlay = document.getElementById('bottom-sheet-overlay');
-        const bsTitle = document.getElementById('bsTitle');
-        const bsSubtitle = document.getElementById('bsSubtitle');
-        const bsConfirmBtn = document.getElementById('bsConfirmBtn');
-        const toastContainer = document.getElementById('toast-container');
+        const statusInd = document.getElementById('status-indicator');
+        const closeBtn = document.getElementById('close-slot-btn');
 
-        const lightningPathD = "M13 10V3L4 14h7v7l9-11h-7z"; 
-        const arrowPathD = "M9 5l7 7-7 7"; 
+        function showLoading() { document.getElementById('loadingOverlay').classList.add('visible'); }
+        function hideLoading() { document.getElementById('loadingOverlay').classList.remove('visible'); }
 
-        function showLoading() { loadingOverlay.classList.add('visible'); }
-        function hideLoading() { loadingOverlay.classList.remove('visible'); }
-
-        async function checkUserAuthentication(isSilent = false) {
-            if (!isSilent) showLoading();
+        async function syncData() {
             const email = localStorage.getItem('userEmail');
-            const token = localStorage.getItem('authToken');
-            if (!email || !token) { redirectToAuth(); return false; }
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ auth: true, email: email, token: token })
-                });
-                const data = await response.json();
-                if (data.status === 'success' && data.auth_ok) {
-                    userFullNameEl.textContent = data.user.fullName;
-                    userContactEl.textContent = data.user.email;
-                    return true;
-                }
-                redirectToAuth(); return false;
-            } catch (e) { return true; } finally { if (!isSilent) hideLoading(); }
-        }
+            if (!email) { window.location.href = AUTH_URL; return; }
 
-        async function syncState(showLoader = false) {
-            if (showLoader) showLoading();
-            const email = localStorage.getItem('userEmail');
             try {
-                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(email)}`);
-                const data = await response.json();
+                const resp = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(email)}`);
+                const data = await resp.json();
+
                 if (data.status === 'success') {
                     isSlotActive = (data.shiftStatus === 'Open');
-                    canOpenSlot = data.canOpen;
+                    canStartSlot = data.canStart;
                     updateUI();
                 }
-            } catch (e) { console.error('Sync error:', e); } finally { if (showLoader) hideLoading(); }
+            } catch (e) { console.error("Sync error", e); }
         }
 
         function updateUI() {
             if (isSlotActive) {
-                statusIndicator.textContent = "Слот активен";
-                statusIndicator.className = "text-xl font-bold text-green-400 mb-2 text-left";
-                infoMessage.classList.add('hidden');
-                mainBtnText.textContent = 'Перейти к задачам';
-                mainBtnIconPath.setAttribute('d', arrowPathD);
-                closeSlotBtn.classList.remove('hidden', 'flex');
-                closeSlotBtn.classList.add('flex');
-                mainBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                mainBtn.onclick = () => window.location.href = TASKS_URL;
+                statusInd.textContent = "Слот активен";
+                statusInd.className = "text-xl font-bold text-green-400 mb-2";
+                mainBtnText.textContent = "Перейти к задачам";
+                mainBtn.disabled = false;
+                closeBtn.classList.remove('hidden');
+                closeBtn.classList.add('flex');
             } else {
-                statusIndicator.textContent = "Нет подтверждённых слотов";
-                statusIndicator.className = "text-xl font-bold text-white mb-2 text-left";
-                infoMessage.classList.remove('hidden');
-                mainBtnText.textContent = 'Начать слот';
-                mainBtnIconPath.setAttribute('d', lightningPathD);
-                closeSlotBtn.classList.add('hidden');
-                closeSlotBtn.classList.remove('flex');
-                
-                if (canOpenSlot) {
-                    mainBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    mainBtn.onclick = startSlot;
-                } else {
-                    mainBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    mainBtn.onclick = () => showToast("Доступ закрыт", "Слот можно открыть только по расписанию.");
-                }
+                statusInd.textContent = canStartSlot ? "Слот готов к открытию" : "Нет подтверждённых слотов";
+                statusInd.className = "text-xl font-bold text-white mb-2";
+                mainBtnText.textContent = canStartSlot ? "Начать слот" : "Слот недоступен";
+                mainBtn.disabled = !canStartSlot;
+                closeBtn.classList.add('hidden');
+                closeBtn.classList.remove('flex');
             }
         }
 
-        async function startSlot() {
-            showLoading();
-            const email = localStorage.getItem('userEmail');
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+        async function handleMainAction() {
+            if (isSlotActive) {
+                window.location.href = TASKS_URL;
+            } else {
+                showLoading();
+                const email = localStorage.getItem('userEmail');
+                const resp = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ newStatus: 'Open', userEmail: email })
                 });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    isSlotActive = true;
-                    updateUI();
-                    showToast("Успех", "Смена открыта!");
-                } else {
-                    showToast("Ошибка", data.message || "Не удалось открыть слот");
-                }
-            } catch (e) { showToast("Ошибка сети", "Нет связи с сервером"); }
-            finally { hideLoading(); }
+                const res = await resp.json();
+                hideLoading();
+                if (res.status === 'success') syncData();
+            }
         }
 
         async function endSlot() {
             showLoading();
             const email = localStorage.getItem('userEmail');
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ newStatus: 'Closed', userEmail: email })
-                });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    isSlotActive = false;
-                    updateUI();
-                    hideBottomSheet();
-                    showToast("Завершено", "Смена закрыта.");
-                }
-            } catch (e) { showToast("Ошибка сети", "Нет связи"); }
-            finally { hideLoading(); }
+            const resp = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ newStatus: 'Closed', userEmail: email })
+            });
+            hideLoading();
+            hideBottomSheet();
+            syncData();
         }
 
-        function redirectToAuth(m) { 
-            localStorage.clear(); 
-            window.location.href = LOGOUT_URL; 
-        }
-
-        function showToast(title, message) {
-            const toast = document.createElement('div');
-            const isSuccess = title.includes("Успех") || title.includes("открыта") || title.includes("Завершено");
-            const isError = title.includes("Ошибка") || title.includes("закрыта") || title.includes("Доступ");
-            let bgClass = isSuccess ? 'bg-green-600/10 border-green-500/30' : isError ? 'bg-red-600/10 border-red-500/30' : 'bg-neutral-700/60 border-neutral-600/30';
-            let iconColor = isSuccess ? 'text-green-500' : isError ? 'text-red-500' : 'text-custom-blue';
-            toast.className = `toast-enter glass-panel ${bgClass} border rounded-xl shadow-2xl flex items-center gap-3 px-4 py-3 min-w-[300px] pointer-events-auto cursor-pointer relative text-white`;
-            toast.innerHTML = `<div class="w-8 h-8 rounded-full ${iconColor} flex items-center justify-center flex-shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div><div><span class="font-semibold text-sm">${title}</span><p class="text-xs text-neutral-400 mt-0.5">${message}</p></div>`;
-            if (notificationTimeout) clearTimeout(notificationTimeout);
-            toastContainer.innerHTML = '';
-            toastContainer.appendChild(toast);
-            const removeToast = () => { toast.classList.add('toast-leave'); setTimeout(() => toast.remove(), 300); };
-            toast.onclick = removeToast;
-            notificationTimeout = setTimeout(removeToast, 4000);
-        }
-
-        function showBottomSheet() { bottomSheetOverlay.classList.add('active'); bottomSheet.classList.add('active'); }
-        function hideBottomSheet() { bottomSheetOverlay.classList.remove('active'); bottomSheet.classList.remove('active'); }
         function showStopSlotConfirmation() {
-            bsTitle.innerText = "Завершить слот?";
-            bsSubtitle.innerText = "Убедитесь, что вы закончили текущие задачи.";
-            bsConfirmBtn.innerText = "Да, завершить";
-            bsConfirmBtn.onclick = endSlot;
-            bsConfirmBtn.className = "bg-red-600 text-white text-base font-semibold rounded-xl shadow-lg py-3 px-4 active:scale-95";
-            showBottomSheet();
-        }
-        function showLogoutConfirmation() {
-            bsTitle.innerText = "Выйти из аккаунта?";
-            bsSubtitle.innerText = isSlotActive ? "Активный слот сохранится в системе." : "Придётся войти заново.";
-            bsConfirmBtn.innerText = "Выйти";
-            bsConfirmBtn.onclick = () => { hideBottomSheet(); redirectToAuth(); };
-            bsConfirmBtn.className = "bg-red-600 text-white text-base font-semibold rounded-xl shadow-lg py-3 px-4 active:scale-95";
+            document.getElementById('bsTitle').innerText = "Завершить работу?";
+            document.getElementById('bsSubtitle').innerText = "Вы уверены, что хотите закрыть текущую смену?";
+            const conf = document.getElementById('bsConfirmBtn');
+            conf.innerText = "Завершить";
+            conf.className = "py-3 rounded-xl font-bold bg-red-600 text-white";
+            conf.onclick = endSlot;
             showBottomSheet();
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const auth = await checkUserAuthentication(false);
-            if (auth) {
-                await syncState(true);
-                setInterval(() => syncState(false), INTERVAL_MS);
-            }
-            document.addEventListener('contextmenu', e => e.preventDefault());
+        function showBottomSheet() {
+            document.getElementById('bottom-sheet-overlay').classList.add('active');
+            document.getElementById('bottom-sheet').classList.add('active');
+        }
+
+        function hideBottomSheet() {
+            document.getElementById('bottom-sheet-overlay').classList.remove('active');
+            document.getElementById('bottom-sheet').classList.remove('active');
+        }
+
+        function showLogoutConfirmation() {
+            document.getElementById('bsTitle').innerText = "Выйти?";
+            document.getElementById('bsSubtitle').innerText = "Вам придется снова вводить данные для входа.";
+            const conf = document.getElementById('bsConfirmBtn');
+            conf.innerText = "Выйти";
+            conf.className = "py-3 rounded-xl font-bold bg-red-600 text-white";
+            conf.onclick = () => { localStorage.clear(); window.location.href = AUTH_URL; };
+            showBottomSheet();
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            const email = localStorage.getItem('userEmail');
+            const name = localStorage.getItem('userFullName') || "Пользователь";
+            document.getElementById('user-full-name').textContent = name;
+            document.getElementById('user-contact').textContent = email;
+            
+            syncData();
+            setInterval(syncData, 5000); // Синхронизация каждые 5 сек
         });
-        bottomSheetOverlay.onclick = hideBottomSheet;
     </script>
 </body>
 </html>
