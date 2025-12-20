@@ -16,8 +16,9 @@
             min-height: 100vh;
             margin: 0;
             padding-bottom: 100px; 
-            overflow: hidden;
+            overflow-x: hidden;
             -webkit-user-select: none; 
+            -ms-user-select: none; 
             user-select: none; 
             overscroll-behavior-y: none;
         }
@@ -33,6 +34,7 @@
             background-color: #0000FF;
             color: #FFFFFF; 
         }
+        .nav-item.active svg { color: #FFFFFF; }
         .nav-item svg { color: #C4C7C5; transition: color 0.2s; }
         
         .nav-bar {
@@ -43,29 +45,34 @@
 
         .calendar-item { transition: all 0.2s ease; border: 1px solid transparent; }
         .calendar-item.selected-border { border: 1px solid #0000FF; background-color: rgba(0, 0, 255, 0.1); }
+        .calendar-item:active { transform: scale(0.95); }
         
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Skeleton Animation */
-        .skeleton {
-            background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
-            background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
-        }
-        @keyframes skeleton-loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
+        .empty-state-icon { color: #0000FF; width: 80px; height: 80px; }
 
         .close-shift-button {
             height: 50px; width: 50px; 
             background-color: #1a1a1a; 
             border: 1px solid #0000FF; 
             border-radius: 6px; 
+            flex-shrink: 0;
             position: relative; 
             display: flex; justify-content: center; align-items: center;
             cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .close-shift-button:active { transform: scale(0.95); }
+        .close-shift-button::before {
+            content: ''; position: absolute; top: 8px; left: 50%; 
+            transform: translateX(-50%); width: 2px; height: 15px; 
+            background-color: #0000FF; border-radius: 2px; 
+        }
+        .close-shift-button::after {
+            content: ''; position: absolute; width: 30px; height: 30px; 
+            border: 2px solid #0000FF; border-top-color: transparent; 
+            border-radius: 50%; bottom: 8px;
         }
 
         .bottom-sheet-overlay {
@@ -76,26 +83,60 @@
         .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
         .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
 
-        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; }
-        .path { stroke: #0000FF; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+        #notification-area {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 480px; z-index: 60;
+            pointer-events: none; display: flex; flex-direction: column; align-items: center;
+        }
+
+        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; transform-origin: center center; }
+        .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
         @keyframes rotate { 100% { transform: rotate(360deg); } }
         @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 70, 150; stroke-dashoffset: -25px; } 100% { stroke-dasharray: 70, 150; stroke-dashoffset: -125px; } }
         
         #loadingOverlay {
-            position: fixed; inset: 0; background-color: rgba(15, 15, 15, 0.85); 
-            display: flex; align-items: center; justify-content: center;
-            z-index: 100; opacity: 0; visibility: hidden; pointer-events: none; transition: 0.3s;
+            position: fixed; inset: 0;
+            background-color: rgba(15, 15, 15, 0.85); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; transition: opacity 0.3s ease, visibility 0.3s ease;
+            opacity: 0; visibility: hidden; pointer-events: none; 
         }
         #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
 
-        .fade-in { animation: fadeIn 0.3s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Skeleton Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .animate-pulse-custom {
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Стили для карточки */
+        .shift-card {
+            background-color: #1A1A1A;
+            transition: transform 0.2s ease, background-color 0.2s;
+        }
+        .shift-card:active {
+            transform: scale(0.98);
+            background-color: #252525;
+        }
+        
+        /* Центрирование заглушки */
+        .centered-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            min-height: 40vh;
+        }
     </style>
 </head>
-<body class="text-white">
+<body class="text-white flex flex-col">
 
     <div id="loadingOverlay">
-        <svg class="spinner" viewBox="25 25 50 50">
+        <svg id="loader" class="spinner" viewBox="25 25 50 50">
             <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10" />
         </svg>
     </div>
@@ -105,145 +146,286 @@
     <header class="w-full header-style sticky top-0 z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex justify-between items-center h-8 mb-4">
-                <h1 class="text-lg font-bold">Главный экран</h1>
-                <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-[#0000FF]">
-                    <i data-lucide="circle-user" class="w-6 h-6 text-[#0000FF]"></i>
+                <h1 class="text-lg font-bold text-white" id="screen-title">Главный экран</h1>
+                <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-solid hover:bg-white/10 transition-colors" style="border-color: #0000FF;">
+                    <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF;"></i>
                 </button>
             </div>
 
             <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide">
-                </div>
+            </div>
 
             <div id="shift-action-container" class="w-full mt-4 flex">
                 <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
-                <button id="main-action-button" class="w-full text-center text-white font-bold transition-all duration-200 shadow-lg disabled:opacity-30 disabled:grayscale" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
-                    </button>
+                <button id="main-action-button" class="w-full text-center text-white font-bold transition-all duration-200 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
+                    <!-- Текст устанавливается скриптом -->
+                </button>
             </div>
         </div>
     </header>
 
-    <main class="flex flex-col items-center justify-center min-h-[40vh] px-4" id="main-content">
-        <div id="skeleton-loader" class="w-full max-w-md p-3 rounded-xl flex justify-between items-center skeleton opacity-50">
-            <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-full bg-gray-700"></div>
-                <div class="space-y-2">
-                    <div class="w-20 h-3 bg-gray-700 rounded"></div>
-                    <div class="w-32 h-5 bg-gray-700 rounded"></div>
-                </div>
-            </div>
-            <div class="w-12 h-6 bg-gray-700 rounded"></div>
-        </div>
+    <main class="flex flex-col flex-grow pt-8 pb-16 px-4" id="main-content">
+        <!-- Сюда рендерятся Skeleton, Карточки или Пустое состояние -->
     </main>
 
     <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2 z-50">
-        <div class="flex justify-between items-center h-14 px-2">
-            <button class="nav-item active flex flex-col items-center justify-center w-12 h-12 rounded-full"><i data-lucide="home" class="w-5 h-5"></i></button>
-            <button class="nav-item flex flex-col items-center justify-center w-12 h-12"><i data-lucide="calendar-days" class="w-5 h-5"></i></button>
-            <button class="nav-item flex flex-col items-center justify-center w-12 h-12"><i data-lucide="map-pin" class="w-5 h-5"></i></button>
-            <button class="nav-item flex flex-col items-center justify-center w-12 h-12"><i data-lucide="credit-card" class="w-5 h-5"></i></button>
-            <button class="nav-item flex flex-col items-center justify-center w-12 h-12"><i data-lucide="message-square-more" class="w-5 h-5"></i></button>
+        <div class="flex justify-between items-center h-14">
+            <button class="nav-item active flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Главный">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="home" class="w-5 h-5"></i></div>
+            </button>
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" data-name="Расписание">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
+            </button>
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Местоположение">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
+            </button>
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Выплаты">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
+            </button>
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Обучение">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
+            </button>
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Чаты">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="message-square-more" class="w-5 h-5"></i></div>
+            </button>
         </div>
     </nav>
     
     <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] p-6 rounded-t-2xl shadow-xl">
-            <div class="text-center mb-6">
-                <h2 class="text-xl font-bold mb-2">Завершить смену?</h2>
-                <p class="text-gray-400 text-xs px-4">Убедитесь, что вы закончили работу перед закрытием.</p>
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl">
+            <div class="text-center mb-4">
+                <h2 class="text-2xl font-bold mb-2">Завершить смену?</h2>
+                <p class="text-gray-400 text-sm">Убедитесь, что все текущие задачи выполнены.</p>
             </div>
             <div class="flex flex-col space-y-3">
-                <button id="confirm-end-shift-btn" class="w-full bg-[#0000FF] py-4 rounded-md font-bold">Завершить</button>
-                <button id="cancel-end-shift-btn" class="w-full border border-[#0000FF] text-[#0000FF] py-4 rounded-md font-bold">Отмена</button>
+                <button id="confirm-end-shift-btn" class="w-full text-center text-white font-bold py-4 rounded-md" style="background-color: #0000FF; border-radius: 6px;">Завершить</button>
+                <button id="cancel-end-shift-btn" class="w-full text-center font-bold py-4 rounded-md" style="border: 1px solid #0000FF; color: #0000FF; background-color: transparent; border-radius: 6px;">Не завершать</button>
             </div>
         </div>
     </div>
 
     <script>
+        // --- КОНСТАНТЫ И URL ---
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4IXGi1WIYwr12fHYqQ6lGaLDOjgW2q9sf5ovHUrP-sh3jkfBdXhlVZ70NsCL4tNgDCg/exec';
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
-        const REFRESH_INTERVAL = 3000;
+        const INTERVAL_MS = 3000;
 
+        // Состояние
         let isSlotActive = false;
         let canStartSlot = false;
-        let selectedDateObj = new Date();
+        let selectedDateObj = new Date(); 
+        let lastShiftData = null; // Для предотвращения мерцания при обновлении
 
-        const mainContent = document.getElementById('main-content');
+        // Элементы
+        const loadingOverlay = document.getElementById('loadingOverlay');
         const mainActionButton = document.getElementById('main-action-button');
         const endShiftButton = document.getElementById('end-shift-button');
         const bottomSheet = document.getElementById('bottom-sheet');
-        const loadingOverlay = document.getElementById('loadingOverlay');
+        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
+        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
+        const calendarContainer = document.getElementById('calendar-strip');
+        const mainContent = document.getElementById('main-content');
 
         function showLoading() { loadingOverlay.classList.add('visible'); }
         function hideLoading() { loadingOverlay.classList.remove('visible'); }
 
-        function formatDate(date) {
-            return `${date.getDate().toString().padStart(2,'0')}.${(date.getMonth()+1).toString().padStart(2,'0')}.${date.getFullYear()}`;
+        // --- УВЕДОМЛЕНИЯ ---
+        function createNotification(type, message) {
+            const area = document.getElementById('notification-area');
+            const note = document.createElement('div');
+            const isSuccess = type === 'success';
+            
+            note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#1a1a1a]/90 ring-1 ring-[#0000FF]' : 'bg-red-900/90'} text-white rounded-xl shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between`;
+            note.innerHTML = `
+                <div class="flex items-center">
+                    <div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3">
+                        <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
+                    </div>
+                    <div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div>
+                </div>
+            `;
+            area.appendChild(note);
+            lucide.createIcons();
+            setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
+            setTimeout(() => { note.classList.add('opacity-0', '-translate-y-10'); setTimeout(() => note.remove(), 500); }, 3500);
         }
 
-        // --- UI RENDERING ---
-        function renderEmptyState(msg = "Ближайших смен нет") {
+        // --- ФОРМАТИРОВАНИЕ ДАТЫ (DD.MM.YYYY) ---
+        function formatDateForServer(date) {
+            const d = date.getDate().toString().padStart(2, '0');
+            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            const y = date.getFullYear();
+            return `${d}.${m}.${y}`;
+        }
+
+        // --- РЕНДЕРИНГ СКЕЛЕТОНА ---
+        function renderSkeletons() {
             mainContent.innerHTML = `
-                <div class="flex flex-col items-center justify-center fade-in py-10">
-                    <i data-lucide="calendar-off" class="w-16 h-16 text-gray-700 mb-4"></i>
-                    <p class="text-gray-500 font-medium text-center">${msg}</p>
+                <div class="w-full space-y-4 px-2 mt-4">
+                    ${[1, 2, 3].map(() => `
+                        <div class="w-full bg-[#1A1A1A] h-20 rounded-xl animate-pulse-custom flex items-center px-4 justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full bg-gray-700"></div>
+                                <div class="space-y-2">
+                                    <div class="w-20 h-3 bg-gray-700 rounded"></div>
+                                    <div class="w-32 h-4 bg-gray-700 rounded"></div>
+                                </div>
+                            </div>
+                            <div class="w-12 h-6 bg-gray-700 rounded"></div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // --- РЕНДЕРИНГ КАРТОЧЕК И ЗАГЛУШЕК ---
+        function renderEmptyState(message = "Ближайших смен нет") {
+            mainContent.innerHTML = `
+                <div id="status-display" class="centered-state fade-in">
+                    <i data-lucide="calendar-days" class="empty-state-icon mx-auto opacity-50"></i>
+                    <p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">${message}</p>
                 </div>
             `;
             lucide.createIcons();
         }
 
-        function renderShiftCard(shift) {
-            mainContent.innerHTML = `
-                <div class="w-full max-w-md bg-[#1A1A1A] p-4 rounded-xl shadow-lg flex justify-between items-center fade-in border border-white/5">
+        function renderShiftCard(shiftData) {
+            const currentHTML = `
+                <div class="w-full shift-card text-white p-4 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 fade-in">
                     <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                            <i data-lucide="check" class="w-5 h-5 text-white"></i>
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
                         </div>
                         <div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-900/30 text-green-400 uppercase tracking-wider">Подтверждена</span>
-                            <p class="text-xl font-black mt-0.5 tracking-tight">${shift.time}</p>
+                            <span class="inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-md bg-green-900/40 text-green-400 border border-green-500/20">
+                                Подтверждён
+                            </span>
+                            <p class="text-xl font-bold mt-1">${shiftData.time}</p>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-lg font-bold text-white">${shift.duration}</p>
+                    <div class="flex-shrink-0 text-right">
+                        <p class="text-2xl font-black text-white">${shiftData.duration || ''}</p>
+                        <p class="text-[10px] text-gray-500 uppercase font-bold">Длительность</p>
                     </div>
                 </div>
             `;
-            lucide.createIcons();
-        }
-
-        // --- API CALLS ---
-        async function syncData() {
-            const email = localStorage.getItem('userEmail');
-            const dateStr = formatDate(selectedDateObj);
             
-            try {
-                // 1. Запрашиваем карточку смены
-                const shiftRes = await fetch(`${APPS_SCRIPT_URL}?email=${email}&date=${dateStr}`);
-                const shiftData = await shiftRes.json();
-                
-                if (shiftData.status === 'success' && shiftData.shift && shiftData.shift.found) {
-                    renderShiftCard(shiftData.shift.data);
-                } else {
-                    renderEmptyState();
-                }
-
-                // 2. Запрашиваем состояние кнопок (сегодняшний статус)
-                const statusRes = await fetch(`${APPS_SCRIPT_URL}?email=${email}`);
-                const statusData = await statusRes.json();
-                
-                updateInterface(statusData);
-            } catch (e) {
-                console.error("Sync Error", e);
+            // Чтобы избежать моргания, проверяем изменился ли контент
+            if (mainContent.innerHTML.trim() !== currentHTML.trim()) {
+                mainContent.innerHTML = currentHTML;
             }
         }
 
-        function updateInterface(data) {
-            if (!data) return;
-            isSlotActive = (data.shiftStatus === 'Open');
-            canStartSlot = data.canStart;
+        // --- АВТОРИЗАЦИЯ ---
+        async function checkUserAuthentication(isSilent = false) {
+            if (!isSilent) showLoading();
+            const email = localStorage.getItem('userEmail');
+            const token = localStorage.getItem('authToken');
+            
+            if (!email || !token) { redirectToAuth(); return false; }
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'cors', cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ auth: true, email: email, token: token })
+                });
+
+                const data = await response.json();
+                if (data.status === 'success' && data.auth_ok) {
+                    return true;
+                } else {
+                    redirectToAuth(data.message);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                return true; 
+            } finally {
+                if (!isSilent) hideLoading();
+            }
+        }
+        
+        function redirectToAuth(message = "Перенаправление...") {
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('authToken');
+            showLoading();
+            setTimeout(() => { window.location.href = LOGOUT_URL; }, 1000); 
+        }
+
+        // --- API: ПОЛУЧЕНИЕ ДАННЫХ ---
+        
+        async function fetchShiftForDate(dateObj, isSilent = false) {
+            if (!isSilent && !mainContent.querySelector('.shift-card')) renderSkeletons();
+            
+            const userEmail = localStorage.getItem('userEmail');
+            const dateStr = formatDateForServer(dateObj);
+            
+            try {
+                const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.shift && data.shift.found) {
+                    renderShiftCard(data.shift.data);
+                } else {
+                    renderEmptyState("Смен на этот день нет");
+                }
+            } catch (e) {
+                console.error(e);
+                if (!isSilent) renderEmptyState("Ошибка связи");
+            }
+        }
+
+        async function fetchStatusLogic() {
+            const userEmail = localStorage.getItem('userEmail');
+            try {
+                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
+                return await response.json();
+            } catch (error) {
+                return null;
+            }
+        }
+        
+        async function updateShiftStatus(newStatus) {
+            showLoading(); 
+            const userEmail = localStorage.getItem('userEmail');
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'cors', cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
+                });
+                const data = await response.json();
+                return data.status === 'success';
+            } catch (error) {
+                createNotification('error', 'Сбой при отправке данных');
+                return false;
+            } finally {
+                hideLoading(); 
+            }
+        }
+
+        // --- UI ОБНОВЛЕНИЕ КНОПОК ---
+        function updateButtons(data) {
+            if (!data || data.status !== 'success') return;
+
+            const status = data.shiftStatus; 
+            canStartSlot = data.canStart; 
+            isSlotActive = (status === 'Open');
+
+            const statusTextEl = document.getElementById('status-text');
 
             if (isSlotActive) {
+                if(statusTextEl) {
+                    statusTextEl.textContent = "Смена активна";
+                    statusTextEl.classList.remove('text-gray-400');
+                    statusTextEl.classList.add('text-[#0000FF]');
+                }
+                
                 mainActionButton.textContent = 'Перейти к задачам';
                 mainActionButton.disabled = false;
                 endShiftButton.style.display = 'flex';
@@ -254,73 +436,112 @@
             }
         }
 
-        async function updateStatus(newStatus) {
-            showLoading();
-            const email = localStorage.getItem('userEmail');
-            try {
-                const res = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ newStatus, userEmail: email })
-                });
-                await syncData();
-            } catch (e) {
-                alert("Ошибка соединения");
-            } finally {
-                hideLoading();
-            }
-        }
-
-        // --- INITIALIZATION ---
+        // --- ИНИЦИАЛИЗАЦИЯ КАЛЕНДАРЯ ---
         function initCalendar() {
-            const container = document.getElementById('calendar-strip');
+            calendarContainer.innerHTML = '';
             const today = new Date();
+            
             for (let i = 0; i < 14; i++) {
-                const d = new Date(today);
-                d.setDate(today.getDate() + i);
-                const item = document.createElement('div');
-                item.className = `calendar-item flex flex-col items-center justify-center p-3 rounded-xl cursor-pointer min-w-[56px] ${i === 0 ? 'selected-border' : ''}`;
-                if(i===0) item.style.color = '#0000FF';
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
                 
-                item.innerHTML = `
-                    <span class="text-[9px] uppercase font-bold opacity-60">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()]}</span>
-                    <span class="text-lg font-black">${d.getDate()}</span>
-                `;
-                item.onclick = () => {
+                const item = document.createElement('div');
+                item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer flex-shrink-0 w-14`;
+                
+                if (date.toDateString() === selectedDateObj.toDateString()) {
+                    item.classList.add('selected-border');
+                    item.style.color = '#0000FF';
+                } else {
+                    item.style.color = '#fff';
+                }
+
+                item.innerHTML = `<span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
+                
+                item.addEventListener('click', () => {
                     document.querySelectorAll('.calendar-item').forEach(el => {
                         el.classList.remove('selected-border');
-                        el.style.color = 'white';
+                        el.style.color = '#fff';
                     });
                     item.classList.add('selected-border');
                     item.style.color = '#0000FF';
-                    selectedDateObj = d;
-                    syncData();
-                };
-                container.appendChild(item);
+                    
+                    selectedDateObj = date;
+                    fetchShiftForDate(date);
+                });
+
+                calendarContainer.appendChild(item);
             }
         }
 
-        mainActionButton.onclick = () => {
-            if (isSlotActive) window.location.href = TASKS_URL;
-            else if (canStartSlot) updateStatus('Open');
-        };
+        // --- ОБРАБОТЧИКИ КНОПОК ---
+        mainActionButton.addEventListener('click', async () => {
+            if (isSlotActive) {
+                showLoading();
+                window.location.href = TASKS_URL;
+            } else {
+                if (canStartSlot) {
+                    const success = await updateShiftStatus('Open');
+                    if (success) {
+                        createNotification('success', 'Смена открыта!');
+                        const data = await fetchStatusLogic();
+                        updateButtons(data);
+                    }
+                }
+            }
+        });
 
-        endShiftButton.onclick = () => bottomSheet.classList.add('open');
-        cancelEndShiftBtn.onclick = () => bottomSheet.classList.remove('open');
-        confirmEndShiftBtn.onclick = () => {
+        endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
+        cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
+
+        confirmEndShiftBtn.addEventListener('click', async () => {
             bottomSheet.classList.remove('open');
-            updateStatus('Closed');
-        };
+            const success = await updateShiftStatus('Closed');
+            if (success) {
+                createNotification('success', 'Смена завершена');
+                const data = await fetchStatusLogic();
+                updateButtons(data);
+            }
+        });
 
-        window.onload = async () => {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const url = item.getAttribute('data-url');
+                if (url && url !== '#') {
+                    showLoading();
+                    window.location.href = url;
+                }
+            });
+        });
+
+        // --- ЗАПУСК ---
+        document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             initCalendar();
             
-            // Первая загрузка
-            await syncData();
-            
-            // Интервал обновления 3 сек
-            setInterval(syncData, REFRESH_INTERVAL);
-        };
+            // Показываем скелетоны сразу
+            renderSkeletons();
+
+            const authOk = await checkUserAuthentication(false);
+            if (!authOk) return;
+
+            // Первичная загрузка
+            await fetchShiftForDate(selectedDateObj, true);
+            const statusData = await fetchStatusLogic();
+            updateButtons(statusData);
+
+            // Цикл обновления (каждые 3 сек)
+            setInterval(async () => {
+                const stillAuth = await checkUserAuthentication(true);
+                if (stillAuth) {
+                    // Обновляем и карточку для выбранной даты, и статус кнопок
+                    await fetchShiftForDate(selectedDateObj, true);
+                    const data = await fetchStatusLogic();
+                    updateButtons(data);
+                }
+            }, INTERVAL_MS);
+        });
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
 </html>
