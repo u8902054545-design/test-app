@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Управление сменами - DarkCenter</title>
+    <title>Главная страница - Управление сменами</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
         body {
             font-family: 'Inter', sans-serif;
             background-color: #0F0F0F;
@@ -17,6 +18,7 @@
             padding-bottom: 100px; 
             overflow-x: hidden;
             -webkit-user-select: none; 
+            -ms-user-select: none; 
             user-select: none; 
             overscroll-behavior-y: none;
         }
@@ -28,106 +30,92 @@
             background-color: #1a1a1a; 
         }
 
-        .nav-item.active .icon-container { background-color: #0000FF; color: #FFFFFF; }
+        .nav-item.active .icon-container {
+            background-color: #0000FF;
+            color: #FFFFFF; 
+        }
         .nav-item.active svg { color: #FFFFFF; }
         .nav-item svg { color: #C4C7C5; transition: color 0.2s; }
-        .nav-bar { background-color: #1F1F1F; border: 1px solid rgba(255, 255, 255, 0.05); }
+        
+        .nav-bar {
+            background-color: #1F1F1F;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+        }
 
-        .calendar-item.selected-border { border: 1px solid #0000FF; color: #0000FF; }
+        .calendar-item.selected-border { border: 1px solid #0000FF; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
+        .empty-state-icon { color: #0000FF; width: 80px; height: 80px; }
+
         .close-shift-button {
-            height: 50px; width: 50px; background-color: #1a1a1a; 
-            border: 1px solid #0000FF; border-radius: 6px; flex-shrink: 0;
-            position: relative; display: flex; justify-content: center; align-items: center; cursor: pointer;
+            height: 50px; width: 50px; 
+            background-color: #1a1a1a; 
+            border: 1px solid #0000FF; 
+            border-radius: 6px; 
+            flex-shrink: 0;
+            position: relative; 
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
+        .close-shift-button:active { transform: scale(0.95); }
         .close-shift-button::before {
-            content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); 
-            width: 2px; height: 15px; background-color: #0000FF; border-radius: 2px; 
+            content: ''; position: absolute; top: 8px; left: 50%; 
+            transform: translateX(-50%); width: 2px; height: 15px; 
+            background-color: #0000FF; border-radius: 2px; 
         }
         .close-shift-button::after {
             content: ''; position: absolute; width: 30px; height: 30px; 
-            border: 2px solid #0000FF; border-top-color: transparent; border-radius: 50%; bottom: 8px;
+            border: 2px solid #0000FF; border-top-color: transparent; 
+            border-radius: 50%; bottom: 8px;
         }
 
-        /* Bottom Sheet Logic */
         .bottom-sheet-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100;
-            display: flex; align-items: flex-end; justify-content: center;
-            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+            visibility: hidden; opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-        .bottom-sheet-overlay.active { opacity: 1; visibility: visible; }
-        .bottom-sheet-content {
-            width: 100%; max-width: 480px; background: #1F1F1F; border-top-left-radius: 24px; border-top-right-radius: 24px;
-            padding: 24px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .bottom-sheet-overlay.active .bottom-sheet-content { transform: translateY(0); }
+        .bottom-sheet-content { transform: translateY(100%); transition: transform 0.3s ease; }
+        .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
+        .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
 
-        /* Spinner */
-        .spinner { width: 50px; height: 50px; animation: rotate 2s linear infinite; }
+        #notification-area {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 480px; z-index: 60;
+            pointer-events: none; display: flex; flex-direction: column; align-items: center;
+        }
+
+        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; transform-origin: center center; }
         .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
         @keyframes rotate { 100% { transform: rotate(360deg); } }
         @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 70, 150; stroke-dashoffset: -25px; } 100% { stroke-dasharray: 70, 150; stroke-dashoffset: -125px; } }
         
         #loadingOverlay {
-            position: fixed; inset: 0; background: rgba(15,15,15,0.8);
-            display: flex; align-items: center; justify-content: center; z-index: 200;
-            opacity: 0; visibility: hidden; transition: 0.3s;
+            position: fixed; inset: 0;
+            background-color: rgba(15, 15, 15, 0.85); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; transition: opacity 0.3s ease, visibility 0.3s ease;
+            opacity: 0; visibility: hidden; pointer-events: none; 
         }
-        #loadingOverlay.visible { opacity: 1; visibility: visible; }
-
-        .toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
-            z-index: 300; background: #262626; border: 1px solid #333; padding: 12px 20px;
-            border-radius: 12px; opacity: 0; transition: 0.3s;
-        }
-        .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+        #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
     </style>
 </head>
 <body class="text-white">
 
     <div id="loadingOverlay">
-        <svg class="spinner" viewBox="25 25 50 50"><circle class="path" cx="50" cy="50" r="20" fill="none"/></svg>
+        <svg id="loader" class="spinner" viewBox="25 25 50 50">
+            <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10" />
+        </svg>
     </div>
 
-    <div id="toast" class="toast text-sm font-medium shadow-2xl"></div>
-
-    <!-- Bottom Sheet Error (Auth) -->
-    <div id="auth-error-sheet" class="bottom-sheet-overlay">
-        <div class="bottom-sheet-content text-center">
-            <div class="flex justify-center mb-4">
-                <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center">
-                    <i data-lucide="shield-alert" class="w-10 h-10 text-red-500"></i>
-                </div>
-            </div>
-            <h2 class="text-xl font-bold mb-2">Ошибка авторизации</h2>
-            <p class="text-gray-400 mb-8">Ваша сессия истекла или отсутствует токен доступа. Пожалуйста, войдите в систему снова.</p>
-            <button onclick="redirectToAuthPage()" class="w-full bg-custom-blue py-4 rounded-xl font-bold text-white active:scale-95 transition" style="background-color: #0000FF;">
-                Перейти к авторизации
-            </button>
-        </div>
-    </div>
-
-    <!-- Bottom Sheet Confirm (End Shift) -->
-    <div id="confirm-sheet" class="bottom-sheet-overlay">
-        <div class="bottom-sheet-content">
-            <div class="text-center mb-6">
-                <h2 class="text-xl font-bold mb-2">Завершить смену?</h2>
-                <p class="text-gray-400">Убедитесь, что все текущие задачи выполнены.</p>
-            </div>
-            <div class="flex flex-col gap-3">
-                <button id="confirm-end-btn" class="w-full bg-red-600 py-4 rounded-xl font-bold text-white active:scale-95 transition">Завершить</button>
-                <button onclick="closeSheet('confirm-sheet')" class="w-full border border-gray-600 py-4 rounded-xl font-bold text-gray-300 active:scale-95 transition">Отмена</button>
-            </div>
-        </div>
-    </div>
+    <div id="notification-area"></div>
 
     <header class="w-full header-style sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex justify-between items-center h-8 mb-4">
                 <h1 class="text-lg font-bold text-white" id="screen-title">Главный экран</h1>
-                <button id="profile-btn" class="flex items-center justify-center p-1 rounded-full border border-solid" style="border-color: #0000FF;">
+                <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-solid hover:bg-white/10 transition-colors" style="border-color: #0000FF;">
                     <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF;"></i>
                 </button>
             </div>
@@ -136,239 +124,278 @@
                 <!-- Генерируется JS -->
             </div>
 
-            <div id="shift-action-container" class="w-full mt-4 flex gap-3">
-                <div id="end-shift-btn" class="close-shift-button hidden"></div>
-                <button id="main-action-btn" class="flex-1 text-center text-white font-bold transition-all duration-200 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
-                    Начать смену
+            <div id="shift-action-container" class="w-full mt-4 flex">
+                <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
+                <button id="main-action-button" class="w-full text-center text-white font-bold transition-all duration-200 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
+                    Загрузка...
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="flex flex-col items-center justify-center min-h-[50vh] pt-16 pb-16 text-center" id="main-content">
-        <div id="empty-state" class="flex flex-col items-center">
-            <i data-lucide="calendar-days" class="w-20 h-20 text-[#0000FF] mb-4"></i>
-            <p class="text-xl text-gray-400">Ближайших смен нет</p>
-        </div>
-        <div id="active-state" class="hidden flex flex-col items-center">
-             <i data-lucide="zap" class="w-20 h-20 text-yellow-400 mb-4 animate-pulse"></i>
-             <p id="status-text" class="text-xl font-bold">Смена активна</p>
+    <main class="flex flex-col items-center justify-center min-h-[50vh] pt-16 pb-16 text-center px-6" id="main-content">
+        <div id="status-display">
+            <i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i>
+            <p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">Проверка данных...</p>
         </div>
     </main>
 
     <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2 z-50">
         <div class="flex justify-between items-center h-14">
-            <button class="nav-item active flex flex-col items-center justify-center h-full w-1/6" data-name="Главный">
+            <button class="nav-item active flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Главный">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="home" class="w-5 h-5"></i></div>
             </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-name="Расписание">
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" data-name="Расписание">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
             </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-name="Местоположение">
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Местоположение">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
             </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-name="Выплаты">
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Выплаты">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
             </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-name="Обучение">
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Обучение">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
             </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-name="Чаты">
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Чаты">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="message-square-more" class="w-5 h-5"></i></div>
             </button>
         </div>
     </nav>
+    
+    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl">
+            <div class="text-center mb-4">
+                <h2 class="text-2xl font-bold mb-2">Завершить смену?</h2>
+                <p class="text-gray-400 text-sm">Убедитесь, что все текущие задачи выполнены.</p>
+            </div>
+            <div class="flex flex-col space-y-3">
+                <button id="confirm-end-shift-btn" class="w-full text-center text-white font-bold py-4 rounded-md" style="background-color: #0000FF; border-radius: 6px;">Завершить</button>
+                <button id="cancel-end-shift-btn" class="w-full text-center font-bold py-4 rounded-md" style="border: 1px solid #0000FF; color: #0000FF; background-color: transparent; border-radius: 6px;">Не завершать</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- КОНСТАНТЫ ---
+        // --- КОНСТАНТЫ И URL ---
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAtGgnNaGTtzmlMS6I1vIGxv1lHLLXQuYFImdxdTSgpDOO591KUf5vaNQ0nV5J32SbWw/exec';
-        const AUTH_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/';
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
-        const REFRESH_INTERVAL = 3000;
+        const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
+        const INTERVAL_MS = 3000;
 
-        // --- СОСТОЯНИЕ ---
+        // Состояние
         let isSlotActive = false;
         let canStartSlot = false;
 
-        // --- ЭЛЕМЕНТЫ ---
-        const mainBtn = document.getElementById('main-action-btn');
-        const endBtn = document.getElementById('end-shift-btn');
-        const emptyState = document.getElementById('empty-state');
-        const activeState = document.getElementById('active-state');
+        // Элементы
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const mainActionButton = document.getElementById('main-action-button');
+        const endShiftButton = document.getElementById('end-shift-button');
+        const bottomSheet = document.getElementById('bottom-sheet');
+        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
+        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
         const statusText = document.getElementById('status-text');
-        const loader = document.getElementById('loadingOverlay');
+        const calendarContainer = document.getElementById('calendar-strip');
 
-        // --- ИНИЦИАЛИЗАЦИЯ ---
-        document.addEventListener('DOMContentLoaded', () => {
+        function showLoading() { loadingOverlay.classList.add('visible'); }
+        function hideLoading() { loadingOverlay.classList.remove('visible'); }
+
+        // --- УВЕДОМЛЕНИЯ ---
+        function createNotification(type, message) {
+            const area = document.getElementById('notification-area');
+            const note = document.createElement('div');
+            const isSuccess = type === 'success';
+            
+            note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#1a1a1a]/90 ring-1 ring-[#0000FF]' : 'bg-red-900/90'} text-white rounded-xl shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between`;
+            note.innerHTML = `
+                <div class="flex items-center">
+                    <div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3">
+                        <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
+                    </div>
+                    <div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div>
+                </div>
+            `;
+            area.appendChild(note);
             lucide.createIcons();
-            renderCalendar();
-            initApp();
-        });
-
-        async function initApp() {
-            const hasAuth = checkLocalStorage();
-            if (!hasAuth) {
-                openSheet('auth-error-sheet');
-                return;
-            }
-
-            // Первый запрос данных
-            await refreshData(true);
-
-            // Запуск цикла обновления каждые 3 сек
-            setInterval(async () => {
-                await refreshData(false);
-            }, REFRESH_INTERVAL);
+            setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
+            setTimeout(() => { note.classList.add('opacity-0', '-translate-y-10'); setTimeout(() => note.remove(), 500); }, 3500);
         }
 
-        // --- ЛОГИКА АВТОРИЗАЦИИ ---
-        function checkLocalStorage() {
+        // --- АВТОРИЗАЦИЯ ---
+        async function checkUserAuthentication(isSilent = false) {
+            if (!isSilent) showLoading();
             const email = localStorage.getItem('userEmail');
             const token = localStorage.getItem('authToken');
-            return !!(email && token);
-        }
-
-        function redirectToAuthPage() {
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('authToken');
-            window.location.href = AUTH_URL;
-        }
-
-        async function validateAuthOnServer() {
-            const email = localStorage.getItem('userEmail');
-            const token = localStorage.getItem('authToken');
+            
+            if (!email || !token) { redirectToAuth(); return false; }
             
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
+                    method: 'POST', mode: 'cors', cache: 'no-cache',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ auth: true, email, token })
+                    body: JSON.stringify({ auth: true, email: email, token: token })
                 });
-                const data = await response.json();
-                return data.status === 'success' && data.auth_ok;
-            } catch (e) {
-                return true; // В случае ошибки сети не выкидываем сразу
-            }
-        }
 
-        // --- РАБОТА С ДАННЫМИ ---
-        async function refreshData(withLoader = false) {
-            if (withLoader) loader.classList.add('visible');
-            
-            const email = localStorage.getItem('userEmail');
-            const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(email)}`;
-
-            try {
-                const response = await fetch(url);
                 const data = await response.json();
-                
-                if (data.status === 'success') {
-                    updateUI(data);
-                } else if (data.message && data.message.includes('auth')) {
-                    openSheet('auth-error-sheet');
+                if (data.status === 'success' && data.auth_ok) {
+                    return true;
+                } else {
+                    redirectToAuth(data.message);
+                    return false;
                 }
             } catch (error) {
-                console.error("Fetch error:", error);
+                console.error('Auth error:', error);
+                if(!isSilent) createNotification('error', 'Ошибка связи с сервером');
+                return true; 
             } finally {
-                if (withLoader) loader.classList.remove('visible');
+                if (!isSilent) hideLoading();
             }
         }
-
-        function updateUI(data) {
-            isSlotActive = data.shiftStatus === 'Open';
-            canStartSlot = data.canStart;
-
-            if (isSlotActive) {
-                // Активная смена
-                mainBtn.textContent = 'Перейти к задачам';
-                mainBtn.disabled = false;
-                endBtn.classList.remove('hidden');
-                emptyState.classList.add('hidden');
-                activeState.classList.remove('hidden');
-                statusText.textContent = "Смена активна";
-                statusText.className = "text-xl font-bold text-green-500";
-            } else {
-                // Смена закрыта
-                mainBtn.textContent = 'Начать смену';
-                mainBtn.disabled = !canStartSlot;
-                endBtn.classList.add('hidden');
-                activeState.classList.add('hidden');
-                emptyState.classList.remove('hidden');
-                
-                const emptyText = emptyState.querySelector('p');
-                if (canStartSlot) {
-                    emptyText.textContent = "Смена готова к запуску";
-                    emptyText.className = "text-xl text-white font-medium mt-4";
-                } else {
-                    emptyText.textContent = data.info || "Ближайших смен нет";
-                    emptyText.className = "text-xl text-gray-400 mt-4";
-                }
-            }
+        
+        function redirectToAuth(message = "Перенаправление...") {
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('authToken');
+            showLoading();
+            setTimeout(() => { window.location.href = LOGOUT_URL; }, 1000); 
         }
 
-        // --- ОБРАБОТЧИКИ КНОПОК ---
-        mainBtn.onclick = async () => {
-            if (isSlotActive) {
-                window.location.href = TASKS_URL;
-            } else if (canStartSlot) {
-                await changeShiftStatus('Open');
+        // --- API СЕРВЕРА ---
+        async function fetchShiftStatusData(showLoader = true) {
+            if (showLoader) showLoading();
+            const userEmail = localStorage.getItem('userEmail');
+            if (!userEmail) return null;
+            
+            const urlWithParams = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`;
+            try {
+                const response = await fetch(urlWithParams, { method: 'GET', mode: 'cors', cache: 'no-cache' });
+                return await response.json();
+            } catch (error) {
+                console.error('Fetch error:', error);
+                return null;
+            } finally {
+                if (showLoader) hideLoading(); 
             }
-        };
-
-        endBtn.onclick = () => openSheet('confirm-sheet');
-
-        document.getElementById('confirm-end-btn').onclick = async () => {
-            closeSheet('confirm-sheet');
-            await changeShiftStatus('Closed');
-        };
-
-        async function changeShiftStatus(newStatus) {
-            loader.classList.add('visible');
-            const email = localStorage.getItem('userEmail');
+        }
+        
+        async function updateShiftStatus(newStatus) {
+            showLoading(); 
+            const userEmail = localStorage.getItem('userEmail');
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
+                    method: 'POST', mode: 'cors', cache: 'no-cache',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ newStatus, userEmail: email })
+                    body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
                 });
                 const data = await response.json();
-                if (data.status === 'success') {
-                    showToast(newStatus === 'Open' ? "Смена открыта" : "Смена завершена");
-                    await refreshData(false);
-                }
-            } catch (e) {
-                showToast("Ошибка соединения");
+                return data.status === 'success';
+            } catch (error) {
+                createNotification('error', 'Сбой при отправке данных');
+                return false;
             } finally {
-                loader.classList.remove('visible');
+                hideLoading(); 
             }
         }
 
-        // --- UI ВСПОМОГАТЕЛЬНЫЕ ---
-        function openSheet(id) { document.getElementById(id).classList.add('active'); }
-        function closeSheet(id) { document.getElementById(id).classList.remove('active'); }
+        // --- UI ОБНОВЛЕНИЕ ---
+        function updateUI(data) {
+            if (!data || data.status !== 'success') return;
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('visible');
-            setTimeout(() => t.classList.remove('visible'), 3000);
-        }
+            const status = data.shiftStatus; 
+            const infoText = data.info;      
+            canStartSlot = data.canStart; 
+            isSlotActive = (status === 'Open');
 
-        function renderCalendar() {
-            const container = document.getElementById('calendar-strip');
-            const today = new Date();
-            for (let i = 0; i < 14; i++) {
-                const d = new Date(today);
-                d.setDate(today.getDate() + i);
-                const item = document.createElement('div');
-                item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer flex-shrink-0 w-14 ${i === 0 ? 'selected-border' : ''}`;
-                item.innerHTML = `
-                    <span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()]}</span>
-                    <span class="text-lg font-black">${d.getDate()}</span>
-                `;
-                container.appendChild(item);
+            if (isSlotActive) {
+                statusText.textContent = "Смена активна";
+                statusText.classList.remove('text-gray-400');
+                statusText.classList.add('text-[#0000FF]');
+                
+                mainActionButton.textContent = 'Перейти к задачам';
+                mainActionButton.disabled = false;
+                endShiftButton.style.display = 'flex';
+            } else {
+                statusText.textContent = infoText || "Нет ближайших смен";
+                statusText.classList.add('text-gray-400');
+                statusText.classList.remove('text-[#0000FF]');
+
+                mainActionButton.textContent = 'Начать смену';
+                mainActionButton.disabled = !canStartSlot;
+                endShiftButton.style.display = 'none';
             }
+            lucide.createIcons();
         }
+
+        // --- ОБРАБОТЧИКИ ---
+        mainActionButton.addEventListener('click', async () => {
+            if (isSlotActive) {
+                showLoading();
+                window.location.href = TASKS_URL;
+            } else {
+                if (canStartSlot) {
+                    const success = await updateShiftStatus('Open');
+                    if (success) {
+                        createNotification('success', 'Смена открыта!');
+                        const data = await fetchShiftStatusData(false);
+                        updateUI(data);
+                    }
+                }
+            }
+        });
+
+        endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
+        cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
+
+        confirmEndShiftBtn.addEventListener('click', async () => {
+            bottomSheet.classList.remove('open');
+            const success = await updateShiftStatus('Closed');
+            if (success) {
+                createNotification('success', 'Смена завершена');
+                const data = await fetchShiftStatusData(false);
+                updateUI(data);
+            }
+        });
+
+        // Навигация
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const url = item.getAttribute('data-url');
+                if (url && url !== '#') {
+                    showLoading();
+                    window.location.href = url;
+                }
+            });
+        });
+
+        // Инициализация календаря
+        const today = new Date();
+        for (let i = 0; i < 14; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            const item = document.createElement('div');
+            item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer flex-shrink-0 w-14 ${i === 0 ? 'selected-border' : ''}`;
+            if (i === 0) item.style.color = '#0000FF';
+            item.innerHTML = `<span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
+            calendarContainer.appendChild(item);
+        }
+
+        // --- ЗАПУСК ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            const authOk = await checkUserAuthentication(false);
+            if (!authOk) return;
+
+            const initialData = await fetchShiftStatusData(true);
+            updateUI(initialData);
+
+            // Цикл проверки
+            setInterval(async () => {
+                const stillAuth = await checkUserAuthentication(true);
+                if (stillAuth) {
+                    const data = await fetchShiftStatusData(false);
+                    updateUI(data);
+                }
+            }, INTERVAL_MS);
+        });
 
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
