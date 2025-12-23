@@ -15,7 +15,7 @@
             background-color: #0F0F0F;
             min-height: 100vh;
             margin: 0;
-            padding-bottom: 100px; 
+            padding-bottom: 120px; 
             overflow-x: hidden;
             -webkit-user-select: none; 
             -ms-user-select: none; 
@@ -75,7 +75,7 @@
             border-radius: 50%; bottom: 8px;
         }
 
-        /* Bottom Sheet Styles */
+        /* Bottom Sheet */
         .bottom-sheet-overlay {
             visibility: hidden; opacity: 0;
             transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -90,7 +90,7 @@
             pointer-events: none; display: flex; flex-direction: column; align-items: center;
         }
 
-        /* SVG Spinner Animations */
+        /* Анимации Спиннеров */
         @keyframes rotate { 100% { transform: rotate(360deg); } }
         @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
 
@@ -118,12 +118,11 @@
             background-color: #252525;
         }
 
-        /* --- ОБНОВЛЕННЫЕ SKELETON СТИЛИ --- */
+        /* --- ОБНОВЛЕННЫЙ SKELETON (SHIMMER) --- */
         .skeleton-shimmer {
             position: relative;
             overflow: hidden;
             background-color: #1A1A1A;
-            border-radius: 12px;
         }
         .skeleton-shimmer::after {
             content: "";
@@ -133,26 +132,21 @@
             bottom: 0;
             left: 0;
             transform: translateX(-100%);
-            background: linear-gradient(
+            background-image: linear-gradient(
                 90deg,
                 rgba(255, 255, 255, 0) 0,
                 rgba(255, 255, 255, 0.03) 20%,
-                rgba(255, 255, 255, 0.06) 50%,
-                rgba(255, 255, 255, 0.03) 80%,
-                rgba(255, 255, 255, 0) 100%
+                rgba(255, 255, 255, 0.06) 60%,
+                rgba(255, 255, 255, 0)
             );
-            animation: shimmer 2s infinite;
+            animation: shimmer 2s infinite ease-out;
         }
         @keyframes shimmer {
             100% { transform: translateX(100%); }
         }
-        .skeleton-element {
+        .skeleton-block {
             background-color: #2A2A2A;
-            border-radius: 6px;
-        }
-        /* Убираем нижний отступ у main, чтобы скелетоны шли до края */
-        #main-content {
-            padding-bottom: 0;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -186,8 +180,9 @@
         </div>
     </header>
 
-    <main class="flex flex-col items-center justify-start min-h-[50vh] pt-4 px-4 w-full" id="main-content">
-        <!-- Контент -->
+    <!-- Изменен min-h и padding для заполнения -->
+    <main class="flex flex-col items-center justify-start min-h-screen pt-4 pb-32 px-4 w-full" id="main-content">
+        <!-- Сюда динамически вставляются Skeleton, Заглушка или Карточка -->
     </main>
 
     <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2 z-40">
@@ -254,7 +249,7 @@
 
         let isSlotActive = false;
         let canStartSlot = false;
-        let selectedDateObj = new Date();
+        let selectedDateObj = new Date(); 
 
         const loadingOverlay = document.getElementById('loadingOverlay');
         const mainActionButton = document.getElementById('main-action-button');
@@ -281,8 +276,7 @@
                         <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
                     </div>
                     <div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div>
-                </div>
-            `;
+                </div>`;
             area.appendChild(note);
             lucide.createIcons();
             setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
@@ -296,22 +290,27 @@
             return `${d}.${m}.${y}`;
         }
 
-        /* --- ОБНОВЛЕННЫЙ РЕНДЕРИНГ SKELETON --- */
+        // --- ОБНОВЛЕННЫЙ РЕНДЕР SKELETON (Бесконечный эффект заполнения) ---
         function renderSkeletons() {
-            // Вычисляем, сколько карточек влезет в экран (минимум 6 для заполнения всего пространства)
-            const count = Math.max(6, Math.ceil(window.innerHeight / 100));
-            let html = '<div class="w-full flex flex-col space-y-3 pb-24">';
-            for(let i=0; i<count; i++) {
+            // Рассчитываем сколько блоков нужно, чтобы гарантированно заполнить экран
+            // Высота карточки примерно 80px + gap 16px = 96px
+            const viewportHeight = window.innerHeight;
+            const headerHeight = document.querySelector('header').offsetHeight;
+            const availableHeight = viewportHeight - headerHeight + 500; // + запас для прокрутки за меню
+            const count = Math.ceil(availableHeight / 96);
+
+            let html = '<div class="w-full flex flex-col space-y-4">';
+            for(let i=0; i < count; i++) {
                 html += `
-                    <div class="w-full skeleton-shimmer p-4 flex justify-between items-center shadow-sm">
-                        <div class="flex items-center space-x-3">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-full skeleton-element"></div>
+                    <div class="w-full shift-card skeleton-shimmer p-3 rounded-xl shadow-lg flex justify-between items-center mt-2 border border-white/5">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full skeleton-block"></div>
                             <div class="flex flex-col space-y-2">
-                                <div class="w-16 h-2 skeleton-element opacity-60"></div>
-                                <div class="w-24 h-4 skeleton-element"></div>
+                                <div class="w-20 h-2.5 skeleton-block"></div>
+                                <div class="w-32 h-4 skeleton-block"></div>
                             </div>
                         </div>
-                        <div class="w-14 h-6 skeleton-element opacity-80"></div>
+                        <div class="w-16 h-7 skeleton-block"></div>
                     </div>
                 `;
             }
@@ -321,7 +320,7 @@
 
         function renderEmptyState(message = "Ближайших смен нет") {
             mainContent.innerHTML = `
-                <div id="status-display" class="text-center mt-32 fade-in pb-32">
+                <div id="status-display" class="text-center mt-32 animate-in fade-in duration-500">
                     <i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i>
                     <p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">${message}</p>
                 </div>
@@ -331,22 +330,22 @@
 
         function renderShiftCard(shiftData) {
             mainContent.innerHTML = `
-                <div class="w-full shift-card text-white p-4 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-2 mb-32 fade-in">
-                    <div class="flex items-center space-x-3">
-                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                <div class="w-full shift-card text-white p-3 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 animate-in zoom-in-95 duration-300">
+                    <div class="flex items-center space-x-2">
+                        <div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
                         </div>
                         <div>
-                            <span class="inline-block px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-green-900/40 text-green-400">
+                            <span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">
                                 Подтверждён
                             </span>
-                            <p class="text-xl font-black mt-0.5 tracking-tight">${shiftData.time}</p>
+                            <p class="text-lg font-bold mt-1">${shiftData.time}</p>
                         </div>
                     </div>
                     <div class="flex-shrink-0 text-right">
-                        <p class="text-2xl font-black text-white">${shiftData.duration || ''}</p>
+                        <p class="text-xl font-bold text-white">${shiftData.duration || ''}</p>
                     </div>
                 </div>
             `;
@@ -376,7 +375,9 @@
             } catch (error) {
                 if(!isSilent) createNotification('error', 'Ошибка связи с сервером');
                 return true; 
-            } finally { if (!isSilent) hideLoading(); }
+            } finally {
+                if (!isSilent) hideLoading();
+            }
         }
 
         authLoginBtn.addEventListener('click', () => {
@@ -399,15 +400,18 @@
                 }
             } catch (e) {
                 renderEmptyState("Ошибка загрузки");
-            } finally { if (!isSilent) hideLoading(); }
+            } finally {
+                if (!isSilent) hideLoading();
+            }
         }
 
         async function fetchStatusLogic(isSilent = false) {
+            if (!isSilent) showLoading();
             const userEmail = localStorage.getItem('userEmail');
             try {
                 const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
                 return await response.json();
-            } catch (error) { return null; }
+            } catch (error) { return null; } finally { if (!isSilent) hideLoading(); }
         }
         
         async function updateShiftStatus(newStatus) {
@@ -480,21 +484,24 @@
             if (isSlotActive) {
                 showLoading();
                 window.location.href = TASKS_URL;
-            } else if (canStartSlot) {
-                mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-                mainActionButton.disabled = true;
-                const success = await updateShiftStatus('Open');
-                if (success) {
-                    createNotification('success', 'Смена открыта!');
-                    updateButtons({ shiftStatus: 'Open', canStart: false });
-                } else {
-                    updateButtons({ shiftStatus: 'Closed', canStart: true });
+            } else {
+                if (canStartSlot) {
+                    mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+                    mainActionButton.disabled = true;
+                    const success = await updateShiftStatus('Open');
+                    if (success) {
+                        createNotification('success', 'Смена открыта!');
+                        updateButtons({ shiftStatus: 'Open', canStart: false });
+                    } else {
+                        updateButtons({ shiftStatus: 'Closed', canStart: true });
+                    }
                 }
             }
         });
 
         endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
         cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
+
         confirmEndShiftBtn.addEventListener('click', async () => {
             bottomSheet.classList.remove('open');
             endShiftButton.style.display = 'none';
@@ -506,13 +513,18 @@
                 updateButtons({ shiftStatus: 'Closed', canStart: false });
                 const realData = await fetchStatusLogic(true);
                 updateButtons(realData);
-            } else { updateButtons({ shiftStatus: 'Open' }); }
+            } else {
+                updateButtons({ shiftStatus: 'Open' });
+            }
         });
 
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
                 const url = item.getAttribute('data-url');
-                if (url && url !== '#') { showLoading(); window.location.href = url; }
+                if (url && url !== '#') {
+                    showLoading();
+                    window.location.href = url;
+                }
             });
         });
 
@@ -535,6 +547,7 @@
                 }
             }, INTERVAL_MS);
         });
+
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
