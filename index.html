@@ -75,6 +75,7 @@
             border-radius: 50%; bottom: 8px;
         }
 
+        /* Общие стили Bottom Sheet */
         .bottom-sheet-overlay {
             visibility: hidden; opacity: 0;
             transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -89,12 +90,16 @@
             pointer-events: none; display: flex; flex-direction: column; align-items: center;
         }
 
-        /* Основной большой спиннер */
-        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; transform-origin: center center; }
-        .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+        /* --- SVG Анимации Спиннеров --- */
         @keyframes rotate { 100% { transform: rotate(360deg); } }
-        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 70, 150; stroke-dashoffset: -25px; } 100% { stroke-dasharray: 70, 150; stroke-dashoffset: -125px; } }
+        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
+
+        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; }
+        .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
         
+        .spinner-mini { width: 24px; height: 24px; animation: rotate 2s linear infinite; }
+        .path-mini { stroke: #FFFFFF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+
         #loadingOverlay {
             position: fixed; inset: 0;
             background-color: rgba(15, 15, 15, 0.85); 
@@ -104,19 +109,6 @@
         }
         #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
 
-        /* Маленький спиннер для кнопок */
-        .btn-spinner {
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            display: inline-block;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Стили для карточки */
         .shift-card {
             background-color: #1A1A1A;
             transition: transform 0.2s ease, background-color 0.2s;
@@ -126,27 +118,60 @@
             background-color: #252525;
         }
 
-        /* Skeleton Animation */
-        .skeleton-pulse {
-            animation: skeleton-loading 1.5s infinite;
+        /* Плавный Skeleton Shimmer (без дергания) */
+        .skeleton-shimmer {
+            position: relative;
+            overflow: hidden;
+            background-color: #1A1A1A;
         }
-        @keyframes skeleton-loading {
-            0% { background-color: #1A1A1A; }
-            50% { background-color: #252525; }
-            100% { background-color: #1A1A1A; }
+        .skeleton-shimmer::after {
+            content: "";
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0,
+                rgba(255, 255, 255, 0.03) 20%,
+                rgba(255, 255, 255, 0.06) 50%,
+                rgba(255, 255, 255, 0.03) 80%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: shimmer 2s infinite;
         }
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+
         .skeleton-block {
-            background-color: #333;
+            background-color: #2A2A2A;
             border-radius: 4px;
         }
+
+        /* Аватар Google Style */
+        #user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+            color: white;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: filter 0.2s;
+        }
+        #user-avatar:active { filter: brightness(0.8); }
     </style>
 </head>
 <body class="text-white">
 
     <!-- Глобальный спиннер загрузки -->
     <div id="loadingOverlay">
-        <svg id="loader" class="spinner" viewBox="25 25 50 50">
-            <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10" />
+        <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
         </svg>
     </div>
 
@@ -156,29 +181,26 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex justify-between items-center h-8 mb-4">
                 <h1 class="text-lg font-bold text-white" id="screen-title">Главный экран</h1>
-                <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-solid hover:bg-white/10 transition-colors" style="border-color: #0000FF;">
-                    <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF;"></i>
-                </button>
+                <!-- Новый Google Style Аватар -->
+                <div id="user-avatar" style="background-color: #0000FF;">?</div>
             </div>
 
-            <!-- Лента календаря -->
             <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
 
-            <!-- Кнопки управления сменой -->
             <div id="shift-action-container" class="w-full mt-4 flex">
                 <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
                 <button id="main-action-button" class="w-full flex items-center justify-center text-center text-white font-bold transition-all duration-200 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
-                    <span class="btn-spinner"></span> <!-- Спиннер по умолчанию при загрузке -->
+                     <span class="btn-text">Загрузка...</span>
                 </button>
             </div>
         </div>
     </header>
 
     <main class="flex flex-col items-center justify-start min-h-[50vh] pt-8 pb-16 px-4 w-full" id="main-content">
-        <!-- Сюда динамически вставляются Skeleton, Заглушка или Карточка -->
+        <!-- Контент -->
     </main>
 
-    <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2 z-50">
+    <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2 z-40">
         <div class="flex justify-between items-center h-14">
             <button class="nav-item active flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Главный">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="home" class="w-5 h-5"></i></div>
@@ -202,7 +224,7 @@
     </nav>
     
     <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl mb-4 sm:mb-0">
             <div class="text-center mb-4">
                 <h2 class="text-2xl font-bold mb-2">Завершить смену?</h2>
                 <p class="text-gray-400 text-sm">Убедитесь, что все текущие задачи выполнены.</p>
@@ -214,53 +236,76 @@
         </div>
     </div>
 
+    <div id="auth-error-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/90 z-[60] flex justify-center items-end backdrop-blur-sm">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-8 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] border-t border-white/10">
+            <div class="flex flex-col items-center text-center mb-6">
+                <div class="w-20 h-20 rounded-full bg-red-900/20 flex items-center justify-center mb-4 border border-red-500/30">
+                    <i data-lucide="shield-alert" class="w-10 h-10 text-red-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Доступ ограничен</h2>
+                <p class="text-gray-400 text-sm leading-relaxed">Не удалось проверить авторизацию или сессия истекла.</p>
+            </div>
+            <button id="auth-login-btn" class="w-full text-center text-white font-bold py-4 rounded-xl shadow-lg" style="background-color: #0000FF;">Войти</button>
+        </div>
+    </div>
+
     <script>
-        // --- КОНСТАНТЫ И URL ---
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4IXGi1WIYwr12fHYqQ6lGaLDOjgW2q9sf5ovHUrP-sh3jkfBdXhlVZ70NsCL4tNgDCg/exec';
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
         const INTERVAL_MS = 3000;
 
-        // Состояние
+        const BUTTON_SPINNER_SVG = `
+        <svg class="spinner-mini" viewBox="0 0 50 50">
+            <circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle>
+        </svg>`;
+
         let isSlotActive = false;
         let canStartSlot = false;
-        let selectedDateObj = new Date(); // Храним выбранную дату
+        let selectedDateObj = new Date();
 
-        // Элементы
         const loadingOverlay = document.getElementById('loadingOverlay');
         const mainActionButton = document.getElementById('main-action-button');
         const endShiftButton = document.getElementById('end-shift-button');
         const bottomSheet = document.getElementById('bottom-sheet');
-        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
-        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
+        const authErrorSheet = document.getElementById('auth-error-sheet');
         const calendarContainer = document.getElementById('calendar-strip');
         const mainContent = document.getElementById('main-content');
+        const userAvatar = document.getElementById('user-avatar');
 
         function showLoading() { loadingOverlay.classList.add('visible'); }
         function hideLoading() { loadingOverlay.classList.remove('visible'); }
 
-        // --- УВЕДОМЛЕНИЯ ---
+        // --- ОБНОВЛЕНИЕ АВАТАРА (GOOGLE STYLE) ---
+        function updateGoogleAvatar(name = "", surname = "") {
+            const colors = ['#1a73e8', '#d93025', '#f9ab00', '#188038', '#8e24aa', '#00acc1', '#f06292'];
+            
+            // Если данных нет, берем из localStorage
+            const storedName = name || localStorage.getItem('userName') || "";
+            const storedSurname = surname || localStorage.getItem('userSurname') || "";
+            
+            const initials = (storedName.charAt(0) + storedSurname.charAt(0)).toUpperCase() || "?";
+            
+            // Выбор цвета на основе первой буквы (алгоритм Google)
+            const charCode = initials.charCodeAt(0) || 0;
+            const color = colors[charCode % colors.length];
+            
+            userAvatar.textContent = initials;
+            userAvatar.style.backgroundColor = color;
+        }
+
         function createNotification(type, message) {
             const area = document.getElementById('notification-area');
             const note = document.createElement('div');
             const isSuccess = type === 'success';
-            
             note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#1a1a1a]/90 ring-1 ring-[#0000FF]' : 'bg-red-900/90'} text-white rounded-xl shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between`;
-            note.innerHTML = `
-                <div class="flex items-center">
-                    <div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3">
-                        <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
-                    </div>
-                    <div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div>
-                </div>
-            `;
+            note.innerHTML = `<div class="flex items-center"><div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3"><i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i></div><div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div></div>`;
             area.appendChild(note);
             lucide.createIcons();
             setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
             setTimeout(() => { note.classList.add('opacity-0', '-translate-y-10'); setTimeout(() => note.remove(), 500); }, 3500);
         }
 
-        // --- ФОРМАТИРОВАНИЕ ДАТЫ (DD.MM.YYYY) ---
         function formatDateForServer(date) {
             const d = date.getDate().toString().padStart(2, '0');
             const m = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -268,20 +313,17 @@
             return `${d}.${m}.${y}`;
         }
 
-        // --- РЕНДЕРИНГ: SKELETON, КАРТОЧКИ И ЗАГЛУШКИ ---
-        
-        // Генерация Skeleton (при загрузке)
+        // Обновленные Skeletons: плавная анимация Shimmer
         function renderSkeletons() {
-            // Генерируем 3 скелетона
             let html = '<div class="w-full flex flex-col space-y-4 fade-in">';
             for(let i=0; i<3; i++) {
                 html += `
-                    <div class="w-full shift-card skeleton-pulse p-3 rounded-xl shadow-lg flex justify-between items-center mt-2">
+                    <div class="w-full shift-card skeleton-shimmer p-3 rounded-xl shadow-lg flex justify-between items-center mt-2">
                         <div class="flex items-center space-x-2">
-                            <div class="flex-shrink-0 w-7 h-7 rounded-full skeleton-block"></div>
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full skeleton-block"></div>
                             <div class="flex flex-col space-y-2">
-                                <div class="w-20 h-3 skeleton-block"></div>
-                                <div class="w-24 h-4 skeleton-block"></div>
+                                <div class="w-24 h-3 skeleton-block"></div>
+                                <div class="w-32 h-4 skeleton-block"></div>
                             </div>
                         </div>
                         <div class="w-16 h-6 skeleton-block"></div>
@@ -293,7 +335,6 @@
         }
 
         function renderEmptyState(message = "Ближайших смен нет") {
-            // Увеличен отступ сверху (mt-32), чтобы опустить заглушку
             mainContent.innerHTML = `
                 <div id="status-display" class="text-center mt-32 fade-in">
                     <i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i>
@@ -304,19 +345,14 @@
         }
 
         function renderShiftCard(shiftData) {
-            // Карточка "Подтверждён"
             mainContent.innerHTML = `
                 <div class="w-full shift-card text-white p-3 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 fade-in">
                     <div class="flex items-center space-x-2">
-                        <div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                            <i data-lucide="check" class="w-5 h-5 text-white"></i>
                         </div>
                         <div>
-                            <span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">
-                                Подтверждён
-                            </span>
+                            <span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">Подтверждён</span>
                             <p class="text-lg font-bold mt-1">${shiftData.time}</p>
                         </div>
                     </div>
@@ -325,124 +361,79 @@
                     </div>
                 </div>
             `;
+            lucide.createIcons();
         }
 
-        // --- АВТОРИЗАЦИЯ ---
         async function checkUserAuthentication(isSilent = false) {
             if (!isSilent) showLoading();
             const email = localStorage.getItem('userEmail');
             const token = localStorage.getItem('authToken');
-            
-            if (!email || !token) { redirectToAuth(); return false; }
-            
+            if (!email || !token) { showAuthError(); return false; }
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST', mode: 'cors', cache: 'no-cache',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ auth: true, email: email, token: token })
                 });
-
                 const data = await response.json();
                 if (data.status === 'success' && data.auth_ok) {
+                    // Сохраняем имя/фамилию если они пришли с сервера
+                    if(data.name) localStorage.setItem('userName', data.name);
+                    if(data.surname) localStorage.setItem('userSurname', data.surname);
+                    updateGoogleAvatar();
                     return true;
-                } else {
-                    redirectToAuth(data.message);
-                    return false;
                 }
+                showAuthError(); return false;
             } catch (error) {
-                console.error('Auth error:', error);
-                if(!isSilent) createNotification('error', 'Ошибка связи с сервером');
                 return true; 
             } finally {
                 if (!isSilent) hideLoading();
             }
         }
-        
-        function redirectToAuth(message = "Перенаправление...") {
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('authToken');
-            showLoading();
-            setTimeout(() => { window.location.href = LOGOUT_URL; }, 1000); 
-        }
 
-        // --- API: ПОЛУЧЕНИЕ ДАННЫХ ---
-        
-        // 1. Получить карточку на конкретную дату
-        // isSilent = true, чтобы не блокировать экран при авто-обновлении
+        function showAuthError() { hideLoading(); authErrorSheet.classList.add('open'); }
+
         async function fetchShiftForDate(dateObj, isSilent = false) {
-            if (!isSilent) showLoading(); // Показываем полный лоадер только при ручных действиях (смена даты)
+            if (!isSilent) showLoading();
             const userEmail = localStorage.getItem('userEmail');
             const dateStr = formatDateForServer(dateObj);
-            
             try {
                 const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
                 const response = await fetch(url);
                 const data = await response.json();
-                
                 if (data.status === 'success' && data.shift && data.shift.found) {
                     renderShiftCard(data.shift.data);
                 } else {
                     renderEmptyState("Смен на этот день нет");
                 }
             } catch (e) {
-                console.error(e);
                 renderEmptyState("Ошибка загрузки");
             } finally {
                 if (!isSilent) hideLoading();
             }
         }
 
-        // 2. Получить общий статус (Log + Автозакрытие) для кнопок
         async function fetchStatusLogic(isSilent = false) {
             if (!isSilent) showLoading();
             const userEmail = localStorage.getItem('userEmail');
-            
             try {
                 const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
                 return await response.json();
-            } catch (error) {
-                return null;
-            } finally {
-                if (!isSilent) hideLoading();
-            }
-        }
-        
-        async function updateShiftStatus(newStatus) {
-            // Здесь лоадер не показываем принудительно, т.к. делаем Optimistic UI и спиннер на кнопке
-            const userEmail = localStorage.getItem('userEmail');
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'cors', cache: 'no-cache',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
-                });
-                const data = await response.json();
-                return data.status === 'success';
-            } catch (error) {
-                createNotification('error', 'Сбой при отправке данных');
-                return false;
-            }
+            } catch (error) { return null; }
+            finally { if (!isSilent) hideLoading(); }
         }
 
-        // --- UI ОБНОВЛЕНИЕ КНОПОК ---
         function updateButtons(data) {
             if (!data) return;
-
             const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
-            // const infoText = data.info; // Не используется
-            
             if (data.canStart !== undefined) canStartSlot = data.canStart;
             isSlotActive = (status === 'Open');
-
             const statusTextEl = document.getElementById('status-text');
-
             if (isSlotActive) {
                 if(statusTextEl) {
                     statusTextEl.textContent = "Смена активна";
-                    statusTextEl.classList.remove('text-gray-400');
-                    statusTextEl.classList.add('text-[#0000FF]');
+                    statusTextEl.classList.replace('text-gray-400', 'text-[#0000FF]');
                 }
-                
                 mainActionButton.textContent = 'Перейти к задачам';
                 mainActionButton.disabled = false;
                 endShiftButton.style.display = 'flex';
@@ -453,27 +444,19 @@
             }
         }
 
-        // --- ИНИЦИАЛИЗАЦИЯ КАЛЕНДАРЯ ---
         function initCalendar() {
             calendarContainer.innerHTML = '';
             const today = new Date();
-            
             for (let i = 0; i < 14; i++) {
                 const date = new Date(today);
                 date.setDate(today.getDate() + i);
-                
                 const item = document.createElement('div');
                 item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer flex-shrink-0 w-14`;
-                
                 if (date.toDateString() === selectedDateObj.toDateString()) {
                     item.classList.add('selected-border');
                     item.style.color = '#0000FF';
-                } else {
-                    item.style.color = '#fff';
                 }
-
                 item.innerHTML = `<span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
-                
                 item.addEventListener('click', () => {
                     document.querySelectorAll('.calendar-item').forEach(el => {
                         el.classList.remove('selected-border');
@@ -481,116 +464,71 @@
                     });
                     item.classList.add('selected-border');
                     item.style.color = '#0000FF';
-                    
                     selectedDateObj = date;
-                    // При смене даты показываем лоадер (не silent)
-                    fetchShiftForDate(date, false);
+                    renderSkeletons();
+                    fetchShiftForDate(date, true);
                 });
-
                 calendarContainer.appendChild(item);
             }
         }
 
-        // --- ОБРАБОТЧИКИ КНОПОК (С МГНОВЕННОЙ РЕАКЦИЕЙ) ---
         mainActionButton.addEventListener('click', async () => {
             if (isSlotActive) {
-                // Переход к задачам
-                showLoading();
-                window.location.href = TASKS_URL;
-            } else {
-                if (canStartSlot) {
-                    // 1. Мгновенная UI реакция (Optimistic UI)
-                    mainActionButton.innerHTML = '<span class="btn-spinner"></span>'; // Спиннер внутри кнопки
-                    mainActionButton.disabled = true;
-
-                    // 2. Запрос
-                    const success = await updateShiftStatus('Open');
-                    
-                    // 3. Обработка результата
-                    if (success) {
-                        createNotification('success', 'Смена открыта!');
-                        // Принудительно обновляем локальное состояние, чтобы UI "встал" на место
-                        updateButtons({ shiftStatus: 'Open', canStart: false });
-                    } else {
-                        // Если ошибка - откатываем кнопку
-                        updateButtons({ shiftStatus: 'Closed', canStart: true });
-                    }
+                showLoading(); window.location.href = TASKS_URL;
+            } else if (canStartSlot) {
+                mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+                mainActionButton.disabled = true;
+                const success = await updateShiftStatus('Open');
+                if (success) {
+                    createNotification('success', 'Смена открыта!');
+                    updateButtons({ shiftStatus: 'Open', canStart: false });
+                } else {
+                    updateButtons({ shiftStatus: 'Closed', canStart: true });
                 }
             }
         });
+
+        async function updateShiftStatus(newStatus) {
+            const userEmail = localStorage.getItem('userEmail');
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
+                });
+                const data = await response.json();
+                return data.status === 'success';
+            } catch (error) { return false; }
+        }
 
         endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
-        cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
-
-        confirmEndShiftBtn.addEventListener('click', async () => {
-            // 1. Скрываем шторку
+        document.getElementById('cancel-end-shift-btn').addEventListener('click', () => bottomSheet.classList.remove('open'));
+        document.getElementById('confirm-end-shift-btn').addEventListener('click', async () => {
             bottomSheet.classList.remove('open');
-            
-            // 2. Мгновенная UI реакция (Optimistic UI)
-            // Скрываем крестик, на главной кнопке показываем загрузку
             endShiftButton.style.display = 'none';
-            mainActionButton.innerHTML = '<span class="btn-spinner"></span>';
-            mainActionButton.disabled = true;
-
-            // 3. Запрос
+            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             const success = await updateShiftStatus('Closed');
-            
-            // 4. Обработка результата
             if (success) {
                 createNotification('success', 'Смена завершена');
-                updateButtons({ shiftStatus: 'Closed', canStart: false }); // canStart может измениться после проверки сервером, но пока блокируем
-                // Запросим актуальный статус
                 const realData = await fetchStatusLogic(true);
                 updateButtons(realData);
-            } else {
-                // Откат при ошибке
-                updateButtons({ shiftStatus: 'Open' });
-            }
+            } else { updateButtons({ shiftStatus: 'Open' }); }
         });
 
-        // Навигация
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const url = item.getAttribute('data-url');
-                if (url && url !== '#') {
-                    showLoading();
-                    window.location.href = url;
-                }
-            });
-        });
+        document.getElementById('auth-login-btn').addEventListener('click', () => { window.location.href = LOGOUT_URL; });
 
-        // --- ЗАПУСК ---
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            
-            // 1. Сразу показываем скелетоны, пока идет загрузка
+            updateGoogleAvatar(); // Инициализация аватара
+            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             renderSkeletons();
-            
-            initCalendar(); // Рисуем календарь
-
+            initCalendar();
             const authOk = await checkUserAuthentication(false);
             if (!authOk) return;
-
-            // 2. Параллельная загрузка данных
-            // fetchShiftForDate(false) уберет skeleton и покажет карточку или заглушку
-            // fetchStatusLogic(false) обновит кнопки (уберет спиннер с кнопки)
-            
-            const p1 = fetchShiftForDate(selectedDateObj, false); 
-            const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
-
-            await Promise.all([p1, p2]);
-
-            // 3. Цикл обновления (каждые 3 сек)
+            await Promise.all([fetchShiftForDate(selectedDateObj, false), fetchStatusLogic(true).then(updateButtons)]);
             setInterval(async () => {
-                // Проверка авторизации "тихая"
-                const stillAuth = await checkUserAuthentication(true);
-                if (stillAuth) {
-                    // Обновляем статус кнопок (тихо)
-                    const statusData = await fetchStatusLogic(true);
-                    updateButtons(statusData);
-                    
-                    // Обновляем карточку смены (тихо, без лоадера)
-                    // Важно передать true (isSilent)
+                if (await checkUserAuthentication(true)) {
+                    updateButtons(await fetchStatusLogic(true));
                     fetchShiftForDate(selectedDateObj, true);
                 }
             }, INTERVAL_MS);
@@ -599,4 +537,4 @@
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-                </html>
+</html>
