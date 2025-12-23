@@ -18,7 +18,6 @@
             padding-bottom: 100px; 
             overflow-x: hidden;
             -webkit-user-select: none; 
-            -ms-user-select: none; 
             user-select: none; 
             overscroll-behavior-y: none;
         }
@@ -43,14 +42,14 @@
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
         }
 
-        .calendar-item { transition: all 0.2s ease; border: 1px solid transparent; }
+        .calendar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
         .calendar-item.selected-border { border: 1px solid #0000FF; background-color: rgba(0, 0, 255, 0.1); }
-        .calendar-item:active { transform: scale(0.95); }
+        .calendar-item:active { transform: scale(0.92); }
         
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .empty-state-icon { color: #0000FF; width: 80px; height: 80px; }
+        .empty-state-icon { color: #0000FF; width: 64px; height: 64px; }
 
         .close-shift-button {
             height: 50px; width: 50px; 
@@ -66,21 +65,20 @@
         .close-shift-button:active { transform: scale(0.95); }
         .close-shift-button::before {
             content: ''; position: absolute; top: 8px; left: 50%; 
-            transform: translateX(-50%); width: 2px; height: 15px; 
+            transform: translateX(-50%); width: 2px; height: 12px; 
             background-color: #0000FF; border-radius: 2px; 
         }
         .close-shift-button::after {
-            content: ''; position: absolute; width: 30px; height: 30px; 
+            content: ''; position: absolute; width: 28px; height: 28px; 
             border: 2px solid #0000FF; border-top-color: transparent; 
             border-radius: 50%; bottom: 8px;
         }
 
-        /* Bottom Sheet */
         .bottom-sheet-overlay {
             visibility: hidden; opacity: 0;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-        .bottom-sheet-content { transform: translateY(100%); transition: transform 0.3s ease; }
+        .bottom-sheet-content { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
         .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
 
@@ -90,36 +88,31 @@
             pointer-events: none; display: flex; flex-direction: column; align-items: center;
         }
 
-        /* Спиннеры */
         @keyframes rotate { 100% { transform: rotate(360deg); } }
         @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
 
-        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; }
+        .spinner { width: 48px; height: 48px; animation: rotate 2s linear infinite; }
         .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
         
-        .spinner-mini { width: 24px; height: 24px; animation: rotate 2s linear infinite; }
+        .spinner-mini { width: 22px; height: 22px; animation: rotate 2s linear infinite; }
         .path-mini { stroke: #FFFFFF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
 
         #loadingOverlay {
             position: fixed; inset: 0;
-            background-color: rgba(15, 15, 15, 0.85); 
+            background-color: rgba(15, 15, 15, 0.8); 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 100; transition: opacity 0.3s ease, visibility 0.3s ease;
             opacity: 0; visibility: hidden; pointer-events: none; 
         }
         #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
 
-        /* Карточка */
         .shift-card {
             background-color: #1A1A1A;
             transition: transform 0.2s ease, background-color 0.2s;
         }
-        .shift-card:active {
-            transform: scale(0.98);
-            background-color: #252525;
-        }
+        .shift-card:active { transform: scale(0.98); background-color: #222; }
 
-        /* --- Обновленные Skeleton Стили (Плавно) --- */
+        /* Плавный Skeleton Shimmer */
         .skeleton-shimmer {
             position: relative;
             overflow: hidden;
@@ -128,12 +121,9 @@
         .skeleton-shimmer::after {
             content: "";
             position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
+            top: 0; right: 0; bottom: 0; left: 0;
             transform: translateX(-100%);
-            background-image: linear-gradient(
+            background: linear-gradient(
                 90deg,
                 rgba(255, 255, 255, 0) 0,
                 rgba(255, 255, 255, 0.03) 20%,
@@ -145,18 +135,13 @@
         @keyframes shimmer {
             100% { transform: translateX(100%); }
         }
-        .skeleton-item {
-            background-color: #2a2a2a;
+        .skeleton-block {
+            background-color: #262626;
             border-radius: 4px;
         }
 
-        .fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="text-white">
@@ -170,16 +155,14 @@
     <div id="notification-area"></div>
 
     <header class="w-full header-style sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="max-w-7xl mx-auto px-4 py-4">
             <div class="flex justify-between items-center h-8 mb-4">
                 <h1 class="text-lg font-bold text-white" id="screen-title">Главный экран</h1>
                 <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-solid hover:bg-white/10 transition-colors" style="border-color: #0000FF;">
                     <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF;"></i>
                 </button>
             </div>
-
             <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
-
             <div id="shift-action-container" class="w-full mt-4 flex">
                 <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
                 <button id="main-action-button" class="w-full flex items-center justify-center text-center text-white font-bold transition-all duration-200 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
@@ -190,7 +173,7 @@
     </header>
 
     <main class="flex flex-col items-center justify-start min-h-[50vh] pt-8 pb-16 px-4 w-full" id="main-content">
-        <!-- Скелетоны вставляются сюда -->
+        <!-- Контент -->
     </main>
 
     <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2 z-40">
@@ -217,7 +200,7 @@
     </nav>
     
     <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl mb-4 sm:mb-0">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl">
             <div class="text-center mb-4">
                 <h2 class="text-2xl font-bold mb-2">Завершить смену?</h2>
                 <p class="text-gray-400 text-sm">Убедитесь, что все текущие задачи выполнены.</p>
@@ -236,7 +219,7 @@
                     <i data-lucide="shield-alert" class="w-10 h-10 text-red-500"></i>
                 </div>
                 <h2 class="text-2xl font-bold mb-2">Доступ ограничен</h2>
-                <p class="text-gray-400 text-sm leading-relaxed">Не удалось проверить авторизацию или сессия истекла. Пожалуйста, войдите в аккаунт заново.</p>
+                <p class="text-gray-400 text-sm leading-relaxed">Не удалось проверить авторизацию или сессия истекла.</p>
             </div>
             <button id="auth-login-btn" class="w-full text-center text-white font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all" style="background-color: #0000FF;">
                 Войти в аккаунт
@@ -250,11 +233,15 @@
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
         const INTERVAL_MS = 3000;
 
-        const BUTTON_SPINNER_SVG = `<svg class="spinner-mini" viewBox="0 0 50 50"><circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
+        const BUTTON_SPINNER_SVG = `
+        <svg class="spinner-mini" viewBox="0 0 50 50">
+            <circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle>
+        </svg>`;
 
         let isSlotActive = false;
         let canStartSlot = false;
         let selectedDateObj = new Date();
+        let lastStateHash = ""; // Для предотвращения мерцания при фоновом обновлении
 
         const loadingOverlay = document.getElementById('loadingOverlay');
         const mainActionButton = document.getElementById('main-action-button');
@@ -274,8 +261,16 @@
             const area = document.getElementById('notification-area');
             const note = document.createElement('div');
             const isSuccess = type === 'success';
+            
             note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#1a1a1a]/90 ring-1 ring-[#0000FF]' : 'bg-red-900/90'} text-white rounded-xl shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between`;
-            note.innerHTML = `<div class="flex items-center"><div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3"><i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i></div><div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div></div>`;
+            note.innerHTML = `
+                <div class="flex items-center">
+                    <div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3">
+                        <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
+                    </div>
+                    <div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div>
+                </div>
+            `;
             area.appendChild(note);
             lucide.createIcons();
             setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
@@ -285,55 +280,66 @@
         function formatDateForServer(date) {
             const d = date.getDate().toString().padStart(2, '0');
             const m = (date.getMonth() + 1).toString().padStart(2, '0');
-            return `${d}.${m}.${date.getFullYear()}`;
+            const y = date.getFullYear();
+            return `${d}.${m}.${y}`;
         }
 
-        // Обновленная функция рендеринга плавных скелетонов
         function renderSkeletons() {
+            lastStateHash = "skeleton"; // Сбрасываем хеш принудительно
             let html = '<div class="w-full flex flex-col space-y-4 fade-in">';
             for(let i=0; i<2; i++) {
                 html += `
                     <div class="w-full skeleton-shimmer p-4 rounded-xl shadow-lg flex justify-between items-center mt-2 border border-white/5">
-                        <div class="flex items-center space-x-3 w-2/3">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-full skeleton-item"></div>
-                            <div class="flex flex-col space-y-2 w-full">
-                                <div class="w-16 h-3 skeleton-item"></div>
-                                <div class="w-28 h-4 skeleton-item"></div>
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full skeleton-block"></div>
+                            <div class="flex flex-col space-y-2">
+                                <div class="w-16 h-3 skeleton-block"></div>
+                                <div class="w-24 h-4 skeleton-block"></div>
                             </div>
                         </div>
-                        <div class="w-12 h-6 skeleton-item"></div>
-                    </div>
-                `;
+                        <div class="w-14 h-6 skeleton-block"></div>
+                    </div>`;
             }
             html += '</div>';
             mainContent.innerHTML = html;
         }
 
         function renderEmptyState(message = "Ближайших смен нет") {
+            const hash = "empty-" + message;
+            if (lastStateHash === hash) return; // Не обновляем, если то же самое
+            lastStateHash = hash;
+
             mainContent.innerHTML = `
                 <div id="status-display" class="text-center mt-32 fade-in">
-                    <i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i>
-                    <p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">${message}</p>
-                </div>
-            `;
+                    <i data-lucide="calendar-days" class="empty-state-icon mx-auto opacity-50"></i>
+                    <p id="status-text" class="text-lg text-gray-500 mt-4 font-medium">${message}</p>
+                </div>`;
             lucide.createIcons();
         }
 
         function renderShiftCard(shiftData) {
+            const hash = `shift-${shiftData.time}-${shiftData.duration}`;
+            if (lastStateHash === hash) return; 
+            lastStateHash = hash;
+
             mainContent.innerHTML = `
-                <div class="w-full shift-card text-white p-3 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 fade-in border border-white/5">
-                    <div class="flex items-center space-x-2">
-                        <div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <div class="w-full shift-card text-white p-4 rounded-xl shadow-lg flex justify-between items-center border border-white/5 mt-4 fade-in">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
+                            <i data-lucide="check" class="w-5 h-5 text-white"></i>
                         </div>
                         <div>
-                            <span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">Подтверждён</span>
-                            <p class="text-lg font-bold mt-1">${shiftData.time}</p>
+                            <span class="inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded bg-green-900/40 text-green-400">
+                                Подтверждён
+                            </span>
+                            <p class="text-xl font-bold mt-1">${shiftData.time}</p>
                         </div>
                     </div>
-                    <div class="flex-shrink-0 text-right"><p class="text-xl font-bold text-white">${shiftData.duration || ''}</p></div>
-                </div>
-            `;
+                    <div class="flex-shrink-0 text-right">
+                        <p class="text-lg font-bold text-gray-300">${shiftData.duration || ''}</p>
+                    </div>
+                </div>`;
+            lucide.createIcons();
         }
 
         function showAuthError() {
@@ -344,39 +350,30 @@
         }
 
         async function checkUserAuthentication(isSilent = false) {
-            if (!isSilent) showLoading();
             const email = localStorage.getItem('userEmail');
             const token = localStorage.getItem('authToken');
             if (!email || !token) { showAuthError(); return false; }
+            
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'cors', cache: 'no-cache',
+                    method: 'POST', mode: 'cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ auth: true, email: email, token: token })
                 });
                 const data = await response.json();
                 if (data.status === 'success' && data.auth_ok) return true;
-                showAuthError();
-                return false;
+                showAuthError(); return false;
             } catch (error) {
-                if(!isSilent) createNotification('error', 'Ошибка связи с сервером');
+                if(!isSilent) createNotification('error', 'Ошибка связи');
                 return true; 
-            } finally {
-                if (!isSilent) hideLoading();
             }
         }
-
-        authLoginBtn.addEventListener('click', () => {
-             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
-             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
-        });
 
         async function fetchShiftForDate(dateObj, isSilent = false) {
             const userEmail = localStorage.getItem('userEmail');
             const dateStr = formatDateForServer(dateObj);
             try {
-                const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
-                const response = await fetch(url);
+                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`);
                 const data = await response.json();
                 if (data.status === 'success' && data.shift && data.shift.found) {
                     renderShiftCard(data.shift.data);
@@ -400,14 +397,14 @@
             const userEmail = localStorage.getItem('userEmail');
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'cors', cache: 'no-cache',
+                    method: 'POST', mode: 'cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
                 });
                 const data = await response.json();
                 return data.status === 'success';
             } catch (error) {
-                createNotification('error', 'Сбой при отправке данных');
+                createNotification('error', 'Ошибка отправки');
                 return false;
             }
         }
@@ -417,12 +414,12 @@
             const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
             if (data.canStart !== undefined) canStartSlot = data.canStart;
             isSlotActive = (status === 'Open');
-            const statusTextEl = document.getElementById('status-text');
 
+            const statusTextEl = document.getElementById('status-text');
             if (isSlotActive) {
                 if(statusTextEl) {
                     statusTextEl.textContent = "Смена активна";
-                    statusTextEl.className = "text-xl text-[#0000FF] mt-4 font-medium";
+                    statusTextEl.classList.add('text-[#0000FF]');
                 }
                 mainActionButton.textContent = 'Перейти к задачам';
                 mainActionButton.disabled = false;
@@ -445,9 +442,10 @@
                 if (date.toDateString() === selectedDateObj.toDateString()) {
                     item.classList.add('selected-border');
                     item.style.color = '#0000FF';
-                } else { item.style.color = '#fff'; }
-                item.innerHTML = `<span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
+                }
+                item.innerHTML = `<span class="text-[10px] uppercase font-bold opacity-60">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
                 item.addEventListener('click', () => {
+                    if(selectedDateObj.toDateString() === date.toDateString()) return;
                     document.querySelectorAll('.calendar-item').forEach(el => {
                         el.classList.remove('selected-border');
                         el.style.color = '#fff';
@@ -469,30 +467,35 @@
             } else if (canStartSlot) {
                 mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
                 mainActionButton.disabled = true;
-                const success = await updateShiftStatus('Open');
-                if (success) {
+                if (await updateShiftStatus('Open')) {
                     createNotification('success', 'Смена открыта!');
                     updateButtons({ shiftStatus: 'Open', canStart: false });
                 } else {
-                    const d = await fetchStatusLogic();
-                    updateButtons(d);
+                    updateButtons({ shiftStatus: 'Closed', canStart: true });
                 }
             }
         });
 
         endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
         cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
+
         confirmEndShiftBtn.addEventListener('click', async () => {
             bottomSheet.classList.remove('open');
             endShiftButton.style.display = 'none';
             mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             mainActionButton.disabled = true;
-            const success = await updateShiftStatus('Closed');
-            if (success) {
+            if (await updateShiftStatus('Closed')) {
                 createNotification('success', 'Смена завершена');
                 const realData = await fetchStatusLogic();
                 updateButtons(realData);
-            } else { updateButtons({ shiftStatus: 'Open' }); }
+            } else {
+                updateButtons({ shiftStatus: 'Open' });
+            }
+        });
+
+        authLoginBtn.addEventListener('click', () => {
+             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
+             setTimeout(() => { window.location.href = LOGOUT_URL; }, 400);
         });
 
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -510,20 +513,24 @@
             mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             renderSkeletons();
             initCalendar();
-            const authOk = await checkUserAuthentication(false);
-            if (!authOk) return;
-            await Promise.all([fetchShiftForDate(selectedDateObj, true), fetchStatusLogic().then(d => updateButtons(d))]);
-            setInterval(async () => {
-                const stillAuth = await checkUserAuthentication(true);
-                if (stillAuth) {
-                    const statusData = await fetchStatusLogic();
-                    updateButtons(statusData);
-                    fetchShiftForDate(selectedDateObj, true);
-                }
-            }, INTERVAL_MS);
+
+            if (await checkUserAuthentication(false)) {
+                await Promise.all([
+                    fetchShiftForDate(selectedDateObj, false),
+                    fetchStatusLogic().then(data => updateButtons(data))
+                ]);
+
+                setInterval(async () => {
+                    if (await checkUserAuthentication(true)) {
+                        const statusData = await fetchStatusLogic();
+                        updateButtons(statusData);
+                        fetchShiftForDate(selectedDateObj, true);
+                    }
+                }, INTERVAL_MS);
+            }
         });
 
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-    </html>
+</html>
