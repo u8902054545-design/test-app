@@ -1,604 +1,677 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Главная страница - Управление сменами</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Авторизация ITC Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0F0F0F;
-            min-height: 100vh;
+        /* --- Basic Styles and Reset --- */
+        html, body {
             margin: 0;
-            padding-bottom: 100px; 
-            overflow-x: hidden;
-            -webkit-user-select: none; 
-            -ms-user-select: none; 
-            user-select: none; 
-            overscroll-behavior-y: none;
+            padding: 0;
+            height: 100%;
+            background-color: #000000;
+            font-family: 'Inter', sans-serif;
+            color: #ffffff;
+            box-sizing: border-box;
+            overflow: hidden; /* Предотвращаем прокрутку при переходах */
+        }
+
+        /* --- Defining CSS variables for colors --- */
+        :root {
+            --color-blue: #0000FF;
+            --color-purple: #0000FF; 
+            --color-red: #ff0000;
+            --animation-duration: 3s;
+            --transition-duration: 0.5s; 
         }
         
-        .header-style {
-            border-bottom-left-radius: 24px;
-            border-bottom-right-radius: 24px;
-            border-bottom: 4px solid #0000FF;
-            background-color: #1a1a1a; 
+        /* --- Стили для IFRAME (Финальная страница) --- */
+        #contentFrame {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none; /* Скрыт до успешной авторизации */
+            z-index: 50;
+            background-color: #000000;
         }
 
-        .nav-item.active .icon-container {
-            background-color: #0000FF;
-            color: #FFFFFF; 
+        /* ---------------------------------------------------- */
+        /* --- НОВАЯ АНИМАЦИЯ ЗАГРУЗКИ (Google Play Style) --- */
+        /* ---------------------------------------------------- */
+
+        #overlay-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7); 
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Самый высокий приоритет */
+            transition: opacity var(--transition-duration) ease, visibility var(--transition-duration) ease;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
-        .nav-item.active svg { color: #FFFFFF; }
-        .nav-item svg { color: #C4C7C5; transition: color 0.2s; }
         
-        .nav-bar {
-            background-color: #1F1F1F;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+        #overlay-loading.visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            display: flex; 
         }
-
-        .calendar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
-        .calendar-item.selected-border { border: 1px solid #0000FF; background-color: rgba(0, 0, 255, 0.1); }
-        .calendar-item:active { transform: scale(0.95); }
         
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .empty-state-icon { color: #0000FF; width: 80px; height: 80px; }
-
-        .close-shift-button {
-            height: 50px; width: 50px; 
-            background-color: #1a1a1a; 
-            border: 1px solid #0000FF; 
-            border-radius: 6px; 
-            flex-shrink: 0;
-            position: relative; 
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .close-shift-button:active { transform: scale(0.95); }
-        .close-shift-button::before {
-            content: ''; position: absolute; top: 8px; left: 50%; 
-            transform: translateX(-50%); width: 2px; height: 15px; 
-            background-color: #0000FF; border-radius: 2px; 
-        }
-        .close-shift-button::after {
-            content: ''; position: absolute; width: 30px; height: 30px; 
-            border: 2px solid #0000FF; border-top-color: transparent; 
-            border-radius: 50%; bottom: 8px;
+        .spinner {
+            width: 60px; 
+            height: 60px;
+            animation: rotate 2s linear infinite; 
+            transform-origin: center center;
         }
 
-        .bottom-sheet-overlay {
-            visibility: hidden; opacity: 0;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .bottom-sheet-content { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
-        .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
-
-        #notification-area {
-            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 480px; z-index: 60;
-            pointer-events: none; display: flex; flex-direction: column; align-items: center;
+        .path {
+            stroke: var(--color-blue); 
+            stroke-linecap: round;
+            stroke-width: 4; 
+            stroke-dasharray: 1, 150; 
+            animation: dash 1.5s ease-in-out infinite; 
         }
 
-        @keyframes rotate { 100% { transform: rotate(360deg); } }
-        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
 
-        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; }
-        .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+        @keyframes dash {
+            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 70, 150; stroke-dashoffset: -25px; }
+            100% { stroke-dasharray: 70, 150; stroke-dashoffset: -125px; }
+        }
         
-        .spinner-mini { width: 24px; height: 24px; animation: rotate 2s linear infinite; }
-        .path-mini { stroke: #FFFFFF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
-
-        #loadingOverlay {
-            position: fixed; inset: 0;
-            background-color: rgba(15, 15, 15, 0.85); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; transition: opacity 0.4s ease, visibility 0.4s ease;
-            opacity: 0; visibility: hidden; pointer-events: none; 
+        /* ---------------------------------------------------- */
+        /* --- Анимации перехода страниц --- */
+        /* ---------------------------------------------------- */
+        
+        #authFormContainer.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
-        #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
-
-        .shift-card {
-            background-color: #1A1A1A;
-            transition: transform 0.2s ease, background-color 0.2s, opacity 0.3s ease;
+        
+        #authFormContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #000000;
+            color: white;
+            font-family: sans-serif;
+            box-sizing: border-box;
+            width: 100%;
+            position: fixed; 
+            top: 0;
+            left: 0; 
+            bottom: 0;
+            z-index: 99; 
+            transform: translateX(0); 
+            transition: transform var(--transition-duration) ease-in-out, opacity var(--transition-duration) ease-in-out; 
         }
-        .shift-card:active {
-            transform: scale(0.98);
-            background-color: #252525;
+        
+        /* Класс для ухода влево */
+        #authFormContainer.slide-out,
+        #codeVerificationContainer.slide-out {
+            transform: translateX(-100%) !important; 
+        }
+        
+        #codeVerificationContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #000000;
+            color: white;
+            font-family: sans-serif;
+            box-sizing: border-box;
+            width: 100%;
+            position: fixed; 
+            top: 0;
+            left: 0; 
+            bottom: 0;
+            z-index: 98; 
+            transform: translateX(100%); 
+            transition: transform var(--transition-duration) ease-in-out; 
+        }
+        
+        #codeVerificationContainer.slide-in {
+            transform: translateX(0); 
         }
 
-        /* Улучшенный Skeleton с плавным градиентом */
-        .skeleton-shimmer {
+        .page-content {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 5px 15px 150px; 
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+            height: 100%; 
+        }
+        
+        /* --- Заголовки и инпуты --- */
+        .darkcenter-title {
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+            margin-top: 10px;
+            background-image: linear-gradient(to right, #0000FF, #0000FF, #ff0000, #0000FF, #0000FF);
+            background-size: 400% 100%;
+            animation: gradientFlow-new 4s linear infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        @keyframes gradientFlow-new {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .login-title {
+            font-weight: bold;
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 10px; 
+            text-align: left;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0 1px;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            color: #AAAAAA;
+            margin-bottom: 20px;
+            text-align: left;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0 1px;
+            line-height: 1.4;
+        }
+        
+        .input-group {
             position: relative;
-            overflow: hidden;
-            background-color: #1A1A1A;
-        }
-        .skeleton-shimmer::after {
-            content: "";
-            position: absolute;
-            top: 0; right: 0; bottom: 0; left: 0;
-            transform: translateX(-100%);
-            background-image: linear-gradient(
-                90deg,
-                rgba(255, 255, 255, 0) 0,
-                rgba(255, 255, 255, 0.03) 20%,
-                rgba(255, 255, 255, 0.06) 50%,
-                rgba(255, 255, 255, 0.03) 80%,
-                rgba(255, 255, 255, 0) 100%
-            );
-            animation: shimmer 2s infinite;
-        }
-        @keyframes shimmer {
-            100% { transform: translateX(100%); }
-        }
-        .skeleton-block {
-            background-color: #2A2A2A;
-            border-radius: 6px;
+            box-sizing: border-box;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 0 1px;
         }
 
-        .fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
+        .input-group .input-field {
+            width: 100%;
+            padding: 24px 11px 8px;
+            height: 56px;
+            background-color: #000000;
+            border: 1px solid #615f5f;
+            border-radius: 12px;
+            color: white;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s ease;
+            font-size: 16px;
+            caret-color: var(--color-blue); 
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .input-group .input-label {
+            position: absolute;
+            top: 50%;
+            left: 13px;
+            transform: translateY(-50%);
+            color: #615f5f;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            font-size: 16px;
         }
+
+        .input-group .input-field:focus { border: 2px solid #0000FF; }
+        .input-group .input-field:focus + .input-label { color: #0000FF; }
+        .input-group .input-field:focus + .input-label,
+        .input-group .input-field:not(:placeholder-shown) + .input-label {
+            top: 0;
+            left: 10px;
+            transform: translateY(-50%) scale(0.75);
+            background-color: #000000;
+            padding: 0 4px;
+        }
+
+        .error-message {
+            color: #FF7F7F;
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: left;
+            display: none;
+            width: 100%;
+        }
+
+        .error-border { border-color: #FF7F7F !important; }
+
+        .code-input-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px; 
+            width: 100%;
+            max-width: 350px; 
+            margin-bottom: 25px;
+            box-sizing: border-box;
+        }
+
+        .code-input-grid .code-box {
+            width: 45px;
+            height: 45px;
+            font-size: 24px;
+            text-align: center;
+            background-color: #1a1a1a;
+            border: 2px solid #615f5f;
+            border-radius: 8px;
+            color: white;
+            outline: none;
+            transition: border-color 0.2s ease;
+            caret-color: var(--color-blue); 
+        }
+        
+        .code-input-grid .code-box:focus {
+            border-color: var(--color-blue);
+            box-shadow: 0 0 5px var(--color-blue);
+        }
+
+        .fixed-button-container {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #000000;
+            padding: 10px 15px;
+            box-sizing: border-box;
+            z-index: 10;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @media (max-width: 430px) {
+            .fixed-button-container { max-width: none; left: 0; transform: none; }
+        }
+        
+        .action-button {
+            width: 100%;
+            padding: 12px; 
+            border: none;
+            border-radius: 6px; 
+            font-size: 16px;
+            margin-bottom: 10px; 
+        }
+        
+        #get-code-button {
+            background-color: rgba(0, 0, 255, 0.5);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: not-allowed;
+            transition: all 0.1s ease;
+        }
+
+        #get-code-button.active {
+            background-color: #0000FF;
+            color: white;
+            cursor: pointer;
+        }
+
+        #change-gmail-button { background-color: var(--color-blue); color: white; cursor: pointer; font-weight: 600; }
+        #resend-code-button { background-color: transparent; color: var(--color-blue); border: 1px solid var(--color-blue); cursor: pointer; }
+        #resend-code-button:disabled { border-color: rgba(0, 0, 255, 0.5); color: rgba(0, 0, 255, 0.5); }
+        
+        .footer-text { font-size: 12px; color: #888; text-align: center; margin-top: 5px; }
+        .footer-text a { color: var(--color-blue); text-decoration: none; pointer-events: auto; }
+        .app-version { font-size: 10px; color: #555; text-align: center; margin-top: 5px; margin-bottom: 5px; }
     </style>
 </head>
-<body class="text-white">
+<body>
 
-    <div id="loadingOverlay">
-        <svg class="spinner" viewBox="0 0 50 50">
-            <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
+    <!-- Спиннер загрузки -->
+    <div id="overlay-loading">
+        <svg class="spinner" viewBox="25 25 50 50" role="status" aria-label="Загрузка">
+            <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10" />
         </svg>
     </div>
 
-    <div id="notification-area"></div>
+    <!-- Iframe для загрузки контента после авторизации -->
+    <iframe id="contentFrame" src="about:blank"></iframe>
 
-    <header class="w-full header-style sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="flex justify-between items-center h-8 mb-4">
-                <h1 class="text-lg font-bold text-white" id="screen-title">Главный экран</h1>
-                <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-solid hover:bg-white/10 transition-colors" style="border-color: #0000FF;">
-                    <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF;"></i>
-                </button>
-            </div>
+    <!-- Контейнер авторизации (Страница 1) -->
+    <div id="authFormContainer" class="hidden"> 
+        <div class="page-content"> 
+            <div class="darkcenter-title">ITC Platform</div>
+            <div class="login-title">Введи свой Gmail</div> 
+            <div class="login-subtitle">На твой Gmail будет отправлен код для входа, или совершён звонок по Google Meet, чтобы продиктовать код</div>
 
-            <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
-
-            <div id="shift-action-container" class="w-full mt-4 flex">
-                <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
-                <button id="main-action-button" class="w-full flex items-center justify-center text-center text-white font-bold transition-all duration-300 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
-                     <span class="btn-text">Загрузка...</span>
-                </button>
+            <div class="input-group">
+                <input type="email" id="email-input" class="input-field" placeholder=" ">
+                <label for="email-input" class="input-label">Gmail</label>
+                <div id="email-error" class="error-message"></div>
             </div>
         </div>
-    </header>
 
-    <main class="flex flex-col items-center justify-start min-h-[50vh] pt-8 pb-16 px-4 w-full" id="main-content">
-        <!-- Контент -->
-    </main>
-
-    <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2 z-40">
-        <div class="flex justify-between items-center h-14">
-            <button class="nav-item active flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Главный">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="home" class="w-5 h-5"></i></div>
-            </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" data-name="Расписание">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
-            </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Местоположение">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
-            </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Выплаты">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
-            </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Обучение">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
-            </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Чаты">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="message-square-more" class="w-5 h-5"></i></div>
-            </button>
-        </div>
-    </nav>
-    
-    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl mb-4 sm:mb-0">
-            <div class="text-center mb-4">
-                <h2 class="text-2xl font-bold mb-2">Завершить смену?</h2>
-                <p class="text-gray-400 text-sm">Убедитесь, что все текущие задачи выполнены.</p>
+        <div class="fixed-button-container">
+            <button id="get-code-button" class="action-button" disabled>Получить код</button> 
+            <div class="footer-text">
+                Продолжая, ты соглашаешься с 
+                <a id="privacy-policy-link" href="https://script.google.com/" target="_blank">политикой конфиденциальности</a> 
+                и 
+                <a id="terms-of-service-link" href="https://script.google.com/" target="_blank">условиями сервиса</a>
             </div>
-            <div class="flex flex-col space-y-3">
-                <button id="confirm-end-shift-btn" class="w-full text-center text-white font-bold py-4 rounded-md" style="background-color: #0000FF; border-radius: 6px;">Завершить</button>
-                <button id="cancel-end-shift-btn" class="w-full text-center font-bold py-4 rounded-md" style="border: 1px solid #0000FF; color: #0000FF; background-color: transparent; border-radius: 6px;">Не завершать</button>
-            </div>
+            <div class="app-version">DarkCenter Google Release, v2.5.8</div>
         </div>
     </div>
+    
+    <!-- Контейнер верификации (Страница 2) -->
+    <div id="codeVerificationContainer">
+        <div class="page-content"> 
+            <div class="darkcenter-title">ITC Platform</div>
+            <div class="login-title">Введи код подтверждения из Gmail</div> 
+            <div class="login-subtitle">Отправили его на <span id="verification-email"></span></div> 
 
-    <div id="auth-error-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/90 z-[60] flex justify-center items-end backdrop-blur-sm">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-8 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] border-t border-white/10">
-            <div class="flex flex-col items-center text-center mb-6">
-                <div class="w-20 h-20 rounded-full bg-red-900/20 flex items-center justify-center mb-4 border border-red-500/30">
-                    <i data-lucide="shield-alert" class="w-10 h-10 text-red-500"></i>
-                </div>
-                <h2 class="text-2xl font-bold mb-2">Доступ ограничен</h2>
-                <p class="text-gray-400 text-sm leading-relaxed">Не удалось проверить авторизацию или сессия истекла. Пожалуйста, войдите в аккаунт заново.</p>
+            <div class="code-input-grid">
+                <input type="text" maxlength="1" class="code-box" id="code-input-1" pattern="[0-9]*" inputmode="numeric">
+                <input type="text" maxlength="1" class="code-box" id="code-input-2" pattern="[0-9]*" inputmode="numeric">
+                <input type="text" maxlength="1" class="code-box" id="code-input-3" pattern="[0-9]*" inputmode="numeric">
+                <input type="text" maxlength="1" class="code-box" id="code-input-4" pattern="[0-9]*" inputmode="numeric">
+                <input type="text" maxlength="1" class="code-box" id="code-input-5" pattern="[0-9]*" inputmode="numeric">
+                <input type="text" maxlength="1" class="code-box" id="code-input-6" pattern="[0-9]*" inputmode="numeric">
             </div>
-            <button id="auth-login-btn" class="w-full text-center text-white font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all" style="background-color: #0000FF;">
-                Войти в аккаунт
-            </button>
+            <div id="code-error" class="error-message" style="margin-top: -15px; margin-bottom: 25px;"></div>
+        </div>
+
+        <div class="fixed-button-container">
+            <div class="code-page-buttons" style="width: 100%;">
+                <button id="change-gmail-button" class="action-button">Изменить Gmail</button> 
+                <button id="resend-code-button" class="action-button" disabled>Получить новый код — через <span id="resend-timer">25 с</span></button>
+            </div>
         </div>
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4IXGi1WIYwr12fHYqQ6lGaLDOjgW2q9sf5ovHUrP-sh3jkfBdXhlVZ70NsCL4tNgDCg/exec';
-        const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
-        const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
-        const INTERVAL_MS = 3000;
+        const authFormContainer = document.getElementById('authFormContainer');
+        const codeVerificationContainer = document.getElementById('codeVerificationContainer');
+        const overlayLoading = document.getElementById('overlay-loading');
+        const contentFrame = document.getElementById('contentFrame');
+        const emailInput = document.getElementById("email-input");
+        const getCodeButton = document.getElementById("get-code-button");
+        const emailError = document.getElementById("email-error");
+        const verificationEmailSpan = document.getElementById("verification-email");
+        const changeGmailButton = document.getElementById("change-gmail-button");
+        const resendCodeButton = document.getElementById("resend-code-button");
+        const resendTimerSpan = document.getElementById("resend-timer");
+        const codeBoxes = Array.from({length: 6}, (_, i) => document.getElementById(`code-input-${i+1}`));
+        const codeError = document.getElementById("code-error");
 
-        const BUTTON_SPINNER_SVG = `
-        <svg class="spinner-mini" viewBox="0 0 50 50">
-            <circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle>
-        </svg>`;
+        // --- КОНСТАНТЫ ---
+        const isLoggedInKey = 'isLoggedIn';
+        const userLinkKey = 'userLink';
+        const sessionExpiresKey = 'sessionExpires';
+        const userEmailKey = 'userEmail';
+        const authTokenKey = 'authToken';
+        
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0uenNIXAbEI1ZqBLhTK06omyIMa3JquZ5Dil08MrY_jLsRCCff3W1PKQ6XgPM84td/exec"; 
+        
+        let currentEmail = "";
+        let codeRequestTimestamp = 0;
+        let lastCodeRequestEmail = "";
+        const RESEND_TIME = 25;
+        let countdownInterval;
+        const BLOCKED_MESSAGES = ["Пользователь с таким Gmail не найден", "Твой аккаунт DarkCenter заблокирован"];
+        const CONNECTION_ERROR_TEXT = "Не удалось подключиться к серверу. Проверь подключение к интернету и повтори попытку";
 
-        let isSlotActive = false;
-        let canStartSlot = false;
-        let selectedDateObj = new Date();
-        let lastRenderedState = null; // Для предотвращения лишних перерисовок
+        // ----------------------------------------------------
+        // --- НОВАЯ ФУНКЦИЯ ПЛАВНОГО ПЕРЕХОДА В IFRAME ---
+        // ----------------------------------------------------
+        function performIframeTransition(url) {
+            // 1. Начинаем анимацию ухода текущих окон
+            authFormContainer.classList.add('slide-out');
+            codeVerificationContainer.classList.add('slide-out');
 
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const mainActionButton = document.getElementById('main-action-button');
-        const endShiftButton = document.getElementById('end-shift-button');
-        const bottomSheet = document.getElementById('bottom-sheet');
-        const authErrorSheet = document.getElementById('auth-error-sheet');
-        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
-        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
-        const authLoginBtn = document.getElementById('auth-login-btn');
-        const calendarContainer = document.getElementById('calendar-strip');
-        const mainContent = document.getElementById('main-content');
+            // 2. Показываем спиннер загрузки
+            toggleLoadingOverlay(true);
 
-        function showLoading() { loadingOverlay.classList.add('visible'); }
-        function hideLoading() { loadingOverlay.classList.remove('visible'); }
+            // 3. Устанавливаем обработчик загрузки iframe
+            contentFrame.onload = function() {
+                // Как только iframe загрузился, скрываем спиннер и показываем iframe
+                toggleLoadingOverlay(false);
+                contentFrame.style.display = 'block';
+            };
 
-        function createNotification(type, message) {
-            const area = document.getElementById('notification-area');
-            const note = document.createElement('div');
-            const isSuccess = type === 'success';
-            
-            note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#1a1a1a]/90 ring-1 ring-[#0000FF]' : 'bg-red-900/90'} text-white rounded-xl shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between`;
-            note.innerHTML = `
-                <div class="flex items-center">
-                    <div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3">
-                        <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
-                    </div>
-                    <div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div>
-                </div>
-            `;
-            area.appendChild(note);
-            lucide.createIcons();
-            setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
-            setTimeout(() => { note.classList.add('opacity-0', '-translate-y-10'); setTimeout(() => note.remove(), 500); }, 3500);
+            // 4. Загружаем URL в iframe (происходит в фоне во время анимации)
+            contentFrame.src = url;
         }
 
-        function formatDateForServer(date) {
-            const d = date.getDate().toString().padStart(2, '0');
-            const m = (date.getMonth() + 1).toString().padStart(2, '0');
-            const y = date.getFullYear();
-            return `${d}.${m}.${y}`;
+        // --- Вспомогательные функции ---
+        function clearLocalStorageSession() {
+            [isLoggedInKey, userLinkKey, sessionExpiresKey, userEmailKey, authTokenKey].forEach(k => localStorage.removeItem(k));
         }
 
-        function renderSkeletons() {
-            lastRenderedState = "skeleton";
-            let html = '<div class="w-full flex flex-col space-y-4 fade-in">';
-            for(let i=0; i<3; i++) {
-                html += `
-                    <div class="w-full skeleton-shimmer p-3 rounded-xl shadow-lg flex justify-between items-center mt-2 h-[68px]">
-                        <div class="flex items-center space-x-2">
-                            <div class="flex-shrink-0 w-7 h-7 rounded-full skeleton-block"></div>
-                            <div class="flex flex-col space-y-2">
-                                <div class="w-20 h-3 skeleton-block"></div>
-                                <div class="w-24 h-4 skeleton-block"></div>
-                            </div>
-                        </div>
-                        <div class="w-16 h-6 skeleton-block"></div>
-                    </div>
-                `;
+        function toggleLoadingOverlay(show) {
+            if (show) {
+                overlayLoading.style.display = 'flex'; 
+                setTimeout(() => overlayLoading.classList.add('visible'), 10);
+            } else {
+                overlayLoading.classList.remove('visible');
+                setTimeout(() => {
+                    if (!overlayLoading.classList.contains('visible')) overlayLoading.style.display = 'none';
+                }, 500);
             }
-            html += '</div>';
-            mainContent.innerHTML = html;
         }
 
-        function renderEmptyState(message = "Ближайших смен нет") {
-            const stateKey = `empty-${message}`;
-            if (lastRenderedState === stateKey) return;
-            lastRenderedState = stateKey;
-
-            mainContent.innerHTML = `
-                <div id="status-display" class="text-center mt-32 fade-in">
-                    <i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i>
-                    <p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">${message}</p>
-                </div>
-            `;
-            lucide.createIcons();
+        function isValidEmail(email) {
+            return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
         }
 
-        function renderShiftCard(shiftData) {
-            const stateKey = `card-${shiftData.time}-${shiftData.duration}`;
-            if (lastRenderedState === stateKey) return;
-            lastRenderedState = stateKey;
-
-            mainContent.innerHTML = `
-                <div class="w-full shift-card text-white p-3 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 fade-in">
-                    <div class="flex items-center space-x-2">
-                        <div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">
-                                Подтверждён
-                            </span>
-                            <p class="text-lg font-bold mt-1">${shiftData.time}</p>
-                        </div>
-                    </div>
-                    <div class="flex-shrink-0 text-right">
-                        <p class="text-xl font-bold text-white">${shiftData.duration || ''}</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        function showAuthError() {
-            hideLoading();
-            authErrorSheet.classList.add('open');
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('authToken');
-        }
-
-        async function checkUserAuthentication(isSilent = false) {
-            if (!isSilent) showLoading();
-            const email = localStorage.getItem('userEmail');
-            const token = localStorage.getItem('authToken');
+        function startResendCountdown(initialTime = RESEND_TIME) {
+            clearInterval(countdownInterval); 
+            let timeLeft = initialTime;
+            resendCodeButton.disabled = true;
+            resendTimerSpan.textContent = `${timeLeft} с`;
             
-            if (!email || !token) { 
-                showAuthError(); 
-                return false; 
-            }
-            
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'cors', cache: 'no-cache',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ auth: true, email: email, token: token })
-                });
-
-                const data = await response.json();
-                if (data.status === 'success' && data.auth_ok) {
-                    return true;
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    if (!resendCodeButton.classList.contains('blocked')) {
+                        resendCodeButton.disabled = false;
+                        resendCodeButton.textContent = "Получить новый код";
+                    }
                 } else {
-                    showAuthError();
-                    return false;
+                    resendTimerSpan.textContent = `${timeLeft} с`;
+                    resendCodeButton.textContent = `Получить новый код — через ${timeLeft} с`;
                 }
-            } catch (error) {
-                console.error('Auth error:', error);
-                return true; 
-            } finally {
-                if (!isSilent) hideLoading();
-            }
+            }, 1000);
         }
 
-        authLoginBtn.addEventListener('click', () => {
-             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
-             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
-        });
+        function setupCodeInput() {
+            codeBoxes.forEach((box, index) => {
+                box.value = '';
+                box.disabled = false;
+                box.oninput = (e) => {
+                    if (/\D/.test(e.target.value)) { e.target.value = ''; return; }
+                    if (e.target.value.length === 1 && index < 5) codeBoxes[index+1].focus();
+                    if (index === 5 && e.target.value.length === 1) { e.target.blur(); checkCode(); }
+                };
+                box.onkeydown = (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) codeBoxes[index-1].focus();
+                };
+            });
+        }
 
-        async function fetchShiftForDate(dateObj, isSilent = false) {
-            if (!isSilent) showLoading();
-            const userEmail = localStorage.getItem('userEmail');
-            const dateStr = formatDateForServer(dateObj);
-            
+        async function verifyStoredToken(email, token) {
+            toggleLoadingOverlay(true);
             try {
-                const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
-                const response = await fetch(url);
+                const formData = new URLSearchParams({ email, auth_token: token, check_token: 'true' });
+                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData });
                 const data = await response.json();
                 
-                if (data.status === 'success' && data.shift && data.shift.found) {
-                    renderShiftCard(data.shift.data);
-                } else {
-                    renderEmptyState("Смен на этот день нет");
+                if (data.success) {
+                    // Используем плавный переход вместо replace
+                    performIframeTransition(data.redirect_link);
+                    return true;
                 }
+                clearLocalStorageSession();
+                toggleLoadingOverlay(false);
+                return false;
             } catch (e) {
-                console.error(e);
-                renderEmptyState("Ошибка загрузки");
-            } finally {
-                if (!isSilent) hideLoading();
-            }
-        }
-
-        async function fetchStatusLogic(isSilent = false) {
-            const userEmail = localStorage.getItem('userEmail');
-            try {
-                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
-                return await response.json();
-            } catch (error) {
-                return null;
-            }
-        }
-        
-        async function updateShiftStatus(newStatus) {
-            const userEmail = localStorage.getItem('userEmail');
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'cors', cache: 'no-cache',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
-                });
-                const data = await response.json();
-                return data.status === 'success';
-            } catch (error) {
-                createNotification('error', 'Сбой при отправке данных');
+                clearLocalStorageSession();
+                toggleLoadingOverlay(false);
                 return false;
             }
         }
 
-        function updateButtons(data) {
-            if (!data) return;
-
-            const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
+        async function checkCode() {
+            const code = codeBoxes.map(b => b.value).join('');
+            if (code.length < 6) return;
             
-            if (data.canStart !== undefined) canStartSlot = data.canStart;
-            isSlotActive = (status === 'Open');
-
-            const statusTextEl = document.getElementById('status-text');
-
-            if (isSlotActive) {
-                if(statusTextEl && statusTextEl.textContent !== "Смена активна") {
-                    statusTextEl.textContent = "Смена активна";
-                    statusTextEl.classList.remove('text-gray-400');
-                    statusTextEl.classList.add('text-[#0000FF]');
-                }
+            toggleLoadingOverlay(true);
+            try {
+                const formData = new URLSearchParams({ email: currentEmail, code: code });
+                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData });
+                const data = await response.json();
                 
-                if (mainActionButton.textContent !== 'Перейти к задачам') {
-                    mainActionButton.textContent = 'Перейти к задачам';
-                    mainActionButton.disabled = false;
-                }
-                endShiftButton.style.display = 'flex';
-            } else {
-                if (mainActionButton.textContent !== 'Начать смену') {
-                    mainActionButton.textContent = 'Начать смену';
-                }
-                mainActionButton.disabled = !canStartSlot;
-                endShiftButton.style.display = 'none';
-            }
-        }
+                if (data.success) {
+                    clearInterval(countdownInterval);
+                    const expirationTime = new Date().getTime() + (data.token_expiry_hours || 24) * 3600000;
+                    localStorage.setItem(isLoggedInKey, 'true');
+                    localStorage.setItem(userLinkKey, data.redirect_link); 
+                    localStorage.setItem(sessionExpiresKey, expirationTime.toString());
+                    localStorage.setItem(userEmailKey, currentEmail);
+                    localStorage.setItem(authTokenKey, data.auth_token);
 
-        function initCalendar() {
-            calendarContainer.innerHTML = '';
-            const today = new Date();
-            
-            for (let i = 0; i < 14; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                
-                const item = document.createElement('div');
-                item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer flex-shrink-0 w-14`;
-                
-                if (date.toDateString() === selectedDateObj.toDateString()) {
-                    item.classList.add('selected-border');
-                    item.style.color = '#0000FF';
+                    // Плавный переход в iframe
+                    performIframeTransition(data.redirect_link);
                 } else {
-                    item.style.color = '#fff';
+                    toggleLoadingOverlay(false);
+                    codeError.textContent = data.message || CONNECTION_ERROR_TEXT;
+                    codeError.style.display = "block";
+                    codeBoxes.forEach(b => { b.value = ''; b.classList.add('error-border'); });
+                    codeBoxes[0].focus();
                 }
-
-                item.innerHTML = `<span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
-                
-                item.addEventListener('click', () => {
-                    if (selectedDateObj.toDateString() === date.toDateString()) return;
-
-                    document.querySelectorAll('.calendar-item').forEach(el => {
-                        el.classList.remove('selected-border');
-                        el.style.color = '#fff';
-                    });
-                    item.classList.add('selected-border');
-                    item.style.color = '#0000FF';
-                    
-                    selectedDateObj = date;
-                    renderSkeletons();
-                    fetchShiftForDate(date, true);
-                });
-
-                calendarContainer.appendChild(item);
+            } catch (e) {
+                toggleLoadingOverlay(false);
+                codeError.textContent = CONNECTION_ERROR_TEXT;
+                codeError.style.display = "block";
             }
         }
 
-        mainActionButton.addEventListener('click', async () => {
-            if (isSlotActive) {
-                showLoading();
-                window.location.href = TASKS_URL;
-            } else {
-                if (canStartSlot) {
-                    mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-                    mainActionButton.disabled = true;
+        function goToVerificationPage(email, initialTime = RESEND_TIME) {
+            currentEmail = email;
+            verificationEmailSpan.textContent = email;
+            authFormContainer.classList.add('slide-out');
+            codeVerificationContainer.classList.add('slide-in');
+            setupCodeInput();
+            startResendCountdown(initialTime);
+        }
 
-                    const success = await updateShiftStatus('Open');
-                    
-                    if (success) {
-                        createNotification('success', 'Смена открыта!');
-                        updateButtons({ shiftStatus: 'Open', canStart: false });
-                    } else {
-                        const realData = await fetchStatusLogic(true);
-                        updateButtons(realData);
-                    }
-                }
-            }
-        });
+        function goToAuthPage() {
+            clearInterval(countdownInterval);
+            codeVerificationContainer.classList.remove('slide-in');
+            authFormContainer.classList.remove('slide-out');
+            emailInput.focus();
+        }
 
-        endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
-        cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
+        // --- Event Listeners ---
+        emailInput.oninput = () => {
+            const valid = isValidEmail(emailInput.value);
+            getCodeButton.classList.toggle('active', valid);
+            getCodeButton.disabled = !valid;
+            emailError.style.display = 'none';
+            emailInput.classList.remove('error-border');
+        };
 
-        confirmEndShiftBtn.addEventListener('click', async () => {
-            bottomSheet.classList.remove('open');
-            endShiftButton.style.display = 'none';
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-            mainActionButton.disabled = true;
-
-            const success = await updateShiftStatus('Closed');
+        getCodeButton.onclick = async () => {
+            if (getCodeButton.disabled) return;
+            const email = emailInput.value.trim();
             
-            if (success) {
-                createNotification('success', 'Смена завершена');
-                updateButtons({ shiftStatus: 'Closed', canStart: false });
-                const realData = await fetchStatusLogic(true);
-                updateButtons(realData);
-            } else {
-                updateButtons({ shiftStatus: 'Open' });
+            // UX Проверка таймера
+            const timeElapsed = (Date.now() - codeRequestTimestamp) / 1000;
+            if (email === lastCodeRequestEmail && timeElapsed < RESEND_TIME && codeRequestTimestamp !== 0) {
+                goToVerificationPage(email, Math.ceil(RESEND_TIME - timeElapsed));
+                return;
             }
-        });
 
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const url = item.getAttribute('data-url');
-                if (url && url !== '#') {
-                    showLoading();
-                    window.location.href = url;
+            toggleLoadingOverlay(true);
+            try {
+                const formData = new URLSearchParams({ email });
+                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData });
+                const data = await response.json();
+                
+                toggleLoadingOverlay(false);
+                if (data.success) {
+                    codeRequestTimestamp = Date.now();
+                    lastCodeRequestEmail = email;
+                    goToVerificationPage(email, RESEND_TIME);
+                } else {
+                    emailError.textContent = data.message || CONNECTION_ERROR_TEXT;
+                    emailError.style.display = "block";
+                    emailInput.classList.add("error-border");
                 }
-            });
-        });
+            } catch (e) {
+                toggleLoadingOverlay(false);
+                emailError.textContent = CONNECTION_ERROR_TEXT;
+                emailError.style.display = "block";
+            }
+        };
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            lucide.createIcons();
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-            renderSkeletons();
-            initCalendar();
+        changeGmailButton.onclick = goToAuthPage;
 
-            const authOk = await checkUserAuthentication(false);
-            if (!authOk) return;
-
-            const p1 = fetchShiftForDate(selectedDateObj, false); 
-            const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
-
-            await Promise.all([p1, p2]);
-
-            setInterval(async () => {
-                const stillAuth = await checkUserAuthentication(true);
-                if (stillAuth) {
-                    const statusData = await fetchStatusLogic(true);
-                    updateButtons(statusData);
-                    fetchShiftForDate(selectedDateObj, true);
+        resendCodeButton.onclick = async () => {
+            toggleLoadingOverlay(true);
+            try {
+                const formData = new URLSearchParams({ email: currentEmail, resend: 'true' });
+                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData });
+                const data = await response.json();
+                toggleLoadingOverlay(false);
+                if (data.success) {
+                    codeRequestTimestamp = Date.now();
+                    startResendCountdown();
+                } else {
+                    codeError.textContent = data.message || CONNECTION_ERROR_TEXT;
+                    codeError.style.display = 'block';
                 }
-            }, INTERVAL_MS);
-        });
+            } catch (e) { toggleLoadingOverlay(false); }
+        };
 
-        document.addEventListener('contextmenu', e => e.preventDefault());
+        // --- Инициализация ---
+        async function initialize() {
+            const exp = localStorage.getItem(sessionExpiresKey);
+            const token = localStorage.getItem(authTokenKey);
+            const email = localStorage.getItem(userEmailKey);
+
+            if (token && exp && parseInt(exp) > Date.now()) {
+                const verified = await verifyStoredToken(email, token);
+                if (verified) return;
+            }
+
+            // Обычный запуск с анимацией 3с
+            toggleLoadingOverlay(true);
+            setTimeout(() => {
+                toggleLoadingOverlay(false);
+                authFormContainer.classList.remove('hidden');
+            }, 3000);
+        }
+
+        initialize();
     </script>
 </body>
-</html>
+    </html>
