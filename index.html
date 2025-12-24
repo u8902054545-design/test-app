@@ -1,1131 +1,742 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Авторизация ITC Platform</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Главная страница - Управление сменами</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
     <style>
-        /* --- Basic Styles and Reset --- */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        /* Основные настройки страницы для полноэкранного режима */
         html, body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F0F0F;
+            height: 100%; /* Важно для анимаций */
             margin: 0;
             padding: 0;
-            height: 100%;
-            background-color: #000000;
-            font-family: 'Inter', sans-serif;
-            color: #ffffff;
-            box-sizing: border-box;
-            overflow-x: hidden; /* Важно: скрываем горизонтальный скролл при анимации */
+            overflow: hidden; /* Скрываем скролл самого body */
+            -webkit-user-select: none; 
+            -ms-user-select: none; 
+            user-select: none; 
+            overscroll-behavior-y: none;
         }
 
-        /* --- Defining CSS variables for colors --- */
+        /* --- СТИЛИ АНИМАЦИИ (из 2-го кода) --- */
         :root {
-            --color-blue: #0000FF;
-            --color-purple: #0000FF; 
-            --color-red: #ff0000;
-            --animation-duration: 3s;
-            --transition-duration: 0.5s; /* Длительность анимации перехода */
+            --transition-duration: 600ms;
+            --transition-timing: cubic-bezier(0.2, 0, 0, 1);
         }
-        
-        /* ---------------------------------------------------- */
-        /* --- АНИМАЦИЯ ЗАГРУЗКИ (Google Play Style) --- */
-        /* ---------------------------------------------------- */
 
-        #overlay-loading {
-            position: fixed;
+        .screen-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden; 
+        }
+
+        .screen {
+            position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.7); 
-            display: none; 
-            justify-content: center;
-            align-items: center;
-            /* Z-Index выше всего, даже выше iframe */
-            z-index: 200;
-            transition: opacity var(--transition-duration) ease, visibility var(--transition-duration) ease;
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        
-        #overlay-loading.visible {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-            display: flex; 
-        }
-        
-        /* --- Стили Спиннера (SVG) --- */
-        .spinner {
-            width: 60px; 
-            height: 60px;
-            animation: rotate 2s linear infinite; 
-            transform-origin: center center;
-        }
-
-        .path {
-            stroke: var(--color-blue); 
-            stroke-linecap: round;
-            stroke-width: 4; 
-            stroke-dasharray: 1, 150; 
-            animation: dash 1.5s ease-in-out infinite; 
-        }
-
-        @keyframes rotate {
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes dash {
-            0% {
-                stroke-dasharray: 1, 150;
-                stroke-dashoffset: 0;
-            }
-            50% {
-                stroke-dasharray: 70, 150; 
-                stroke-dashoffset: -25px;
-            }
-            100% {
-                stroke-dasharray: 70, 150;
-                stroke-dashoffset: -125px;
-            }
-        }
-        
-        /* ---------------------------------------------------- */
-        /* --- Анимации перехода страниц --- */
-        /* ---------------------------------------------------- */
-        
-        /* ЛОГИКА АНИМАЦИИ:
-           По умолчанию контейнеры находятся либо в центре (Auth), либо справа (Code/Target).
-           Класс .slide-out отправляет элемент ВЛЕВО (-100%).
-           Класс .slide-in отправляет элемент в ЦЕНТР (0%).
-        */
-
-        #authFormContainer.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        /* --- Страница 1: Авторизация --- */
-        #authFormContainer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #000000;
             width: 100%;
-            position: fixed; 
-            top: 0; left: 0; bottom: 0;
-            z-index: 99; 
-            transform: translateX(0); /* Изначально в центре */
-            transition: transform var(--transition-duration) ease-in-out, opacity var(--transition-duration) ease-in-out; 
+            height: 100%;
+            overflow-y: auto; /* Скролл внутри конкретного экрана */
+            -webkit-overflow-scrolling: touch;
+            background-color: #0F0F0F;
+            
+            /* Настройки перехода */
+            transition: transform var(--transition-duration) var(--transition-timing), 
+                        opacity var(--transition-duration) var(--transition-timing);
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            padding-bottom: 100px; /* Отступ под нижнее меню */
         }
         
-        #authFormContainer.slide-out {
-            transform: translateX(-100%); /* Уезжает влево */
-        }
-        
-        /* --- Страница 2: Код подтверждения --- */
-        #codeVerificationContainer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #000000;
-            width: 100%;
-            position: fixed; 
-            top: 0; left: 0; bottom: 0;
-            z-index: 98; 
-            transform: translateX(100%); /* Изначально справа за экраном */
-            transition: transform var(--transition-duration) ease-in-out; 
-        }
-        
-        #codeVerificationContainer.slide-in {
-            transform: translateX(0); /* Приезжает в центр */
+        /* Скроллбар внутри экранов скрыт */
+        .screen::-webkit-scrollbar { display: none; }
+        .screen { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Состояния анимации */
+        .screen.active { transform: translateX(0) scale(1); opacity: 1; z-index: 10; }
+        .slide-in-right { transform: translateX(0) scale(1); z-index: 10; }
+        .slide-out-left { transform: translateX(-25%) scale(0.92); opacity: 0.5; z-index: 0; pointer-events: none; }
+        .slide-in-left { transform: translateX(0) scale(1); z-index: 10; }
+        .slide-out-right { transform: translateX(100%) scale(1); z-index: 0; pointer-events: none; }
+        .initial-right { transform: translateX(100%); opacity: 1; }
+        .initial-left { transform: translateX(-100%) scale(1); opacity: 1; }
+
+        /* --- СТИЛИ ПРИЛОЖЕНИЯ (из 1-го кода) --- */
+        .header-style {
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            border-bottom: 4px solid #0000FF;
+            background-color: #1a1a1a; 
         }
 
-        /* НОВОЕ: Класс, чтобы страница с кодом могла уехать влево, пропуская целевой сайт */
-        #codeVerificationContainer.slide-to-left {
-            transform: translateX(-100%) !important;
+        .nav-item.active .icon-container {
+            background-color: #0000FF;
+            color: #FFFFFF; 
         }
+        .nav-item.active svg { color: #FFFFFF; }
+        .nav-item svg { color: #C4C7C5; transition: color 0.2s; }
         
-        /* --- Страница 3 (НОВАЯ): Целевой сайт (Iframe) --- */
-        #targetFrameContainer {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%; height: 100%;
-            background-color: #000000;
-            z-index: 100; /* Поверх форм авторизации */
-            transform: translateX(100%); /* Изначально справа за экраном */
-            transition: transform var(--transition-duration) ease-in-out; 
-            border: none;
+        .nav-bar {
+            background-color: #1F1F1F;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+            z-index: 50; /* Меню всегда поверх экранов */
+        }
+
+        .calendar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
+        .calendar-item.selected-border { border: 1px solid #0000FF; background-color: rgba(0, 0, 255, 0.1); }
+        .calendar-item:active { transform: scale(0.95); }
+        
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .empty-state-icon { color: #0000FF; width: 80px; height: 80px; }
+
+        .close-shift-button {
+            height: 50px; width: 50px; 
+            background-color: #1a1a1a; 
+            border: 1px solid #0000FF; 
+            border-radius: 6px; 
+            flex-shrink: 0;
+            position: relative; 
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .close-shift-button:active { transform: scale(0.95); }
+        .close-shift-button::before {
+            content: ''; position: absolute; top: 8px; left: 50%; 
+            transform: translateX(-50%); width: 2px; height: 15px; 
+            background-color: #0000FF; border-radius: 2px; 
+        }
+        .close-shift-button::after {
+            content: ''; position: absolute; width: 30px; height: 30px; 
+            border: 2px solid #0000FF; border-top-color: transparent; 
+            border-radius: 50%; bottom: 8px;
+        }
+
+        .bottom-sheet-overlay {
+            visibility: hidden; opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .bottom-sheet-content { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
+        .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
+
+        #notification-area {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 480px; z-index: 60;
+            pointer-events: none; display: flex; flex-direction: column; align-items: center;
+        }
+
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
+
+        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; }
+        .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+        
+        .spinner-mini { width: 24px; height: 24px; animation: rotate 2s linear infinite; }
+        .path-mini { stroke: #FFFFFF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+
+        #loadingOverlay {
+            position: fixed; inset: 0;
+            background-color: rgba(15, 15, 15, 0.85); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; transition: opacity 0.4s ease, visibility 0.4s ease;
+            opacity: 0; visibility: hidden; pointer-events: none; 
+        }
+        #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
+
+        .shift-card {
+            background-color: #1A1A1A;
+            transition: transform 0.2s ease, background-color 0.2s, opacity 0.3s ease;
+        }
+        .shift-card:active {
+            transform: scale(0.98);
+            background-color: #252525;
+        }
+
+        .skeleton-shimmer {
+            position: relative;
             overflow: hidden;
+            background-color: #1A1A1A;
+        }
+        .skeleton-shimmer::after {
+            content: "";
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0,
+                rgba(255, 255, 255, 0.03) 20%,
+                rgba(255, 255, 255, 0.06) 50%,
+                rgba(255, 255, 255, 0.03) 80%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+        .skeleton-block {
+            background-color: #2A2A2A;
+            border-radius: 6px;
         }
 
-        #targetFrameContainer.slide-in {
-            transform: translateX(0); /* Приезжает в центр */
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        #targetFrameContainer iframe {
+        /* iframe styling */
+        .full-frame {
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
         }
-
-        /* --- Общие стили для контента внутри страниц --- */
-        .page-content {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 5px 15px 150px; 
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch;
-            height: 100%; 
-        }
-        
-        /* ---------------------------------------------------- */
-        /* --- Остальные стили (Текст, Поля, Кнопки) --- */
-        /* ---------------------------------------------------- */
-        
-        .darkcenter-title {
-            font-size: 28px;
-            font-weight: bold;
-            text-align: center;
-            width: 100%;
-            margin-bottom: 20px;
-            margin-top: 10px;
-            background-image: linear-gradient(to right, #0000FF, #0000FF, #ff0000, #0000FF, #0000FF);
-            background-size: 400% 100%;
-            animation: gradientFlow-new 4s linear infinite;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-        }
-
-        @keyframes gradientFlow-new {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-
-        .login-title {
-            font-weight: bold;
-            font-size: 22px;
-            margin-top: 0;
-            margin-bottom: 10px; 
-            text-align: left;
-            width: 100%;
-            padding: 0 1px;
-        }
-
-        .login-subtitle {
-            font-size: 14px;
-            color: #AAAAAA;
-            margin-bottom: 20px;
-            text-align: left;
-            width: 100%;
-            padding: 0 1px;
-            line-height: 1.4;
-        }
-        
-        /* Стили инпутов */
-        .input-group {
-            position: relative;
-            width: 100%;
-            margin-bottom: 15px;
-            padding: 0 1px;
-        }
-
-        .input-group .input-field {
-            width: 100%;
-            padding: 24px 11px 8px;
-            height: 56px;
-            background-color: #000000;
-            border: 1px solid #615f5f;
-            border-radius: 12px;
-            color: white;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.2s ease;
-            font-size: 16px;
-            caret-color: var(--color-blue); 
-        }
-
-        .input-group .input-label {
-            position: absolute;
-            top: 50%;
-            left: 13px;
-            transform: translateY(-50%);
-            color: #615f5f;
-            pointer-events: none;
-            transition: top 0.3s ease, left 0.3s ease, transform 0.3s ease, font-size 0.3s ease, color 0.3s ease, padding 0.3s ease;
-            font-size: 16px;
-        }
-
-        .input-group .input-field:focus {
-            border: 2px solid #0000FF;
-        }
-
-        .input-group .input-field:focus + .input-label {
-             color: #0000FF;
-        }
-
-        .input-group .input-field:focus + .input-label,
-        .input-group .input-field:not(:placeholder-shown) + .input-label {
-            top: 0;
-            left: 10px;
-            transform: translateY(-50%) scale(0.75);
-            background-color: #000000;
-            padding: 0 4px;
-        }
-
-        .input-group .input-field:not(:focus):placeholder-shown {
-            border-color: #615f5f;
-        }
-
-        .input-group .input-field:disabled {
-            background-color: #2c2c2c;
-            color: #888;
-            cursor: not-allowed;
-            border-color: #444;
-        }
-
-        .error-message {
-            color: #FF7F7F;
-            font-size: 12px;
-            margin-top: 5px;
-            text-align: left;
-            display: none;
-            width: 100%;
-        }
-
-        .error-border {
-            border-color: #FF7F7F !important;
-        }
-
-        /* --- Code Input Grid --- */
-        .code-input-grid {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px; 
-            width: 100%;
-            max-width: 350px; 
-            margin-bottom: 25px;
-            box-sizing: border-box;
-            padding: 0 1px;
-        }
-
-        .code-input-grid .code-box {
-            width: 45px;
-            height: 45px;
-            font-size: 24px;
-            text-align: center;
-            background-color: #1a1a1a;
-            border: 2px solid #615f5f;
-            border-radius: 8px;
-            color: white;
-            outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            caret-color: var(--color-blue); 
-        }
-        
-        .code-input-grid .code-box:focus {
-            border-color: var(--color-blue);
-            box-shadow: 0 0 5px var(--color-blue);
-        }
-        
-        .code-input-grid .code-box:disabled { 
-            background-color: #0a0a0a;
-            color: #444;
-            border-color: #2c2c2c;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        /* --- Кнопки и Футер --- */
-        .fixed-button-container {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #000000;
-            padding: 10px 15px;
-            box-sizing: border-box;
-            z-index: 10;
-            width: 100%;
-            max-width: 400px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        @media (max-width: 430px) {
-            .fixed-button-container {
-                max-width: none;
-                left: 0;
-                transform: none;
-            }
-        }
-        
-        .action-button {
-            width: 100%;
-            padding: 12px; 
-            border: none;
-            border-radius: 6px; 
-            box-sizing: border-box;
-            font-size: 16px;
-            margin-bottom: 10px; 
-        }
-        
-        #get-code-button {
-            background-color: rgba(0, 0, 255, 0.5);
-            color: rgba(255, 255, 255, 0.7);
-            cursor: not-allowed;
-            transition: background-color 0.1s ease, color 0.1s ease;
-        }
-
-        #get-code-button.active {
-            background-color: #0000FF;
-            color: white;
-            cursor: pointer;
-        }
-
-        #get-code-button.active:disabled {
-             background-color: rgba(0, 0, 255, 0.5);
-             cursor: not-allowed;
-             color: rgba(255, 255, 255, 0.7);
-        }
-
-        #get-code-button.active:not(:disabled):active {
-            background-color: #0000CC;
-        }
-        
-        #change-gmail-button {
-            background-color: var(--color-blue);
-            color: white;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        
-        #change-gmail-button:active {
-            background-color: #0000CC;
-        }
-
-        #resend-code-button {
-            background-color: transparent;
-            color: var(--color-blue);
-            border: 1px solid var(--color-blue);
-            cursor: pointer;
-            transition: opacity 0.3s ease;
-        }
-
-        #resend-code-button:disabled {
-            border-color: rgba(0, 0, 255, 0.5);
-            color: rgba(0, 0, 255, 0.5);
-            cursor: not-allowed;
-        }
-        
-        #resend-code-button:not(:disabled):active {
-            opacity: 0.8;
-        }
-        
-        .code-page-buttons {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            align-items: center;
-        }
-
-        .footer-text {
-            font-size: 12px;
-            color: #888;
-            text-align: center;
-            width: 100%;
-            margin-top: 5px; 
-            padding: 0 5px;
-            line-height: 1.3;
-        }
-        
-        .footer-text a {
-            color: var(--color-blue); 
-            text-decoration: none; 
-            pointer-events: none; 
-            position: relative; 
-        }
-        
-        .footer-text a::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: auto; 
-            z-index: 1; 
-            opacity: 0;
-            background-color: transparent;
-        }
-        
-        .app-version {
-            font-size: 10px; 
-            color: #555;
-            text-align: center;
-            width: 100%;
-            margin-top: 5px; 
-            margin-bottom: 5px; 
-        }
-        
     </style>
 </head>
-<body>
+<body class="text-white">
 
-    <!-- Спиннер загрузки -->
-    <div id="overlay-loading">
-        <svg class="spinner" viewBox="25 25 50 50" role="status" aria-label="Загрузка">
-            <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10" />
+    <div id="loadingOverlay">
+        <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
         </svg>
     </div>
 
-    <!-- Страница 1: Авторизация -->
-    <div id="authFormContainer" class="hidden"> 
-        <div class="page-content" id="content-auth"> <div class="darkcenter-title">ITC Platform</div>
-            <div class="login-title">Введи свой Gmail</div> 
-            <div class="login-subtitle">На твой Gmail будет отправлен код для входа, или совершён звонок по Google Meet, чтобы продиктовать код</div>
+    <div id="notification-area"></div>
 
-            <div class="input-group">
-                <input type="email" id="email-input" class="input-field" placeholder=" ">
-                <label for="email-input" class="input-label">Gmail</label>
-                <div id="email-error" class="error-message"></div>
-            </div>
+    <div class="screen-container">
+
+        <div id="screen-main" class="screen active">
+            <header class="w-full header-style sticky top-0 z-20">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div class="flex justify-between items-center h-8 mb-4">
+                        <h1 class="text-lg font-bold text-white" id="screen-title">Главный экран</h1>
+                        <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-solid hover:bg-white/10 transition-colors" style="border-color: #0000FF;">
+                            <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF;"></i>
+                        </button>
+                    </div>
+
+                    <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
+
+                    <div id="shift-action-container" class="w-full mt-4 flex">
+                        <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
+                        <button id="main-action-button" class="w-full flex items-center justify-center text-center text-white font-bold transition-all duration-300 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
+                            <span class="btn-text">Загрузка...</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex flex-col items-center justify-start min-h-[50vh] pt-8 px-4 w-full" id="main-content">
+                </main>
         </div>
 
-        <div class="fixed-button-container">
-            <button id="get-code-button" class="action-button" disabled>Получить код</button> 
-            <div class="footer-text">
-                Продолжая, ты соглашаешься с 
-                <a id="privacy-policy-link" href="https://script.google.com/" target="_blank">
-                    политикой конфиденциальности
-                </a> 
-                и 
-                <a id="terms-of-service-link" href="https://script.google.com/" target="_blank">
-                    условиями сервиса
-                </a>
-            </div>
-            <div class="app-version">
-                DarkCenter Google Release, v2.5.8
-            </div>
+        <div id="screen-schedule" class="screen initial-right" style="padding: 0; padding-bottom: 100px;">
+            <iframe src="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" class="full-frame" allow="fullscreen"></iframe>
         </div>
+
     </div>
+
+    <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2">
+        <div class="flex justify-between items-center h-14">
+            <button class="nav-item active flex flex-col items-center justify-center h-full w-1/6" id="nav-home" data-name="Главный">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="home" class="w-5 h-5"></i></div>
+            </button>
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-schedule" data-name="Расписание">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
+            </button>
+            
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Местоположение">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
+            </button>
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Выплаты">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
+            </button>
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Обучение">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
+            </button>
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Чаты">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="message-square-more" class="w-5 h-5"></i></div>
+            </button>
+        </div>
+    </nav>
     
-    <!-- Страница 2: Ввод кода -->
-    <div id="codeVerificationContainer">
-        <div class="page-content" id="content-code"> <div class="darkcenter-title">ITC Platform</div>
-            <div class="login-title">Введи код подтверждения из Gmail</div> 
-            <div class="login-subtitle">Отправили его на <span id="verification-email"></span></div> 
-
-            <div class="code-input-grid">
-                <input type="text" maxlength="1" class="code-box" id="code-input-1" pattern="[0-9]*" inputmode="numeric">
-                <input type="text" maxlength="1" class="code-box" id="code-input-2" pattern="[0-9]*" inputmode="numeric">
-                <input type="text" maxlength="1" class="code-box" id="code-input-3" pattern="[0-9]*" inputmode="numeric">
-                <input type="text" maxlength="1" class="code-box" id="code-input-4" pattern="[0-9]*" inputmode="numeric">
-                <input type="text" maxlength="1" class="code-box" id="code-input-5" pattern="[0-9]*" inputmode="numeric">
-                <input type="text" maxlength="1" class="code-box" id="code-input-6" pattern="[0-9]*" inputmode="numeric">
+    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl mb-4 sm:mb-0">
+            <div class="text-center mb-4">
+                <h2 class="text-2xl font-bold mb-2">Завершить смену?</h2>
+                <p class="text-gray-400 text-sm">Убедитесь, что все текущие задачи выполнены.</p>
             </div>
-            <div id="code-error" class="error-message" style="margin-top: -15px; margin-bottom: 25px;"></div>
-        </div>
-
-        <div class="fixed-button-container">
-            <div class="code-page-buttons">
-                <button id="change-gmail-button" class="action-button">Изменить Gmail</button> 
-                <button id="resend-code-button" class="action-button" disabled>Получить новый код — через <span id="resend-timer">25 с</span></button>
+            <div class="flex flex-col space-y-3">
+                <button id="confirm-end-shift-btn" class="w-full text-center text-white font-bold py-4 rounded-md" style="background-color: #0000FF; border-radius: 6px;">Завершить</button>
+                <button id="cancel-end-shift-btn" class="w-full text-center font-bold py-4 rounded-md" style="border: 1px solid #0000FF; color: #0000FF; background-color: transparent; border-radius: 6px;">Не завершать</button>
             </div>
         </div>
     </div>
 
-    <!-- Страница 3 (НОВАЯ): Целевой сайт -->
-    <div id="targetFrameContainer"></div>
+    <div id="auth-error-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/90 z-[60] flex justify-center items-end backdrop-blur-sm">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-8 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] border-t border-white/10">
+            <div class="flex flex-col items-center text-center mb-6">
+                <div class="w-20 h-20 rounded-full bg-red-900/20 flex items-center justify-center mb-4 border border-red-500/30">
+                    <i data-lucide="shield-alert" class="w-10 h-10 text-red-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Доступ ограничен</h2>
+                <p class="text-gray-400 text-sm leading-relaxed">Не удалось проверить авторизацию или сессия истекла. Пожалуйста, войдите в аккаунт заново.</p>
+            </div>
+            <button id="auth-login-btn" class="w-full text-center text-white font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all" style="background-color: #0000FF;">
+                Войти в аккаунт
+            </button>
+        </div>
+    </div>
 
     <script>
-        const authFormContainer = document.getElementById('authFormContainer');
-        const codeVerificationContainer = document.getElementById('codeVerificationContainer');
-        const targetFrameContainer = document.getElementById('targetFrameContainer');
-        const overlayLoading = document.getElementById('overlay-loading');
-        
-        const emailInput = document.getElementById("email-input");
-        const getCodeButton = document.getElementById("get-code-button");
-        const emailError = document.getElementById("email-error");
-        
-        const verificationEmailSpan = document.getElementById("verification-email");
-        const changeGmailButton = document.getElementById("change-gmail-button");
-        const resendCodeButton = document.getElementById("resend-code-button");
-        const resendTimerSpan = document.getElementById("resend-timer");
-        const codeBoxes = [
-            document.getElementById('code-input-1'),
-            document.getElementById('code-input-2'),
-            document.getElementById('code-input-3'),
-            document.getElementById('code-input-4'),
-            document.getElementById('code-input-5'),
-            document.getElementById('code-input-6')
-        ];
-        const codeError = document.getElementById("code-error");
+        // --- ЛОГИКА АНИМАЦИИ ПЕРЕХОДОВ ---
+        let currentScreenId = 'screen-main';
+        let isAnimating = false;
 
-        // --- КОНСТАНТЫ ---
-        const isLoggedInKey = 'isLoggedIn';
-        const userLinkKey = 'userLink';
-        const sessionExpiresKey = 'sessionExpires';
-        const userEmailKey = 'userEmail';
-        const authTokenKey = 'authToken'; 
-        
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0uenNIXAbEI1ZqBLhTK06omyIMa3JquZ5Dil08MrY_jLsRCCff3W1PKQ6XgPM84td/exec"; 
-        
-        let currentEmail = "";
-        let lastCodeRequestEmail = "";
-        let codeRequestTimestamp = 0;
-        const RESEND_TIME = 25; 
-        let countdownInterval; 
-        
-        const BLOCKED_MESSAGES = [
-            "Пользователь с таким Gmail не найден",
-            "Твой аккаунт DarkCenter заблокирован"
-        ];
-        
-        const CONNECTION_ERROR_TEXT = "Не удалось подключиться к серверу. Проверь подключение к интернету и повтори попытку";
-        const REQUIRED_ANDROID_VERSION = 14;
-        const VERSION_ERROR_MESSAGE = "Версия Android твоего устройства, не поддерживается";
+        const transitionClasses = {
+            forward: { entering: 'slide-in-right', exiting: 'slide-out-left', initial: 'initial-right' },
+            backward: { entering: 'slide-in-left', exiting: 'slide-out-right', initial: 'initial-left' }
+        };
 
-        // --- Helper Functions ---
+        function navigate(targetScreenId, direction) {
+            if (isAnimating || currentScreenId === targetScreenId) return;
+            isAnimating = true;
 
-        function checkAndroidVersion(locationId) {
-            if (!window.Telegram || !window.Telegram.WebApp) return false;
-            const platform = window.Telegram.WebApp.platform;
-            if (platform !== 'android') return false;
-
-            const userAgent = window.navigator.userAgent;
-            let androidVersion = 0;
-            const match = userAgent.match(/Android\s+([0-9\.]+)/);
-            if (match && match[1]) {
-                androidVersion = parseInt(match[1].split('.')[0], 10);
-            }
+            const currentScreen = document.getElementById(currentScreenId);
+            const targetScreen = document.getElementById(targetScreenId);
+            const classes = transitionClasses[direction];
             
-            if (androidVersion === 0 || androidVersion < REQUIRED_ANDROID_VERSION) {
-                const errorElement = locationId === 'auth' ? emailError : codeError;
-                errorElement.textContent = VERSION_ERROR_MESSAGE;
-                errorElement.style.display = "block";
+            // 1. Подготовка
+            targetScreen.classList.remove('active', classes.entering, classes.exiting, 'initial-left', 'initial-right');
+            targetScreen.classList.add(classes.initial);
+            targetScreen.style.display = 'block'; // Убеждаемся, что экран виден в потоке
+
+            requestAnimationFrame(() => {
+                // 2. Старт анимации
+                currentScreen.classList.remove('active', 'initial-left', 'initial-right');
+                currentScreen.classList.add(classes.exiting);
                 
-                if (locationId === 'auth') {
-                    emailInput.classList.add("error-border");
-                    getCodeButton.classList.remove("active");
-                    getCodeButton.disabled = true;
-                } else if (locationId === 'code') {
-                    lockVerificationControls();
-                } else {
-                    window.Telegram.WebApp.showAlert(VERSION_ERROR_MESSAGE);
-                }
+                targetScreen.classList.remove(classes.initial);
+                targetScreen.classList.add(classes.entering);
                 
-                toggleLoadingOverlay(false);
-                return true; 
-            }
-            return false; 
-        }
-
-        function clearLocalStorageSession() {
-            localStorage.removeItem(isLoggedInKey);
-            localStorage.removeItem(userLinkKey);
-            localStorage.removeItem(sessionExpiresKey);
-            localStorage.removeItem(userEmailKey);
-            localStorage.removeItem(authTokenKey); 
-        }
-
-        function toggleLoadingOverlay(show) {
-            if (show) {
-                overlayLoading.style.display = 'flex'; 
                 setTimeout(() => {
-                    overlayLoading.classList.add('visible');
-                }, 10);
-            } else {
-                overlayLoading.classList.remove('visible');
-                setTimeout(() => {
-                    if (!overlayLoading.classList.contains('visible')) {
-                        overlayLoading.style.display = 'none';
-                    }
-                }, 500); 
-            }
-        }
-
-        function isValidEmail(email) {
-            const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-            return gmailRegex.test(email);
-        }
-
-        function startResendCountdown(initialTime = RESEND_TIME) {
-            clearInterval(countdownInterval); 
-            let timeLeft = initialTime;
-            resendCodeButton.disabled = true;
-            resendTimerSpan.textContent = `${timeLeft} с`;
-            resendCodeButton.textContent = `Получить новый код — через ${timeLeft} с`; 
-            resendCodeButton.classList.remove('blocked'); 
-            codeBoxes.forEach(box => box.disabled = false); 
-            
-            countdownInterval = setInterval(() => {
-                timeLeft--;
-                if (timeLeft <= 0) {
-                    clearInterval(countdownInterval);
-                    if (!resendCodeButton.classList.contains('blocked')) { 
-                        resendCodeButton.disabled = false;
-                        resendCodeButton.textContent = "Получить новый код";
-                        codeRequestTimestamp = 0; 
-                        lastCodeRequestEmail = ""; 
-                    } else {
-                        resendCodeButton.disabled = true;
-                        resendCodeButton.textContent = "Получить новый код";
-                    }
-                } else {
-                    resendTimerSpan.textContent = `${timeLeft} с`;
-                    resendCodeButton.textContent = `Получить новый код — через ${timeLeft} с`;
-                }
-            }, 1000);
-        }
-        
-        function lockVerificationControls() {
-            clearInterval(countdownInterval); 
-            resendCodeButton.disabled = true;
-            resendCodeButton.classList.add('blocked');
-            resendCodeButton.textContent = "Получить новый код"; 
-            codeBoxes.forEach(box => {
-                box.value = '';
-                box.disabled = true;
-                box.classList.remove('error-border');
-            });
-            codeRequestTimestamp = 0; 
-            lastCodeRequestEmail = "";
-        }
-        
-        function setupCodeInput() {
-            codeBoxes.forEach((box, index) => {
-                box.value = ''; 
-                box.disabled = false; 
-                box.removeEventListener('input', handleCodeInput); 
-                box.removeEventListener('keydown', handleCodeKeydown); 
-
-                function handleCodeInput(event) {
-                    const value = event.target.value;
-                    codeError.style.display = "none";
-                    codeBoxes.forEach(b => b.classList.remove('error-border'));
-                    if (/\D/.test(value)) { event.target.value = ''; return; }
-                    if (value.length === 1 && index < codeBoxes.length - 1) {
-                        codeBoxes[index + 1].focus();
-                    }
-                    if (index === codeBoxes.length - 1 && value.length === 1) {
-                        event.target.blur(); 
-                        checkCode();
-                    }
-                }
-
-                function handleCodeKeydown(event) {
-                    if (event.key === 'Backspace' && event.target.value === '' && index > 0) {
-                        codeBoxes[index - 1].focus();
-                    }
-                }
-                box.addEventListener('input', handleCodeInput);
-                box.addEventListener('keydown', handleCodeKeydown);
+                    // 3. Финиш
+                    currentScreen.classList.remove(classes.exiting);
+                    currentScreen.classList.add(direction === 'forward' ? 'initial-left' : 'initial-right');
+                    
+                    targetScreen.classList.remove(classes.entering);
+                    targetScreen.classList.add('active');
+                    
+                    currentScreenId = targetScreenId;
+                    isAnimating = false;
+                }, 600); // 600ms как в CSS
             });
         }
-        
-        // ==========================================================
-        // НОВАЯ ФУНКЦИЯ ПЛАВНОГО ПЕРЕХОДА С АНИМАЦИЕЙ СЛАЙДА
-        // ==========================================================
-        function smoothRedirect(url) {
-            // 1. Спиннер уже крутится (вызван в вызывающей функции), но на всякий случай
-            toggleLoadingOverlay(true);
 
-            // 2. Создаем Iframe программно в контейнере #targetFrameContainer
-            const iframe = document.createElement('iframe');
-            iframe.src = url;
-            
-            // Очищаем старое, добавляем новое
-            targetFrameContainer.innerHTML = ''; 
-            targetFrameContainer.appendChild(iframe);
+        // Обработчики меню для навигации
+        const navHome = document.getElementById('nav-home');
+        const navSchedule = document.getElementById('nav-schedule');
+        const allNavItems = document.querySelectorAll('.nav-item');
 
-            // 3. Обработчик загрузки страницы внутри Iframe
-            iframe.onload = function() {
-                console.log("Целевая страница загружена в Iframe.");
-                
-                // 4. Запуск анимации
-                setTimeout(() => {
-                    // 4.1. Убираем спиннер
-                    toggleLoadingOverlay(false);
-
-                    // 4.2. Анимация: Убираем текущий видимый контейнер ВЛЕВО
-                    
-                    // Если мы на странице авторизации (она не скрыта и не уехала)
-                    if (!authFormContainer.classList.contains('hidden') && !authFormContainer.classList.contains('slide-out')) {
-                        authFormContainer.classList.add('slide-out'); // Уезжает влево (-100%)
-                    }
-                    
-                    // Если мы на странице кода (она сейчас в центре, т.е. имеет класс slide-in)
-                    if (codeVerificationContainer.classList.contains('slide-in')) {
-                        // Снимаем класс приезда в центр и добавляем класс отъезда влево
-                        codeVerificationContainer.classList.remove('slide-in');
-                        codeVerificationContainer.classList.add('slide-to-left'); 
-                    }
-
-                    // 4.3. Анимация: Выдвигаем контейнер с сайтом СПРАВА НА ЦЕНТР
-                    targetFrameContainer.classList.add('slide-in');
-
-                }, 500); // Небольшая задержка для уверенности рендера
-            };
-
-            iframe.onerror = function() {
-                console.error("Ошибка загрузки Iframe.");
-                window.location.replace(url); // Фоллбэк
-            };
+        function setActiveNav(element) {
+            allNavItems.forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
         }
 
-        // --- Auth Logic ---
+        navHome.addEventListener('click', () => {
+            if (currentScreenId !== 'screen-main') {
+                navigate('screen-main', 'backward');
+                setActiveNav(navHome);
+            }
+        });
 
-        async function verifyStoredToken(email, token) {
-            toggleLoadingOverlay(true);
+        navSchedule.addEventListener('click', () => {
+            if (currentScreenId !== 'screen-schedule') {
+                navigate('screen-schedule', 'forward');
+                setActiveNav(navSchedule);
+            }
+        });
+
+        // --- ЛОГИКА ПРИЛОЖЕНИЯ (API, Смены и т.д.) ---
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4IXGi1WIYwr12fHYqQ6lGaLDOjgW2q9sf5ovHUrP-sh3jkfBdXhlVZ70NsCL4tNgDCg/exec';
+        const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
+        const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
+        const INTERVAL_MS = 3000;
+
+        const BUTTON_SPINNER_SVG = `
+        <svg class="spinner-mini" viewBox="0 0 50 50">
+            <circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle>
+        </svg>`;
+
+        let isSlotActive = false;
+        let canStartSlot = false;
+        let selectedDateObj = new Date();
+        let lastRenderedState = null;
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const mainActionButton = document.getElementById('main-action-button');
+        const endShiftButton = document.getElementById('end-shift-button');
+        const bottomSheet = document.getElementById('bottom-sheet');
+        const authErrorSheet = document.getElementById('auth-error-sheet');
+        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
+        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
+        const authLoginBtn = document.getElementById('auth-login-btn');
+        const calendarContainer = document.getElementById('calendar-strip');
+        const mainContent = document.getElementById('main-content');
+
+        function showLoading() { loadingOverlay.classList.add('visible'); }
+        function hideLoading() { loadingOverlay.classList.remove('visible'); }
+
+        function createNotification(type, message) {
+            const area = document.getElementById('notification-area');
+            const note = document.createElement('div');
+            const isSuccess = type === 'success';
+            
+            note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#1a1a1a]/90 ring-1 ring-[#0000FF]' : 'bg-red-900/90'} text-white rounded-xl shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between`;
+            note.innerHTML = `
+                <div class="flex items-center">
+                    <div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3">
+                        <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
+                    </div>
+                    <div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div>
+                </div>
+            `;
+            area.appendChild(note);
+            lucide.createIcons();
+            setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
+            setTimeout(() => { note.classList.add('opacity-0', '-translate-y-10'); setTimeout(() => note.remove(), 500); }, 3500);
+        }
+
+        function formatDateForServer(date) {
+            const d = date.getDate().toString().padStart(2, '0');
+            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            const y = date.getFullYear();
+            return `${d}.${m}.${y}`;
+        }
+
+        function renderSkeletons() {
+            lastRenderedState = "skeleton";
+            let html = '<div class="w-full flex flex-col space-y-4 fade-in">';
+            for(let i=0; i<3; i++) {
+                html += `
+                    <div class="w-full skeleton-shimmer p-3 rounded-xl shadow-lg flex justify-between items-center mt-2 h-[68px]">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex-shrink-0 w-7 h-7 rounded-full skeleton-block"></div>
+                            <div class="flex flex-col space-y-2">
+                                <div class="w-20 h-3 skeleton-block"></div>
+                                <div class="w-24 h-4 skeleton-block"></div>
+                            </div>
+                        </div>
+                        <div class="w-16 h-6 skeleton-block"></div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            mainContent.innerHTML = html;
+        }
+
+        function renderEmptyState(message = "Ближайших смен нет") {
+            const stateKey = `empty-${message}`;
+            if (lastRenderedState === stateKey) return;
+            lastRenderedState = stateKey;
+
+            mainContent.innerHTML = `
+                <div id="status-display" class="text-center mt-32 fade-in">
+                    <i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i>
+                    <p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">${message}</p>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function renderShiftCard(shiftData) {
+            const stateKey = `card-${shiftData.time}-${shiftData.duration}`;
+            if (lastRenderedState === stateKey) return;
+            lastRenderedState = stateKey;
+
+            mainContent.innerHTML = `
+                <div class="w-full shift-card text-white p-3 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 fade-in">
+                    <div class="flex items-center space-x-2">
+                        <div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">
+                                Подтверждён
+                            </span>
+                            <p class="text-lg font-bold mt-1">${shiftData.time}</p>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 text-right">
+                        <p class="text-xl font-bold text-white">${shiftData.duration || ''}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showAuthError() {
+            hideLoading();
+            authErrorSheet.classList.add('open');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('authToken');
+        }
+
+        async function checkUserAuthentication(isSilent = false) {
+            if (!isSilent) showLoading();
+            const email = localStorage.getItem('userEmail');
+            const token = localStorage.getItem('authToken');
+            
+            if (!email || !token) { 
+                showAuthError(); 
+                return false; 
+            }
+            
             try {
-                const formData = new URLSearchParams();
-                formData.append('email', email);
-                formData.append('auth_token', token);
-                formData.append('check_token', 'true'); 
-                
                 const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData,
+                    method: 'POST', mode: 'cors', cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ auth: true, email: email, token: token })
                 });
 
                 const data = await response.json();
-                
-                if (data.success) {
-                    console.log("Авторизация по токену успешна.");
-                    smoothRedirect(data.redirect_link); // Плавный переход
+                if (data.status === 'success' && data.auth_ok) {
                     return true;
                 } else {
-                    clearLocalStorageSession();
-                    toggleLoadingOverlay(false);
+                    showAuthError();
                     return false;
                 }
             } catch (error) {
-                clearLocalStorageSession(); 
-                toggleLoadingOverlay(false);
+                console.error('Auth error:', error);
+                return true; 
+            } finally {
+                if (!isSilent) hideLoading();
+            }
+        }
+
+        authLoginBtn.addEventListener('click', () => {
+             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
+             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
+        });
+
+        async function fetchShiftForDate(dateObj, isSilent = false) {
+            if (!isSilent) showLoading();
+            const userEmail = localStorage.getItem('userEmail');
+            const dateStr = formatDateForServer(dateObj);
+            
+            try {
+                const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.shift && data.shift.found) {
+                    renderShiftCard(data.shift.data);
+                } else {
+                    renderEmptyState("Смен на этот день нет");
+                }
+            } catch (e) {
+                console.error(e);
+                renderEmptyState("Ошибка загрузки");
+            } finally {
+                if (!isSilent) hideLoading();
+            }
+        }
+
+        async function fetchStatusLogic(isSilent = false) {
+            const userEmail = localStorage.getItem('userEmail');
+            try {
+                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
+                return await response.json();
+            } catch (error) {
+                return null;
+            }
+        }
+        
+        async function updateShiftStatus(newStatus) {
+            const userEmail = localStorage.getItem('userEmail');
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'cors', cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
+                });
+                const data = await response.json();
+                return data.status === 'success';
+            } catch (error) {
+                createNotification('error', 'Сбой при отправке данных');
                 return false;
             }
         }
 
-        async function checkCode() {
-            if (checkAndroidVersion('code')) return; 
+        function updateButtons(data) {
+            if (!data) return;
 
-            const code = codeBoxes.map(box => box.value).join('');
-            if (code.length < 6) return; 
+            const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
             
-            toggleLoadingOverlay(true);
-            
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', currentEmail);
-                formData.append('code', code); 
+            if (data.canStart !== undefined) canStartSlot = data.canStart;
+            isSlotActive = (status === 'Open');
+
+            const statusTextEl = document.getElementById('status-text');
+
+            if (isSlotActive) {
+                if(statusTextEl && statusTextEl.textContent !== "Смена активна") {
+                    statusTextEl.textContent = "Смена активна";
+                    statusTextEl.classList.remove('text-gray-400');
+                    statusTextEl.classList.add('text-[#0000FF]');
+                }
                 
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData,
+                if (mainActionButton.textContent !== 'Перейти к задачам') {
+                    mainActionButton.textContent = 'Перейти к задачам';
+                    mainActionButton.disabled = false;
+                }
+                endShiftButton.style.display = 'flex';
+            } else {
+                if (mainActionButton.textContent !== 'Начать смену') {
+                    mainActionButton.textContent = 'Начать смену';
+                }
+                mainActionButton.disabled = !canStartSlot;
+                endShiftButton.style.display = 'none';
+            }
+        }
+
+        function initCalendar() {
+            calendarContainer.innerHTML = '';
+            const today = new Date();
+            
+            for (let i = 0; i < 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                
+                const item = document.createElement('div');
+                item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer flex-shrink-0 w-14`;
+                
+                if (date.toDateString() === selectedDateObj.toDateString()) {
+                    item.classList.add('selected-border');
+                    item.style.color = '#0000FF';
+                } else {
+                    item.style.color = '#fff';
+                }
+
+                item.innerHTML = `<span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
+                
+                item.addEventListener('click', () => {
+                    if (selectedDateObj.toDateString() === date.toDateString()) return;
+
+                    document.querySelectorAll('.calendar-item').forEach(el => {
+                        el.classList.remove('selected-border');
+                        el.style.color = '#fff';
+                    });
+                    item.classList.add('selected-border');
+                    item.style.color = '#0000FF';
+                    
+                    selectedDateObj = date;
+                    renderSkeletons();
+                    fetchShiftForDate(date, true);
                 });
-                const data = await response.json();
-                
-                if (data.success) {
-                    clearInterval(countdownInterval); 
-                    const sessionDurationHours = data.token_expiry_hours || 24; 
-                    const sessionDurationMs = sessionDurationHours * 60 * 60 * 1000;
-                    const expirationTime = new Date().getTime() + sessionDurationMs;
-                    
-                    localStorage.setItem(isLoggedInKey, 'true');
-                    localStorage.setItem(userLinkKey, data.redirect_link); 
-                    localStorage.setItem(sessionExpiresKey, expirationTime.toString());
-                    localStorage.setItem(userEmailKey, currentEmail);
-                    localStorage.setItem(authTokenKey, data.auth_token);
 
-                    smoothRedirect(data.redirect_link); // Плавный переход с анимацией
-                    
-                } else {
-                    toggleLoadingOverlay(false);
-                    const isBlockingError = BLOCKED_MESSAGES.some(msg => data.message && data.message.includes(msg));
-                    if (isBlockingError) {
-                        lockVerificationControls();
-                    } else {
-                        codeBoxes.forEach(box => { box.value = ''; });
-                        codeBoxes[0].focus();
-                        if (!resendCodeButton.classList.contains('blocked')) startResendCountdown(0); 
-                    }
-                    codeBoxes.forEach(box => box.classList.add('error-border'));
-                    codeError.textContent = data.message || CONNECTION_ERROR_TEXT; 
-                    codeError.style.display = "block";
-                }
-            } catch (error) {
-                toggleLoadingOverlay(false);
-                codeError.textContent = CONNECTION_ERROR_TEXT;
-                codeError.style.display = "block";
-                lockVerificationControls();
+                calendarContainer.appendChild(item);
             }
         }
 
-        // --- Navigation ---
-        
-        function goToVerificationPage(email, initialTime = RESEND_TIME) {
-            currentEmail = email;
-            verificationEmailSpan.textContent = email;
-            
-            resendCodeButton.classList.remove('blocked');
-            codeBoxes.forEach(box => box.disabled = false);
-
-            authFormContainer.classList.add('slide-out');
-            codeVerificationContainer.classList.add('slide-in');
-            
-            setupCodeInput(); 
-            startResendCountdown(initialTime); 
-            
-            codeVerificationContainer.addEventListener('transitionend', function handler() {
-                if (codeVerificationContainer.classList.contains('slide-in')) {
-                    codeBoxes[0].focus(); 
-                    codeVerificationContainer.removeEventListener('transitionend', handler);
-                }
-            });
-        }
-
-        function goToAuthPage() {
-            clearInterval(countdownInterval); 
-            codeBoxes.forEach(box => {
-                box.value = '';
-                box.classList.remove('error-border');
-                box.disabled = false; 
-            });
-            codeError.style.display = "none";
-            resendCodeButton.classList.remove('blocked'); 
-            
-            codeVerificationContainer.classList.remove('slide-in');
-            codeVerificationContainer.classList.remove('slide-to-left'); // Сброс новой анимации
-            authFormContainer.classList.remove('slide-out'); 
-            
-            authFormContainer.addEventListener('transitionend', function handler() {
-                if (!authFormContainer.classList.contains('slide-out')) {
-                    emailInput.focus();
-                    authFormContainer.removeEventListener('transitionend', handler);
-                }
-            });
-            checkButtonState(); 
-        }
-        
-        changeGmailButton.addEventListener("click", goToAuthPage);
-        
-        resendCodeButton.addEventListener("click", async function() {
-            if (resendCodeButton.disabled) return;
-            if (checkAndroidVersion('code')) return; 
-            
-            toggleLoadingOverlay(true);
-            resendCodeButton.disabled = true; 
-            codeError.style.display = "none";
-            codeBoxes.forEach(b => b.classList.remove('error-border'));
-            
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', currentEmail);
-                formData.append('resend', 'true'); 
-
-                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData });
-                const data = await response.json();
-                toggleLoadingOverlay(false);
-
-                if (data.success) {
-                    codeRequestTimestamp = new Date().getTime(); 
-                    lastCodeRequestEmail = currentEmail; 
-                    startResendCountdown(); 
-                    codeBoxes.forEach(box => box.value = '');
-                    codeBoxes[0].focus(); 
-                } else {
-                    const isBlockingError = BLOCKED_MESSAGES.some(msg => data.message && data.message.includes(msg));
-                    if (isBlockingError) {
-                         lockVerificationControls();
-                    } else {
-                        resendCodeButton.disabled = true;
-                        resendCodeButton.textContent = "Ошибка отправки";
-                    }
-                    codeError.textContent = data.message || CONNECTION_ERROR_TEXT;
-                    codeError.style.display = "block";
-                }
-            } catch (error) {
-                toggleLoadingOverlay(false);
-                codeError.textContent = CONNECTION_ERROR_TEXT;
-                codeError.style.display = "block";
-                lockVerificationControls();
-            }
-        });
-
-        let hasLoginError = false;
-
-        function toggleFormElements(disabled) {
-            emailInput.disabled = disabled;
-            getCodeButton.disabled = disabled || !getCodeButton.classList.contains("active"); 
-        }
-
-        emailInput.addEventListener("focus", function() {
-            emailInput.classList.remove("error-border");
-            emailError.style.display = "none";
-            hasLoginError = false;
-            checkButtonState();
-        });
-
-        emailInput.addEventListener("blur", function() {
-            if (emailInput.value.trim() !== "" && !isValidEmail(emailInput.value)) {
-                emailInput.classList.add("error-border");
-                emailError.textContent = "Введи действительный адрес Gmail";
-                emailError.style.display = "block";
-                hasLoginError = true;
+        mainActionButton.addEventListener('click', async () => {
+            if (isSlotActive) {
+                showLoading();
+                window.location.href = TASKS_URL;
             } else {
-                emailInput.classList.remove("error-border");
-                emailError.style.display = "none";
-                hasLoginError = false;
-            }
-            checkButtonState();
-        });
+                if (canStartSlot) {
+                    mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+                    mainActionButton.disabled = true;
 
-         emailInput.addEventListener("input", function(event) {
-            emailInput.classList.remove("error-border");
-            emailError.style.display = "none";
-            hasLoginError = false;
-            checkButtonState();
-        });
-
-        function checkButtonState() {
-            const isEmailValid = isValidEmail(emailInput.value);
-            if (isEmailValid && !hasLoginError) {
-                getCodeButton.classList.add("active");
-                getCodeButton.disabled = false;
-            } else {
-                getCodeButton.classList.remove("active");
-                getCodeButton.disabled = true;
-            }
-        }
-
-        getCodeButton.addEventListener("click", async function() {
-            if (getCodeButton.disabled) return;
-            const email = emailInput.value.trim();
-            if (!isValidEmail(email)) {
-                emailInput.classList.add("error-border");
-                emailError.textContent = "Пожалуйста, введите действительный адрес Gmail.";
-                emailError.style.display = "block";
-                hasLoginError = true;
-                checkButtonState();
-                return;
-            }
-            if (checkAndroidVersion('auth')) return; 
-            
-            const currentTime = new Date().getTime();
-            const timeElapsed = (currentTime - codeRequestTimestamp) / 1000;
-            const isSameEmail = email === lastCodeRequestEmail;
-            
-            if (isSameEmail && timeElapsed < RESEND_TIME && codeRequestTimestamp !== 0) {
-                toggleLoadingOverlay(true);
-                toggleFormElements(true);
-                setTimeout(() => {
-                    toggleLoadingOverlay(false);
-                    toggleFormElements(false);
-                    let timeLeft = Math.ceil(RESEND_TIME - timeElapsed);
-                    goToVerificationPage(email, timeLeft); 
-                }, 200); 
-                return; 
-            }
-            
-            toggleLoadingOverlay(true);
-            toggleFormElements(true);
-
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', email);
-                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData });
-                const data = await response.json();
-                
-                if (data.success) {
-                    codeRequestTimestamp = new Date().getTime();
-                    lastCodeRequestEmail = email; 
-                    toggleLoadingOverlay(false);
-                    toggleFormElements(false);
-                    goToVerificationPage(email, RESEND_TIME); 
-                } else {
-                    hasLoginError = true;
-                    emailInput.classList.add("error-border");
-                    emailError.textContent = data.message || CONNECTION_ERROR_TEXT; 
-                    emailError.style.display = "block";
-                    toggleLoadingOverlay(false);
-                    toggleFormElements(false);
-                    getCodeButton.classList.remove("active");
-                    getCodeButton.disabled = true;
+                    const success = await updateShiftStatus('Open');
+                    
+                    if (success) {
+                        createNotification('success', 'Смена открыта!');
+                        updateButtons({ shiftStatus: 'Open', canStart: false });
+                    } else {
+                        const realData = await fetchStatusLogic(true);
+                        updateButtons(realData);
+                    }
                 }
-            } catch (error) {
-                hasLoginError = true;
-                emailInput.classList.add("error-border");
-                emailError.textContent = CONNECTION_ERROR_TEXT; 
-                emailError.style.display = "block";
-                toggleLoadingOverlay(false);
-                toggleFormElements(false);
-                getCodeButton.classList.remove("active");
-                getCodeButton.disabled = true;
             }
         });
-        
-        const INITIAL_ANIMATION_DURATION = 3000; 
 
-        function startInitialAnimation() {
-            toggleLoadingOverlay(true); 
-            setTimeout(() => {
-                toggleLoadingOverlay(false); 
-                authFormContainer.classList.remove('hidden');
-            }, INITIAL_ANIMATION_DURATION);
-        }
+        endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
+        cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
 
-        // --- Initialization ---
+        confirmEndShiftBtn.addEventListener('click', async () => {
+            bottomSheet.classList.remove('open');
+            endShiftButton.style.display = 'none';
+            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+            mainActionButton.disabled = true;
 
-        function setupForm() {
-            checkButtonState();
-            authFormContainer.classList.add('hidden'); 
-            authFormContainer.classList.remove('slide-out');
-            codeVerificationContainer.classList.remove('slide-in');
-            codeVerificationContainer.classList.remove('slide-to-left'); 
-        }
-
-        const isLoggedIn = localStorage.getItem(isLoggedInKey);
-        const sessionExpires = localStorage.getItem(sessionExpiresKey);
-        const storedEmail = localStorage.getItem(userEmailKey);
-        const storedAuthToken = localStorage.getItem(authTokenKey); 
-        const initialCurrentTime = new Date().getTime();
-        
-        let shouldCheckToken = false;
-        
-        if (isLoggedIn === 'true' && sessionExpires && parseInt(sessionExpires, 10) > initialCurrentTime && storedEmail && storedAuthToken) {
-            shouldCheckToken = true;
-        } else {
-            clearLocalStorageSession();
-        }
-
-        async function initialize() {
-            if (shouldCheckToken) {
-                const tokenVerified = await verifyStoredToken(storedEmail, storedAuthToken);
-                if (tokenVerified) return; 
+            const success = await updateShiftStatus('Closed');
+            
+            if (success) {
+                createNotification('success', 'Смена завершена');
+                updateButtons({ shiftStatus: 'Closed', canStart: false });
+                const realData = await fetchStatusLogic(true);
+                updateButtons(realData);
+            } else {
+                updateButtons({ shiftStatus: 'Open' });
             }
-            setupForm(); 
-            startInitialAnimation(); 
-        }
-
-        initialize(); 
-        
-        document.getElementById('privacy-policy-link').addEventListener('click', function(e) {
-            e.preventDefault(); 
-            window.open(this.href, '_blank');
         });
 
-        document.getElementById('terms-of-service-link').addEventListener('click', function(e) {
-            e.preventDefault(); 
-            window.open(this.href, '_blank');
+        // Остальные ссылки в меню
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const url = item.getAttribute('data-url');
+                const id = item.id; 
+                // Игнорируем навигацию для Home и Schedule, так как они обрабатываются выше
+                if (id === 'nav-home' || id === 'nav-schedule') return;
+
+                if (url && url !== '#') {
+                    showLoading();
+                    window.location.href = url;
+                }
+            });
         });
-        
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+            renderSkeletons();
+            initCalendar();
+
+            const authOk = await checkUserAuthentication(false);
+            if (!authOk) return;
+
+            const p1 = fetchShiftForDate(selectedDateObj, false); 
+            const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
+
+            await Promise.all([p1, p2]);
+
+            setInterval(async () => {
+                const stillAuth = await checkUserAuthentication(true);
+                if (stillAuth) {
+                    const statusData = await fetchStatusLogic(true);
+                    updateButtons(statusData);
+                    fetchShiftForDate(selectedDateObj, true);
+                }
+            }, INTERVAL_MS);
+        });
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-                    </html>
+</html>
