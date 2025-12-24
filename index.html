@@ -13,11 +13,11 @@
         :root {
             --transition-duration: 600ms;
             --transition-timing: cubic-bezier(0.2, 0, 0, 1);
-            --md-sys-color-surface: #1E1F20; /* Material 3 Dark Surface */
+            --md-sys-color-surface: #1E1F20; 
             --md-sys-color-on-surface: #E3E3E3;
             --md-sys-color-on-surface-variant: #C4C7C5;
             --primary-color: #0000FF; 
-            --primary-container: rgba(0, 0, 255, 0.2); /* Прозрачный синий для фона активной кнопки */
+            --primary-container: rgba(0, 0, 255, 0.2); 
         }
 
         body {
@@ -32,7 +32,6 @@
             overscroll-behavior-y: none;
         }
 
-        /* --- Стили для переходов экранов --- */
         .screen-container {
             width: 100%;
             height: 100%;
@@ -53,25 +52,20 @@
                         opacity var(--transition-duration) var(--transition-timing);
             will-change: transform, opacity;
             backface-visibility: hidden;
-            padding-bottom: 90px; /* Отступ под новое меню (высота меню + safe area) */
+            padding-bottom: 90px; 
         }
         
         .screen::-webkit-scrollbar { display: none; }
         .screen { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Состояния анимации */
         .screen.active { transform: translateX(0) scale(1); opacity: 1; z-index: 10; }
-        
         .slide-in-right { transform: translateX(0) scale(1); z-index: 10; }
         .slide-out-left { transform: translateX(-25%) scale(0.92); opacity: 0.5; z-index: 0; pointer-events: none; }
-        
         .slide-in-left { transform: translateX(0) scale(1); z-index: 10; }
         .slide-out-right { transform: translateX(100%) scale(1); z-index: 0; pointer-events: none; }
-
         .initial-right { transform: translateX(100%); opacity: 1; }
         .initial-left { transform: translateX(-100%) scale(1); opacity: 1; }
 
-        /* --- Общие стили --- */
         .header-style {
             border-bottom-left-radius: 24px;
             border-bottom-right-radius: 24px;
@@ -79,13 +73,12 @@
             background-color: #1a1a1a; 
         }
 
-        /* --- Material 3 Navigation Bar Styles --- */
         .nav-bar {
             background-color: var(--md-sys-color-surface);
             border-top: 1px solid rgba(255, 255, 255, 0.05);
             z-index: 50;
-            padding-bottom: env(safe-area-inset-bottom); /* Учет полоски iPhone */
-            height: 80px; /* Стандартная высота M3 Navigation Bar */
+            padding-bottom: env(safe-area-inset-bottom);
+            height: 80px; 
             box-sizing: content-box;
         }
 
@@ -95,7 +88,7 @@
             align-items: center;
             justify-content: center;
             height: 100%;
-            flex: 1; /* Равномерное распределение */
+            flex: 1;
             color: var(--md-sys-color-on-surface-variant);
             transition: color 0.3s ease;
             position: relative;
@@ -104,7 +97,6 @@
             padding-bottom: 16px;
         }
 
-        /* Контейнер иконки (Pill shape) */
         .nav-icon-pill {
             width: 64px;
             height: 32px;
@@ -123,7 +115,7 @@
         }
 
         .nav-label {
-            font-size: 10px; /* Мелкий шрифт чтобы влезло 6 пунктов */
+            font-size: 10px;
             font-weight: 500;
             line-height: 1.2;
             letter-spacing: 0.1px;
@@ -135,25 +127,17 @@
             padding: 0 2px;
         }
 
-        /* Active State */
         .nav-item.active .nav-icon-pill {
             background-color: var(--primary-container);
         }
         
         .nav-item.active svg {
-            color: #FFFFFF; /* Белая иконка на активном фоне */
+            color: #FFFFFF;
         }
 
         .nav-item.active .nav-label {
             color: #FFFFFF;
             font-weight: 700;
-        }
-
-        /* Hover эффект для десктопа */
-        @media (hover: hover) {
-            .nav-item:hover {
-                color: #E3E3E3;
-            }
         }
 
         .calendar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
@@ -243,7 +227,6 @@
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Стили для iframe */
         .iframe-container {
             width: 100%;
             height: 100%;
@@ -289,9 +272,7 @@
                             <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF;"></i>
                         </button>
                     </div>
-
                     <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
-
                     <div id="shift-action-container" class="w-full mt-4 flex">
                         <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
                         <button id="main-action-button" class="w-full flex items-center justify-center text-center text-white font-bold transition-all duration-300 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
@@ -300,62 +281,40 @@
                     </div>
                 </div>
             </header>
-
-            <main class="flex flex-col items-center justify-start min-h-[50vh] pt-8 pb-16 px-4 w-full" id="main-content">
-            </main>
+            <main class="flex flex-col items-center justify-start min-h-[50vh] pt-8 pb-16 px-4 w-full" id="main-content"></main>
         </div>
 
         <div id="screen-schedule" class="screen initial-right">
             <div class="iframe-container">
-                <div class="iframe-loader-spinner">
-                    <svg class="spinner" viewBox="0 0 50 50">
-                        <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
-                    </svg>
-                </div>
+                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
                 <iframe data-src="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/"></iframe>
             </div>
         </div>
 
         <div id="screen-cloud" class="screen initial-right">
             <div class="iframe-container">
-                <div class="iframe-loader-spinner">
-                    <svg class="spinner" viewBox="0 0 50 50">
-                        <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
-                    </svg>
-                </div>
-                <iframe data-src="https://u8902054545-design.github.io/cloud-darkcenter"></iframe>
+                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
+                <iframe data-src="https://u8902054545-design.github.io/cloud-center/"></iframe>
             </div>
         </div>
 
         <div id="screen-payments" class="screen initial-right">
             <div class="iframe-container">
-                <div class="iframe-loader-spinner">
-                    <svg class="spinner" viewBox="0 0 50 50">
-                        <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
-                    </svg>
-                </div>
-                <iframe data-src="https://u8902054545-design.github.io/payments"></iframe>
+                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
+                <iframe data-src="https://u8902054545-design.github.io/payments-darkcenter"></iframe>
             </div>
         </div>
 
         <div id="screen-education" class="screen initial-right">
             <div class="iframe-container">
-                <div class="iframe-loader-spinner">
-                    <svg class="spinner" viewBox="0 0 50 50">
-                        <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
-                    </svg>
-                </div>
+                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
                 <iframe data-src="https://u8902054545-design.github.io/education-darkcenter"></iframe>
             </div>
         </div>
 
         <div id="screen-chats" class="screen initial-right">
             <div class="iframe-container">
-                <div class="iframe-loader-spinner">
-                    <svg class="spinner" viewBox="0 0 50 50">
-                        <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
-                    </svg>
-                </div>
+                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
                 <iframe data-src="https://u8902054545-design.github.io/chats-darkcenter"></iframe>
             </div>
         </div>
@@ -364,49 +323,30 @@
 
     <nav class="nav-bar fixed bottom-0 left-0 w-full">
         <div class="flex justify-between items-center h-full max-w-7xl mx-auto w-full">
-            
             <button class="nav-item active" id="nav-home">
-                <div class="nav-icon-pill">
-                    <i data-lucide="home" class="w-5 h-5"></i>
-                </div>
+                <div class="nav-icon-pill"><i data-lucide="home" class="w-5 h-5"></i></div>
                 <span class="nav-label">Главный</span>
             </button>
-
             <button class="nav-item" id="nav-schedule">
-                <div class="nav-icon-pill">
-                    <i data-lucide="calendar-days" class="w-5 h-5"></i>
-                </div>
+                <div class="nav-icon-pill"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
                 <span class="nav-label">Расписание</span>
             </button>
-
             <button class="nav-item" id="nav-cloud">
-                <div class="nav-icon-pill">
-                    <i data-lucide="map-pin" class="w-5 h-5"></i>
-                </div>
+                <div class="nav-icon-pill"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
                 <span class="nav-label">Centers</span>
             </button>
-
             <button class="nav-item" id="nav-payments">
-                <div class="nav-icon-pill">
-                    <i data-lucide="credit-card" class="w-5 h-5"></i>
-                </div>
+                <div class="nav-icon-pill"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
                 <span class="nav-label">Выплаты</span>
             </button>
-
             <button class="nav-item" id="nav-education">
-                <div class="nav-icon-pill">
-                    <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-                </div>
+                <div class="nav-icon-pill"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
                 <span class="nav-label">Обучение</span>
             </button>
-
             <button class="nav-item" id="nav-chats">
-                <div class="nav-icon-pill">
-                    <i data-lucide="message-square-more" class="w-5 h-5"></i>
-                </div>
+                <div class="nav-icon-pill"><i data-lucide="message-square-more" class="w-5 h-5"></i></div>
                 <span class="nav-label">Чаты</span>
             </button>
-
         </div>
     </nav>
     
@@ -432,19 +372,15 @@
                 <h2 class="text-2xl font-bold mb-2">Доступ ограничен</h2>
                 <p class="text-gray-400 text-sm leading-relaxed">Не удалось проверить авторизацию или сессия истекла. Пожалуйста, войдите в аккаунт заново.</p>
             </div>
-            <button id="auth-login-btn" class="w-full text-center text-white font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all" style="background-color: #0000FF;">
-                Войти в аккаунт
-            </button>
+            <button id="auth-login-btn" class="w-full text-center text-white font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all" style="background-color: #0000FF;">Войти в аккаунт</button>
         </div>
     </div>
 
     <script>
-        // --- ЛОГИКА НАВИГАЦИИ ---
         let currentScreenId = 'screen-main';
         let isAnimating = false;
         const transitionDuration = 600; 
 
-        // Определяем карту навигации: ID кнопки -> ID экрана и его порядковый индекс
         const navMap = [
             { btnId: 'nav-home', screenId: 'screen-main', index: 0 },
             { btnId: 'nav-schedule', screenId: 'screen-schedule', index: 1 },
@@ -455,7 +391,6 @@
         ];
 
         let currentIndex = 0;
-
         const transitionClasses = {
             forward: { entering: 'slide-in-right', exiting: 'slide-out-left', initial: 'initial-right' },
             backward: { entering: 'slide-in-left', exiting: 'slide-out-right', initial: 'initial-left' }
@@ -464,57 +399,37 @@
         function navigate(targetScreenId, targetIndex, callback) {
             if (isAnimating || currentScreenId === targetScreenId) return;
             isAnimating = true;
-
             const direction = targetIndex > currentIndex ? 'forward' : 'backward';
             currentIndex = targetIndex;
-
             const currentScreen = document.getElementById(currentScreenId);
             const targetScreen = document.getElementById(targetScreenId);
             const classes = transitionClasses[direction];
-            
-            // 1. Подготовка целевого экрана
             targetScreen.classList.remove('active', classes.entering, classes.exiting, 'initial-left', 'initial-right');
             targetScreen.classList.add(classes.initial);
             targetScreen.style.display = 'block'; 
-            
             requestAnimationFrame(() => {
-                // 2. Старт анимации
                 currentScreen.classList.remove('active', 'initial-left', 'initial-right');
                 currentScreen.classList.add(classes.exiting);
-                
                 targetScreen.classList.remove(classes.initial);
                 targetScreen.classList.add(classes.entering);
-                
-                // 3. Ждем завершения
                 setTimeout(() => {
                     currentScreen.classList.remove(classes.exiting);
-                    
-                    if (direction === 'forward') {
-                        currentScreen.classList.add('initial-left');
-                    } else {
-                        currentScreen.classList.add('initial-right');
-                    }
-                    
+                    if (direction === 'forward') { currentScreen.classList.add('initial-left'); } else { currentScreen.classList.add('initial-right'); }
                     targetScreen.classList.remove(classes.entering, classes.initial);
                     targetScreen.classList.add('active');
-                    
                     currentScreenId = targetScreenId;
                     isAnimating = false;
-
                     if (callback) callback();
-
                 }, transitionDuration);
             });
         }
 
-        // Инициализация кнопок меню
         navMap.forEach(navItem => {
             const btn = document.getElementById(navItem.btnId);
             if(btn) {
                 btn.addEventListener('click', () => {
                     updateActiveNav(btn);
                     navigate(navItem.screenId, navItem.index, () => {
-                        // Логика загрузки iframe только когда экран становится активным
                         const screen = document.getElementById(navItem.screenId);
                         const iframe = screen.querySelector('iframe');
                         if (iframe && !iframe.src && iframe.getAttribute('data-src')) {
@@ -530,16 +445,11 @@
             activeBtn.classList.add('active');
         }
 
-        // --- ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ (БЕЗ ИЗМЕНЕНИЙ) ---
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4IXGi1WIYwr12fHYqQ6lGaLDOjgW2q9sf5ovHUrP-sh3jkfBdXhlVZ70NsCL4tNgDCg/exec';
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
         const INTERVAL_MS = 3000;
-
-        const BUTTON_SPINNER_SVG = `
-        <svg class="spinner-mini" viewBox="0 0 50 50">
-            <circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle>
-        </svg>`;
+        const BUTTON_SPINNER_SVG = `<svg class="spinner-mini" viewBox="0 0 50 50"><circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
 
         let isSlotActive = false;
         let canStartSlot = false;
@@ -564,16 +474,8 @@
             const area = document.getElementById('notification-area');
             const note = document.createElement('div');
             const isSuccess = type === 'success';
-            
             note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#1a1a1a]/90 ring-1 ring-[#0000FF]' : 'bg-red-900/90'} text-white rounded-xl shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between`;
-            note.innerHTML = `
-                <div class="flex items-center">
-                    <div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3">
-                        <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
-                    </div>
-                    <div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div>
-                </div>
-            `;
+            note.innerHTML = `<div class="flex items-center"><div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3"><i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i></div><div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div></div>`;
             area.appendChild(note);
             lucide.createIcons();
             setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
@@ -591,18 +493,7 @@
             lastRenderedState = "skeleton";
             let html = '<div class="w-full flex flex-col space-y-4 fade-in">';
             for(let i=0; i<3; i++) {
-                html += `
-                    <div class="w-full skeleton-shimmer p-3 rounded-xl shadow-lg flex justify-between items-center mt-2 h-[68px]">
-                        <div class="flex items-center space-x-2">
-                            <div class="flex-shrink-0 w-7 h-7 rounded-full skeleton-block"></div>
-                            <div class="flex flex-col space-y-2">
-                                <div class="w-20 h-3 skeleton-block"></div>
-                                <div class="w-24 h-4 skeleton-block"></div>
-                            </div>
-                        </div>
-                        <div class="w-16 h-6 skeleton-block"></div>
-                    </div>
-                `;
+                html += `<div class="w-full skeleton-shimmer p-3 rounded-xl shadow-lg flex justify-between items-center mt-2 h-[68px]"><div class="flex items-center space-x-2"><div class="flex-shrink-0 w-7 h-7 rounded-full skeleton-block"></div><div class="flex flex-col space-y-2"><div class="w-20 h-3 skeleton-block"></div><div class="w-24 h-4 skeleton-block"></div></div></div><div class="w-16 h-6 skeleton-block"></div></div>`;
             }
             html += '</div>';
             mainContent.innerHTML = html;
@@ -612,13 +503,7 @@
             const stateKey = `empty-${message}`;
             if (lastRenderedState === stateKey) return;
             lastRenderedState = stateKey;
-
-            mainContent.innerHTML = `
-                <div id="status-display" class="text-center mt-32 fade-in">
-                    <i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i>
-                    <p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">${message}</p>
-                </div>
-            `;
+            mainContent.innerHTML = `<div id="status-display" class="text-center mt-32 fade-in"><i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i><p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">${message}</p></div>`;
             lucide.createIcons();
         }
 
@@ -626,27 +511,7 @@
             const stateKey = `card-${shiftData.time}-${shiftData.duration}`;
             if (lastRenderedState === stateKey) return;
             lastRenderedState = stateKey;
-
-            mainContent.innerHTML = `
-                <div class="w-full shift-card text-white p-3 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 fade-in">
-                    <div class="flex items-center space-x-2">
-                        <div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">
-                                Подтверждён
-                            </span>
-                            <p class="text-lg font-bold mt-1">${shiftData.time}</p>
-                        </div>
-                    </div>
-                    <div class="flex-shrink-0 text-right">
-                        <p class="text-xl font-bold text-white">${shiftData.duration || ''}</p>
-                    </div>
-                </div>
-            `;
+            mainContent.innerHTML = `<div class="w-full shift-card text-white p-3 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 fade-in"><div class="flex items-center space-x-2"><div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">Подтверждён</span><p class="text-lg font-bold mt-1">${shiftData.time}</p></div></div><div class="flex-shrink-0 text-right"><p class="text-xl font-bold text-white">${shiftData.duration || ''}</p></div></div>`;
         }
 
         function showAuthError() {
@@ -660,32 +525,16 @@
             if (!isSilent) showLoading();
             const email = localStorage.getItem('userEmail');
             const token = localStorage.getItem('authToken');
-            
-            if (!email || !token) { 
-                showAuthError(); 
-                return false; 
-            }
-            
+            if (!email || !token) { showAuthError(); return false; }
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST', mode: 'cors', cache: 'no-cache',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ auth: true, email: email, token: token })
                 });
-
                 const data = await response.json();
-                if (data.status === 'success' && data.auth_ok) {
-                    return true;
-                } else {
-                    showAuthError();
-                    return false;
-                }
-            } catch (error) {
-                console.error('Auth error:', error);
-                return true; 
-            } finally {
-                if (!isSilent) hideLoading();
-            }
+                return data.status === 'success' && data.auth_ok;
+            } catch (error) { return true; } finally { if (!isSilent) hideLoading(); }
         }
 
         authLoginBtn.addEventListener('click', () => {
@@ -697,23 +546,12 @@
             if (!isSilent) showLoading();
             const userEmail = localStorage.getItem('userEmail');
             const dateStr = formatDateForServer(dateObj);
-            
             try {
                 const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
                 const response = await fetch(url);
                 const data = await response.json();
-                
-                if (data.status === 'success' && data.shift && data.shift.found) {
-                    renderShiftCard(data.shift.data);
-                } else {
-                    renderEmptyState("Смен на этот день нет");
-                }
-            } catch (e) {
-                console.error(e);
-                renderEmptyState("Ошибка загрузки");
-            } finally {
-                if (!isSilent) hideLoading();
-            }
+                if (data.status === 'success' && data.shift && data.shift.found) { renderShiftCard(data.shift.data); } else { renderEmptyState("Смен на этот день нет"); }
+            } catch (e) { renderEmptyState("Ошибка загрузки"); } finally { if (!isSilent) hideLoading(); }
         }
 
         async function fetchStatusLogic(isSilent = false) {
@@ -721,9 +559,7 @@
             try {
                 const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
                 return await response.json();
-            } catch (error) {
-                return null;
-            }
+            } catch (error) { return null; }
         }
         
         async function updateShiftStatus(newStatus) {
@@ -736,38 +572,28 @@
                 });
                 const data = await response.json();
                 return data.status === 'success';
-            } catch (error) {
-                createNotification('error', 'Сбой при отправке данных');
-                return false;
-            }
+            } catch (error) { createNotification('error', 'Сбой при отправке данных'); return false; }
         }
 
         function updateButtons(data) {
             if (!data) return;
-
             const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
-            
             if (data.canStart !== undefined) canStartSlot = data.canStart;
             isSlotActive = (status === 'Open');
-
             const statusTextEl = document.getElementById('status-text');
-
             if (isSlotActive) {
                 if(statusTextEl && statusTextEl.textContent !== "Смена активна") {
                     statusTextEl.textContent = "Смена активна";
                     statusTextEl.classList.remove('text-gray-400');
                     statusTextEl.classList.add('text-[#0000FF]');
                 }
-                
                 if (mainActionButton.textContent !== 'Перейти к задачам') {
                     mainActionButton.textContent = 'Перейти к задачам';
                     mainActionButton.disabled = false;
                 }
                 endShiftButton.style.display = 'flex';
             } else {
-                if (mainActionButton.textContent !== 'Начать смену') {
-                    mainActionButton.textContent = 'Начать смену';
-                }
+                if (mainActionButton.textContent !== 'Начать смену') { mainActionButton.textContent = 'Начать смену'; }
                 mainActionButton.disabled = !canStartSlot;
                 endShiftButton.style.display = 'none';
             }
@@ -776,60 +602,36 @@
         function initCalendar() {
             calendarContainer.innerHTML = '';
             const today = new Date();
-            
             for (let i = 0; i < 14; i++) {
                 const date = new Date(today);
                 date.setDate(today.getDate() + i);
-                
                 const item = document.createElement('div');
                 item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer flex-shrink-0 w-14`;
-                
                 if (date.toDateString() === selectedDateObj.toDateString()) {
                     item.classList.add('selected-border');
                     item.style.color = '#0000FF';
-                } else {
-                    item.style.color = '#fff';
-                }
-
+                } else { item.style.color = '#fff'; }
                 item.innerHTML = `<span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
-                
                 item.addEventListener('click', () => {
                     if (selectedDateObj.toDateString() === date.toDateString()) return;
-
-                    document.querySelectorAll('.calendar-item').forEach(el => {
-                        el.classList.remove('selected-border');
-                        el.style.color = '#fff';
-                    });
+                    document.querySelectorAll('.calendar-item').forEach(el => { el.classList.remove('selected-border'); el.style.color = '#fff'; });
                     item.classList.add('selected-border');
                     item.style.color = '#0000FF';
-                    
                     selectedDateObj = date;
                     renderSkeletons();
                     fetchShiftForDate(date, true);
                 });
-
                 calendarContainer.appendChild(item);
             }
         }
 
         mainActionButton.addEventListener('click', async () => {
-            if (isSlotActive) {
-                showLoading();
-                window.location.href = TASKS_URL;
-            } else {
+            if (isSlotActive) { showLoading(); window.location.href = TASKS_URL; } else {
                 if (canStartSlot) {
                     mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
                     mainActionButton.disabled = true;
-
                     const success = await updateShiftStatus('Open');
-                    
-                    if (success) {
-                        createNotification('success', 'Смена открыта!');
-                        updateButtons({ shiftStatus: 'Open', canStart: false });
-                    } else {
-                        const realData = await fetchStatusLogic(true);
-                        updateButtons(realData);
-                    }
+                    if (success) { createNotification('success', 'Смена открыта!'); updateButtons({ shiftStatus: 'Open', canStart: false }); } else { const realData = await fetchStatusLogic(true); updateButtons(realData); }
                 }
             }
         });
@@ -842,17 +644,8 @@
             endShiftButton.style.display = 'none';
             mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             mainActionButton.disabled = true;
-
             const success = await updateShiftStatus('Closed');
-            
-            if (success) {
-                createNotification('success', 'Смена завершена');
-                updateButtons({ shiftStatus: 'Closed', canStart: false });
-                const realData = await fetchStatusLogic(true);
-                updateButtons(realData);
-            } else {
-                updateButtons({ shiftStatus: 'Open' });
-            }
+            if (success) { createNotification('success', 'Смена завершена'); updateButtons({ shiftStatus: 'Closed', canStart: false }); const realData = await fetchStatusLogic(true); updateButtons(realData); } else { updateButtons({ shiftStatus: 'Open' }); }
         });
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -860,15 +653,11 @@
             mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             renderSkeletons();
             initCalendar();
-
             const authOk = await checkUserAuthentication(false);
             if (!authOk) return;
-
             const p1 = fetchShiftForDate(selectedDateObj, false); 
             const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
-
             await Promise.all([p1, p2]);
-
             setInterval(async () => {
                 const stillAuth = await checkUserAuthentication(true);
                 if (stillAuth) {
@@ -878,7 +667,6 @@
                 }
             }, INTERVAL_MS);
         });
-
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
