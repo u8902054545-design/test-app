@@ -13,6 +13,7 @@
         :root {
             --transition-duration: 600ms;
             --transition-timing: cubic-bezier(0.2, 0, 0, 1);
+            --nav-height: 80px; /* Фиксированная высота меню */
         }
 
         body {
@@ -48,7 +49,7 @@
                         opacity var(--transition-duration) var(--transition-timing);
             will-change: transform, opacity;
             backface-visibility: hidden;
-            padding-bottom: 100px; /* Отступ под меню */
+            padding-bottom: var(--nav-height); /* Отступ под новое меню */
         }
         
         .screen::-webkit-scrollbar { display: none; }
@@ -74,18 +75,51 @@
             background-color: #1a1a1a; 
         }
 
+        /* --- Стили навигации (Google Style) --- */
+        .nav-bar {
+            background-color: #1F1F1F;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 50;
+            height: var(--nav-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: env(safe-area-inset-bottom); /* Учет зоны жестов на iPhone */
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Контейнер иконки (капсула) */
+        .icon-container {
+            width: 64px; /* Широкая капсула */
+            height: 36px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.4s cubic-bezier(0.2, 0, 0, 1), color 0.4s ease;
+            color: #C4C7C5; /* Серый цвет неактивной иконки */
+        }
+
+        /* Активное состояние */
         .nav-item.active .icon-container {
             background-color: #0000FF;
             color: #FFFFFF; 
         }
-        .nav-item.active svg { color: #FFFFFF; }
-        .nav-item svg { color: #C4C7C5; transition: color 0.2s; }
         
-        .nav-bar {
-            background-color: #1F1F1F;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
-            z-index: 50; 
+        /* Анимация самой иконки при наведении/активации (опционально) */
+        .nav-item.active svg {
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
         }
 
         .calendar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
@@ -294,26 +328,38 @@
 
     </div>
 
-    <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2 z-40">
-        <div class="flex justify-between items-center h-14">
-            <button class="nav-item active flex flex-col items-center justify-center h-full w-1/6" id="nav-home">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="home" class="w-5 h-5"></i></div>
-            </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-schedule">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
-            </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-cloud">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
-            </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-payments">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
-            </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-education">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
-            </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-chats">
-                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="message-square-more" class="w-5 h-5"></i></div>
-            </button>
+    <nav class="nav-bar fixed bottom-0 left-0 w-full">
+        <div class="flex justify-between items-center w-full max-w-7xl px-2">
+            <div class="nav-item active" id="nav-home">
+                <div class="icon-container">
+                    <i data-lucide="home" class="w-7 h-7"></i>
+                </div>
+            </div>
+            <div class="nav-item" id="nav-schedule">
+                <div class="icon-container">
+                    <i data-lucide="calendar-days" class="w-7 h-7"></i>
+                </div>
+            </div>
+            <div class="nav-item" id="nav-cloud">
+                <div class="icon-container">
+                    <i data-lucide="map-pin" class="w-7 h-7"></i>
+                </div>
+            </div>
+            <div class="nav-item" id="nav-payments">
+                <div class="icon-container">
+                    <i data-lucide="credit-card" class="w-7 h-7"></i>
+                </div>
+            </div>
+            <div class="nav-item" id="nav-education">
+                <div class="icon-container">
+                    <i data-lucide="graduation-cap" class="w-7 h-7"></i>
+                </div>
+            </div>
+            <div class="nav-item" id="nav-chats">
+                <div class="icon-container">
+                    <i data-lucide="message-square-more" class="w-7 h-7"></i>
+                </div>
+            </div>
         </div>
     </nav>
     
@@ -437,7 +483,7 @@
             activeBtn.classList.add('active');
         }
 
-        // --- ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ (БЕЗ ИЗМЕНЕНИЙ) ---
+        // --- ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ ---
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4IXGi1WIYwr12fHYqQ6lGaLDOjgW2q9sf5ovHUrP-sh3jkfBdXhlVZ70NsCL4tNgDCg/exec';
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
@@ -789,4 +835,4 @@
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-                                                                                                                                                               </html>
+</html>
