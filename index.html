@@ -18,7 +18,7 @@
             color: #ffffff;
             box-sizing: border-box;
             overflow-x: hidden;
-            overflow-y: hidden; /* Блокируем скролл body, так как контент будет в iframe */
+            overflow-y: hidden; /* Блокируем скролл body, чтобы скроллил только iframe */
         }
 
         /* --- Defining CSS variables for colors --- */
@@ -27,34 +27,7 @@
             --color-purple: #0000FF; 
             --color-red: #ff0000;
             --animation-duration: 3s;
-            --transition-duration: 0.5s; 
-        }
-        
-        /* ---------------------------------------------------- */
-        /* --- НОВЫЙ КОНТЕЙНЕР ДЛЯ IFRAME --- */
-        /* ---------------------------------------------------- */
-        #iframe-wrapper {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 100; /* Выше форм (99), но ниже спинера (101) */
-            background-color: #000000;
-            display: none; /* Скрыт по умолчанию */
-            opacity: 0;
-            transition: opacity var(--transition-duration) ease;
-        }
-
-        #iframe-wrapper.visible {
-            opacity: 1;
-        }
-
-        #main-frame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
+            --transition-duration: 0.5s; /* Длительность анимации перехода */
         }
         
         /* ---------------------------------------------------- */
@@ -67,54 +40,79 @@
             left: 0;
             right: 0;
             bottom: 0;
+            /* Полупрозрачный фон, чтобы соответствовал оверлею */
             background-color: rgba(0, 0, 0, 0.7); 
-            display: none; 
+            display: none; /* Изначально скрыт, будет управляться JS (для показа при AJAX) */
             justify-content: center;
             align-items: center;
-            z-index: 101; /* Самый верхний слой */
+            z-index: 200; /* Максимальный Z-index, выше всего */
+            /* Добавлено для плавного появления/скрытия */
             transition: opacity var(--transition-duration) ease, visibility var(--transition-duration) ease;
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
         }
         
+        /* Класс, который JS будет добавлять для отображения */
         #overlay-loading.visible {
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
-            display: flex; 
+            display: flex; /* Обеспечиваем отображение во время анимации */
         }
         
         /* --- Стили Спиннера (SVG) --- */
         .spinner {
             width: 60px; 
             height: 60px;
+            /* Анимация вращения всего спиннера */
             animation: rotate 2s linear infinite; 
             transform-origin: center center;
         }
 
         .path {
+            /* Фиксированный цвет спиннера: #0000FF */
             stroke: var(--color-blue); 
             stroke-linecap: round;
-            stroke-width: 4; 
+            stroke-width: 4; /* СРЕДНЯЯ ТОЛЩИНА ЛИНИИ (4px) */
+            
+            /* Базовые значения dasharray для современного эффекта */
             stroke-dasharray: 1, 150; 
+            
+            /* Анимация хода - изменяет длину и положение арки (современный эффект) */
             animation: dash 1.5s ease-in-out infinite; 
         }
 
+        /* Ключевые кадры для вращения всего спиннера */
         @keyframes rotate {
-            100% { transform: rotate(360deg); }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
+        /* Ключевые кадры для изменения длины и смещения штриха (Современный "бегущий" эффект) */
         @keyframes dash {
-            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
-            50% { stroke-dasharray: 70, 150; stroke-dashoffset: -25px; }
-            100% { stroke-dasharray: 70, 150; stroke-dashoffset: -125px; }
+            0% {
+                stroke-dasharray: 1, 150;
+                stroke-dashoffset: 0;
+            }
+            50% {
+                /* Дуга достигает максимальной длины */
+                stroke-dasharray: 70, 150; 
+                stroke-dashoffset: -25px;
+            }
+            100% {
+                /* Дуга "сжимается" и быстро смещается */
+                stroke-dasharray: 70, 150;
+                stroke-dashoffset: -125px;
+            }
         }
         
         /* ---------------------------------------------------- */
         /* --- Анимации перехода страниц --- */
         /* ---------------------------------------------------- */
         
+        /* Стиль для скрытия контейнера авторизации до начала анимации */
         #authFormContainer.hidden {
             opacity: 0;
             pointer-events: none;
@@ -136,6 +134,7 @@
             bottom: 0;
             z-index: 99; 
             transform: translateX(0); 
+            /* Добавляем transition для opacity, чтобы использовать его в начальной анимации */
             transition: transform var(--transition-duration) ease-in-out, opacity var(--transition-duration) ease-in-out; 
         }
         
@@ -181,9 +180,10 @@
         }
         
         /* ---------------------------------------------------- */
-        /* --- Остальные стили --- */
+        /* --- Остальные стили (с исправлениями) --- */
         /* ---------------------------------------------------- */
         
+        /* Общие стили для заголовков и подзаголовков */
         .darkcenter-title {
             font-size: 28px;
             font-weight: bold;
@@ -226,6 +226,7 @@
             line-height: 1.4;
         }
         
+        /* Стили для поля ввода email (только для Page 1) */
         .input-group {
             position: relative;
             box-sizing: border-box;
@@ -301,6 +302,7 @@
             border-color: #FF7F7F !important;
         }
 
+        /* --- Code Input Grid Styles (Page 2) --- */
         .code-input-grid {
             display: flex;
             justify-content: space-between;
@@ -340,6 +342,7 @@
             box-shadow: none;
         }
 
+        /* --- Fixed Button Container Styles --- */
         .fixed-button-container {
             position: fixed;
             bottom: 0;
@@ -364,6 +367,7 @@
             }
         }
         
+        /* --- General Button Styles --- */
         .action-button {
             width: 100%;
             padding: 12px; 
@@ -471,20 +475,45 @@
             margin-top: 5px; 
             margin-bottom: 5px; 
         }
+
+        /* ---------------------------------------------------- */
+        /* --- СТИЛИ ДЛЯ IFRAME APP CONTAINER (НОВОЕ) --- */
+        /* ---------------------------------------------------- */
+        #app-iframe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100; /* Выше форм (99), но ниже спиннера (200) */
+            background-color: #000000; /* Фон черный, чтобы избежать белых вспышек */
+            display: none; /* Скрыт по умолчанию */
+        }
+
+        #app-content-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
         
     </style>
 </head>
 <body>
 
+    <!-- Спиннер загрузки -->
     <div id="overlay-loading">
         <svg class="spinner" viewBox="25 25 50 50" role="status" aria-label="Загрузка">
             <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10" />
         </svg>
     </div>
 
-    <div id="iframe-wrapper">
-        </div>
+    <!-- НОВОЕ: Контейнер для целевого сайта (Iframe) -->
+    <div id="app-iframe-container">
+        <iframe id="app-content-frame" sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation"></iframe>
+    </div>
 
+    <!-- Страница ввода Email -->
     <div id="authFormContainer" class="hidden"> 
         <div class="page-content" id="content-auth"> <div class="darkcenter-title">ITC Platform</div>
             <div class="login-title">Введи свой Gmail</div> 
@@ -515,6 +544,7 @@
         </div>
     </div>
     
+    <!-- Страница ввода Кода -->
     <div id="codeVerificationContainer">
         <div class="page-content" id="content-code"> <div class="darkcenter-title">ITC Platform</div>
             <div class="login-title">Введи код подтверждения из Gmail</div> 
@@ -543,9 +573,11 @@
         const authFormContainer = document.getElementById('authFormContainer');
         const codeVerificationContainer = document.getElementById('codeVerificationContainer');
         const overlayLoading = document.getElementById('overlay-loading');
-        // --- NEW ELEMENT ---
-        const iframeWrapper = document.getElementById('iframe-wrapper');
         
+        // НОВЫЕ ЭЛЕМЕНТЫ DOM
+        const appIframeContainer = document.getElementById('app-iframe-container');
+        const appContentFrame = document.getElementById('app-content-frame');
+
         const emailInput = document.getElementById("email-input");
         const getCodeButton = document.getElementById("get-code-button");
         const emailError = document.getElementById("email-error");
@@ -563,16 +595,19 @@
         ];
         const codeError = document.getElementById("code-error");
 
+        // --- КОНСТАНТЫ ДЛЯ СЕССИИ И СЕРВЕРА ---
         const isLoggedInKey = 'isLoggedIn';
         const userLinkKey = 'userLink';
         const sessionExpiresKey = 'sessionExpires';
         const userEmailKey = 'userEmail';
         const authTokenKey = 'authToken'; 
         
+        // !!! ВАШ АКТУАЛЬНЫЙ URL GOOGLE APPS SCRIPT !!!
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0uenNIXAbEI1ZqBLhTK06omyIMa3JquZ5Dil08MrY_jLsRCCff3W1PKQ6XgPM84td/exec"; 
         
-        let currentEmail = "";
+        const inactiveUserRedirectLink = "https://app.botpapa.me/@Smena_DarkCenter_bot/smena"; 
         
+        let currentEmail = "";
         let lastCodeRequestEmail = "";
         let codeRequestTimestamp = 0;
         const RESEND_TIME = 25; 
@@ -584,23 +619,65 @@
         ];
         
         const CONNECTION_ERROR_TEXT = "Не удалось подключиться к серверу. Проверь подключение к интернету и повтори попытку";
-
         const REQUIRED_ANDROID_VERSION = 14;
         const VERSION_ERROR_MESSAGE = "Версия Android твоего устройства, не поддерживается";
+
+        // --- НОВАЯ ФУНКЦИЯ: ПЛАВНЫЙ ПЕРЕХОД В IFRAME ---
+        /**
+         * Загружает целевую ссылку в iframe в фоновом режиме, отображая спиннер.
+         * Показывает iframe только после полной загрузки (событие onload).
+         */
+        function transitionToApp(targetUrl) {
+            console.log("Начинаем плавный переход к:", targetUrl);
+            
+            // 1. Убеждаемся, что спиннер показан (он должен крутиться)
+            toggleLoadingOverlay(true);
+
+            // 2. Устанавливаем источник iframe
+            // Это начнет загрузку страницы внутри скрытого фрейма
+            appContentFrame.src = targetUrl;
+
+            // 3. Вешаем обработчик события полной загрузки
+            appContentFrame.onload = function() {
+                console.log("Страница в Iframe загружена.");
+                
+                // Небольшая задержка для уверенности (рендеринг браузера)
+                setTimeout(() => {
+                    // 4. Скрываем все формы авторизации
+                    authFormContainer.style.display = 'none';
+                    codeVerificationContainer.style.display = 'none';
+
+                    // 5. Показываем контейнер с iframe
+                    appIframeContainer.style.display = 'block';
+
+                    // 6. Плавно убираем спиннер (у нас уже есть transition в CSS)
+                    toggleLoadingOverlay(false);
+                }, 500); 
+            };
+
+            // Дополнительная защита: если onload не сработает долго (например, 15 сек), показать принудительно
+            setTimeout(() => {
+                if (appIframeContainer.style.display === 'none') {
+                    console.log("Превышено время ожидания загрузки, показываем принудительно.");
+                    authFormContainer.style.display = 'none';
+                    codeVerificationContainer.style.display = 'none';
+                    appIframeContainer.style.display = 'block';
+                    toggleLoadingOverlay(false);
+                }
+            }, 15000);
+        }
+        // --- КОНЕЦ НОВОЙ ФУНКЦИИ ---
 
         function checkAndroidVersion(locationId) {
             if (!window.Telegram || !window.Telegram.WebApp) {
                 return false; 
             }
-
             const platform = window.Telegram.WebApp.platform;
             if (platform !== 'android') {
                 return false; 
             }
-
             const userAgent = window.navigator.userAgent;
             let androidVersion = 0;
-
             const match = userAgent.match(/Android\s+([0-9\.]+)/);
             if (match && match[1]) {
                 androidVersion = parseInt(match[1].split('.')[0], 10);
@@ -624,11 +701,10 @@
                 } else {
                     window.Telegram.WebApp.showAlert(VERSION_ERROR_MESSAGE);
                 }
-                
                 toggleLoadingOverlay(false);
-                return true; 
+                return true;
             }
-            return false; 
+            return false;
         }
 
         function clearLocalStorageSession() {
@@ -636,7 +712,7 @@
             localStorage.removeItem(userLinkKey);
             localStorage.removeItem(sessionExpiresKey);
             localStorage.removeItem(userEmailKey);
-            localStorage.removeItem(authTokenKey);
+            localStorage.removeItem(authTokenKey); 
         }
 
         function toggleLoadingOverlay(show) {
@@ -667,7 +743,6 @@
             resendCodeButton.disabled = true;
             resendTimerSpan.textContent = `${timeLeft} с`;
             resendCodeButton.textContent = `Получить новый код — через ${timeLeft} с`; 
-            
             resendCodeButton.classList.remove('blocked'); 
             codeBoxes.forEach(box => box.disabled = false); 
             
@@ -695,17 +770,14 @@
         
         function lockVerificationControls() {
             clearInterval(countdownInterval); 
-            
             resendCodeButton.disabled = true;
             resendCodeButton.classList.add('blocked');
             resendCodeButton.textContent = "Получить новый код"; 
-            
             codeBoxes.forEach(box => {
                 box.value = '';
                 box.disabled = true;
                 box.classList.remove('error-border');
             });
-            
             codeRequestTimestamp = 0; 
             lastCodeRequestEmail = "";
         }
@@ -714,7 +786,6 @@
             codeBoxes.forEach((box, index) => {
                 box.value = ''; 
                 box.disabled = false; 
-                
                 box.removeEventListener('input', handleCodeInput); 
                 box.removeEventListener('keydown', handleCodeKeydown); 
 
@@ -722,16 +793,13 @@
                     const value = event.target.value;
                     codeError.style.display = "none";
                     codeBoxes.forEach(b => b.classList.remove('error-border'));
-                    
                     if (/\D/.test(value)) {
                         event.target.value = '';
                         return;
                     }
-
                     if (value.length === 1 && index < codeBoxes.length - 1) {
                         codeBoxes[index + 1].focus();
                     }
-                    
                     if (index === codeBoxes.length - 1 && value.length === 1) {
                         event.target.blur(); 
                         checkCode();
@@ -749,59 +817,9 @@
             });
         }
         
-        /* ---------------------------------------------------- */
-        /* --- НОВАЯ ФУНКЦИЯ ДЛЯ ЗАГРУЗКИ В IFRAME --- */
-        /* ---------------------------------------------------- */
-        function openPageInIframe(url) {
-            console.log("Открываем ссылку в Iframe:", url);
-            
-            // 1. Показываем спинер (он уже может быть показан, но на всякий случай)
-            // Важно: мы НЕ скрываем спинер сразу. Мы ждем загрузки страницы.
-            toggleLoadingOverlay(true);
-
-            // 2. Очищаем контейнер от старых iframe
-            iframeWrapper.innerHTML = '';
-            
-            // 3. Создаем новый iframe
-            const iframe = document.createElement('iframe');
-            iframe.id = 'main-frame';
-            iframe.src = url;
-            
-            // 4. Добавляем обработчик загрузки
-            iframe.onload = function() {
-                console.log("Iframe загружен.");
-                
-                // Небольшая задержка для верности (рендеринг браузера)
-                setTimeout(() => {
-                    // Показываем контейнер с iframe
-                    iframeWrapper.style.display = 'block';
-                    
-                    // Trigger reflow
-                    void iframeWrapper.offsetWidth; 
-                    
-                    // Плавное появление
-                    iframeWrapper.classList.add('visible');
-                    
-                    // Скрываем спинер только когда страница готова
-                    toggleLoadingOverlay(false);
-                    
-                }, 500); 
-            };
-            
-            iframe.onerror = function() {
-                console.error("Ошибка загрузки Iframe");
-                // В случае ошибки можно либо оставить спинер, либо показать ошибку
-                // Здесь оставляем как есть, или можно сделать редирект как фолбек
-                // window.location.replace(url); 
-            };
-
-            // Добавляем iframe в DOM, что запускает загрузку
-            iframeWrapper.appendChild(iframe);
-        }
-
+        // --- ФУНКЦИЯ ПРОВЕРКИ ТОКЕНА (ИЗМЕНЕНА) ---
         async function verifyStoredToken(email, token) {
-            // Спинер уже включен в initialize() до вызова этой функции
-            // toggleLoadingOverlay(true); 
+            toggleLoadingOverlay(true);
             console.log("Проверка токена при загрузке...");
             
             try {
@@ -818,12 +836,12 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    console.log("Авторизация по токену успешна.");
-                    // --- ИЗМЕНЕНИЕ: ВМЕСТО РЕДИРЕКТА ЗАПУСКАЕМ IFRAME ---
-                    openPageInIframe(data.redirect_link);
+                    // ✅ УСПЕХ: ВМЕСТО РЕДИРЕКТА ВЫЗЫВАЕМ ПЛАВНЫЙ ПЕРЕХОД
+                    console.log("Авторизация по токену успешна. Загружаем iframe.");
+                    transitionToApp(data.redirect_link); // <-- ИЗМЕНЕНИЕ ЗДЕСЬ
                     return true;
                 } else {
-                    console.warn(`Ошибка токена: ${data.message}. Сброс сессии.`);
+                    console.warn(`Ошибка токена: ${data.message || 'Неизвестная ошибка'}. Сброс сессии.`);
                     clearLocalStorageSession();
                     toggleLoadingOverlay(false);
                     return false;
@@ -837,6 +855,7 @@
             }
         }
 
+        // --- ЛОГИКА ПРОВЕРКИ КОДА (ИЗМЕНЕНА) ---
         async function checkCode() {
             if (checkAndroidVersion('code')) {
                 return; 
@@ -861,6 +880,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    // ✅ УСПЕХ: ВМЕСТО РЕДИРЕКТА ВЫЗЫВАЕМ ПЛАВНЫЙ ПЕРЕХОД
                     clearInterval(countdownInterval); 
                     
                     const sessionDurationHours = data.token_expiry_hours || 24; 
@@ -871,12 +891,10 @@
                     localStorage.setItem(userLinkKey, data.redirect_link); 
                     localStorage.setItem(sessionExpiresKey, expirationTime.toString());
                     localStorage.setItem(userEmailKey, currentEmail);
-                    localStorage.setItem(authTokenKey, data.auth_token);
+                    localStorage.setItem(authTokenKey, data.auth_token); 
 
-                    // --- ИЗМЕНЕНИЕ: ВМЕСТО РЕДИРЕКТА ЗАПУСКАЕМ IFRAME ---
-                    // Спинер продолжает крутиться внутри функции openPageInIframe
-                    // пока сайт не загрузится полностью
-                    openPageInIframe(data.redirect_link);
+                    // Вызов плавного перехода
+                    transitionToApp(data.redirect_link); // <-- ИЗМЕНЕНИЕ ЗДЕСЬ
                     
                 } else {
                     toggleLoadingOverlay(false);
@@ -909,6 +927,10 @@
             }
         }
 
+        /* ---------------------------------------------------- */
+        /* --- ЛОГИКА НАВИГАЦИИ --- */
+        /* ---------------------------------------------------- */
+        
         function goToVerificationPage(email, initialTime = RESEND_TIME) {
             currentEmail = email;
             verificationEmailSpan.textContent = email;
@@ -958,12 +980,10 @@
         
         resendCodeButton.addEventListener("click", async function() {
             if (resendCodeButton.disabled) return;
-            
-            if (checkAndroidVersion('code')) { return; }
+            if (checkAndroidVersion('code')) return; 
             
             toggleLoadingOverlay(true);
             resendCodeButton.disabled = true; 
-
             codeError.style.display = "none";
             codeBoxes.forEach(b => b.classList.remove('error-border'));
             
@@ -978,16 +998,17 @@
                 });
 
                 const data = await response.json();
-                
                 toggleLoadingOverlay(false);
 
                 if (data.success) {
+                    console.log(`Новый код отправлен на ${currentEmail}.`);
                     codeRequestTimestamp = new Date().getTime(); 
                     lastCodeRequestEmail = currentEmail; 
                     startResendCountdown(); 
                     codeBoxes.forEach(box => box.value = '');
                     codeBoxes[0].focus(); 
                 } else {
+                    console.error("Ошибка повторной отправки:", data.message);
                     const isBlockingError = BLOCKED_MESSAGES.some(msg => data.message && data.message.includes(msg));
                     if (isBlockingError) {
                          lockVerificationControls();
@@ -999,6 +1020,7 @@
                     codeError.style.display = "block";
                 }
             } catch (error) {
+                console.error("Fetch Error during resend code:", error);
                 toggleLoadingOverlay(false);
                 codeError.textContent = CONNECTION_ERROR_TEXT;
                 codeError.style.display = "block";
@@ -1054,9 +1076,7 @@
 
         getCodeButton.addEventListener("click", async function() {
             if (getCodeButton.disabled) return;
-            
             const email = emailInput.value.trim();
-
             if (!isValidEmail(email)) {
                 emailInput.classList.add("error-border");
                 emailError.textContent = "Пожалуйста, введите действительный адрес Gmail.";
@@ -1065,8 +1085,7 @@
                 checkButtonState();
                 return;
             }
-            
-            if (checkAndroidVersion('auth')) { return; }
+            if (checkAndroidVersion('auth')) return; 
             
             const currentTime = new Date().getTime();
             const timeElapsed = (currentTime - codeRequestTimestamp) / 1000;
@@ -1090,18 +1109,15 @@
             try {
                 const formData = new URLSearchParams();
                 formData.append('email', email);
-                
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     body: formData,
                 });
 
                 const data = await response.json();
-                
                 if (data.success) {
                     codeRequestTimestamp = new Date().getTime();
                     lastCodeRequestEmail = email; 
-
                     toggleLoadingOverlay(false);
                     toggleFormElements(false);
                     goToVerificationPage(email, RESEND_TIME); 
@@ -1117,6 +1133,7 @@
                 }
 
             } catch (error) {
+                console.error("Fetch Error:", error);
                 hasLoginError = true;
                 emailInput.classList.add("error-border");
                 emailError.textContent = CONNECTION_ERROR_TEXT; 
@@ -1131,26 +1148,11 @@
         const INITIAL_ANIMATION_DURATION = 3000; 
 
         function startInitialAnimation() {
-            // Внимание: если мы уже начали проверку токена и она успешна,
-            // нам не нужно скрывать оверлей через таймер. 
-            // Он будет скрыт функцией openPageInIframe после загрузки сайта.
-            
-            // Но если мы просто показываем форму входа:
-            const isLoggedIn = localStorage.getItem(isLoggedInKey);
-            
-            // Если мы НЕ залогинены, или сессия истекла - тогда работаем по таймеру
-            // Если залогинены - оверлеем управляет verifyStoredToken -> openPageInIframe
-            
-            if (!shouldCheckToken) {
-                 toggleLoadingOverlay(true); 
-                 setTimeout(() => {
-                    toggleLoadingOverlay(false); 
-                    authFormContainer.classList.remove('hidden');
-                }, INITIAL_ANIMATION_DURATION);
-            } else {
-                // Если мы проверяем токен, убедимся, что спинер показан
-                toggleLoadingOverlay(true); 
-            }
+            toggleLoadingOverlay(true); 
+            setTimeout(() => {
+                toggleLoadingOverlay(false); 
+                authFormContainer.classList.remove('hidden');
+            }, INITIAL_ANIMATION_DURATION);
         }
 
         function setupForm() {
@@ -1175,28 +1177,14 @@
         }
 
         async function initialize() {
-            setupForm(); 
-
             if (shouldCheckToken) {
-                // Запускаем спинер сразу
-                toggleLoadingOverlay(true);
-                
-                // Проверяем токен
                 const tokenVerified = await verifyStoredToken(storedEmail, storedAuthToken);
-                
                 if (tokenVerified) {
-                    // Если успешно: verifyStoredToken вызвала openPageInIframe
-                    // openPageInIframe держит спинер, пока iframe не загрузится.
-                    // Ничего делать не надо.
                     return; 
                 }
-                // Если токен плохой, verifyStoredToken вернула false и скрыла спинер.
-                // Нужно показать форму входа (но без повторной долгой анимации, либо с ней - по желанию).
-                // В данном случае, так как tokenVerified = false, мы просто показываем форму.
-                authFormContainer.classList.remove('hidden');
-            } else {
-                startInitialAnimation(); 
             }
+            setupForm(); 
+            startInitialAnimation(); 
         }
 
         initialize(); 
