@@ -52,9 +52,15 @@
                         opacity var(--transition-duration) var(--transition-timing);
             will-change: transform, opacity;
             backface-visibility: hidden;
-            padding-bottom: 90px; 
+            padding-bottom: 90px; /* Отступ для обычных экранов под меню */
         }
         
+        /* Для экранов без нижнего меню убираем отступ */
+        #screen-account, #screen-tasks {
+            padding-bottom: 0;
+            z-index: 20; /* Поверх обычных экранов */
+        }
+
         .screen::-webkit-scrollbar { display: none; }
         .screen { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -73,6 +79,35 @@
             background-color: #1a1a1a; 
         }
 
+        /* Стиль для хедера подстраниц (Аккаунт/Задачи) */
+        .sub-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1);
+        }
+        
+        .sub-header.slide-up {
+            transform: translateY(-100%);
+        }
+
+        .back-button {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 8px;
+            cursor: pointer;
+        }
+
         .nav-bar {
             background-color: var(--md-sys-color-surface);
             border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -80,6 +115,12 @@
             padding-bottom: env(safe-area-inset-bottom);
             height: 80px; 
             box-sizing: content-box;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Класс для скрытия меню вниз */
+        .nav-bar.hidden-down {
+            transform: translateY(100%);
         }
 
         .nav-item {
@@ -234,6 +275,14 @@
             flex-direction: column;
             position: relative;
         }
+        
+        /* Для подстраниц iframe должен отступать сверху, учитывая хедер */
+        .sub-page-content {
+            padding-top: 60px; /* Высота sub-header */
+            height: 100%;
+            box-sizing: border-box;
+        }
+
         iframe {
             width: 100%;
             height: 100%;
@@ -319,9 +368,35 @@
             </div>
         </div>
 
+        <div id="screen-account" class="screen initial-right">
+            <div class="sub-header">
+                <div class="back-button" onclick="closeSubPage()">
+                    <i data-lucide="arrow-left" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="font-bold text-lg">Аккаунт</span>
+            </div>
+            <div class="iframe-container sub-page-content">
+                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
+                <iframe data-src="https://u8902054545-design.github.io/account-darkcenter/"></iframe>
+            </div>
+        </div>
+
+        <div id="screen-tasks" class="screen initial-right">
+            <div class="sub-header">
+                <div class="back-button" onclick="closeSubPage()">
+                    <i data-lucide="arrow-left" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="font-bold text-lg">Задачи</span>
+            </div>
+            <div class="iframe-container sub-page-content">
+                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
+                <iframe data-src="https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/"></iframe>
+            </div>
+        </div>
+
     </div>
 
-    <nav class="nav-bar fixed bottom-0 left-0 w-full">
+    <nav class="nav-bar fixed bottom-0 left-0 w-full" id="main-nav">
         <div class="flex justify-between items-center h-full max-w-7xl mx-auto w-full">
             <button class="nav-item active" id="nav-home">
                 <div class="nav-icon-pill"><i data-lucide="home" class="w-5 h-5"></i></div>
@@ -381,6 +456,7 @@
         let isAnimating = false;
         const transitionDuration = 600; 
 
+        // Навигация нижнего меню
         const navMap = [
             { btnId: 'nav-home', screenId: 'screen-main', index: 0 },
             { btnId: 'nav-schedule', screenId: 'screen-schedule', index: 1 },
@@ -391,34 +467,61 @@
         ];
 
         let currentIndex = 0;
+        let previousScreenId = null; // Для возврата назад с подстраниц
+        
         const transitionClasses = {
             forward: { entering: 'slide-in-right', exiting: 'slide-out-left', initial: 'initial-right' },
             backward: { entering: 'slide-in-left', exiting: 'slide-out-right', initial: 'initial-left' }
         };
 
-        function navigate(targetScreenId, targetIndex, callback) {
+        function navigate(targetScreenId, targetIndex, callback, forceDirection = null) {
             if (isAnimating || currentScreenId === targetScreenId) return;
             isAnimating = true;
-            const direction = targetIndex > currentIndex ? 'forward' : 'backward';
-            currentIndex = targetIndex;
+            
+            // Определяем направление. Если forceDirection не задан, вычисляем по индексу
+            let direction;
+            if (forceDirection) {
+                direction = forceDirection;
+            } else {
+                direction = targetIndex > currentIndex ? 'forward' : 'backward';
+            }
+            
+            // Если это навигация по меню, обновляем индекс
+            if (targetIndex !== null) {
+                currentIndex = targetIndex;
+            }
+
             const currentScreen = document.getElementById(currentScreenId);
             const targetScreen = document.getElementById(targetScreenId);
             const classes = transitionClasses[direction];
+            
+            // Подготовка целевого экрана
             targetScreen.classList.remove('active', classes.entering, classes.exiting, 'initial-left', 'initial-right');
             targetScreen.classList.add(classes.initial);
             targetScreen.style.display = 'block'; 
+            
+            // Принудительный рефлоу, чтобы CSS анимация сработала
+            targetScreen.offsetHeight; 
+
             requestAnimationFrame(() => {
                 currentScreen.classList.remove('active', 'initial-left', 'initial-right');
                 currentScreen.classList.add(classes.exiting);
+                
                 targetScreen.classList.remove(classes.initial);
                 targetScreen.classList.add(classes.entering);
+                
                 setTimeout(() => {
                     currentScreen.classList.remove(classes.exiting);
+                    // После анимации сдвигаем "старый" экран в правильную сторону
                     if (direction === 'forward') { currentScreen.classList.add('initial-left'); } else { currentScreen.classList.add('initial-right'); }
+                    
                     targetScreen.classList.remove(classes.entering, classes.initial);
                     targetScreen.classList.add('active');
+                    
+                    previousScreenId = currentScreenId;
                     currentScreenId = targetScreenId;
                     isAnimating = false;
+                    
                     if (callback) callback();
                 }, transitionDuration);
             });
@@ -430,11 +533,7 @@
                 btn.addEventListener('click', () => {
                     updateActiveNav(btn);
                     navigate(navItem.screenId, navItem.index, () => {
-                        const screen = document.getElementById(navItem.screenId);
-                        const iframe = screen.querySelector('iframe');
-                        if (iframe && !iframe.src && iframe.getAttribute('data-src')) {
-                            iframe.src = iframe.getAttribute('data-src');
-                        }
+                        loadIframeIfNeeded(navItem.screenId);
                     });
                 });
             }
@@ -444,9 +543,74 @@
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
             activeBtn.classList.add('active');
         }
+        
+        function loadIframeIfNeeded(screenId) {
+            const screen = document.getElementById(screenId);
+            const iframe = screen.querySelector('iframe');
+            if (iframe && !iframe.src && iframe.getAttribute('data-src')) {
+                iframe.src = iframe.getAttribute('data-src');
+            }
+        }
+
+        // --- ЛОГИКА ДЛЯ НОВЫХ ЭКРАНОВ (АККАУНТ / ЗАДАЧИ) ---
+
+        const navBar = document.getElementById('main-nav');
+
+        // Открытие подстраницы (с анимацией меню вниз)
+        function openSubPage(targetScreenId) {
+            if (isAnimating) return;
+            
+            // 1. Скрываем нижнее меню
+            navBar.classList.add('hidden-down');
+            
+            // 2. Загружаем iframe если надо
+            loadIframeIfNeeded(targetScreenId);
+            
+            // 3. Переход на новый экран (как будто идем вперед)
+            // Используем null индекс, чтобы не сбивать логику нижнего меню, но forceDirection 'forward'
+            navigate(targetScreenId, null, null, 'forward');
+            
+            // Сбрасываем положение хедера на всякий случай (возвращаем из "уехавшего" состояния)
+            const header = document.getElementById(targetScreenId).querySelector('.sub-header');
+            if(header) header.classList.remove('slide-up');
+        }
+
+        // Закрытие подстраницы (возврат назад)
+        function closeSubPage() {
+            if (isAnimating) return;
+            
+            const currentScreen = document.getElementById(currentScreenId);
+            const header = currentScreen.querySelector('.sub-header');
+
+            // 1. Анимация хедера вверх
+            if (header) {
+                header.classList.add('slide-up');
+            }
+
+            // 2. Навигация назад к предыдущему экрану (обычно screen-main)
+            // Возвращаем индекс в зависимости от того, какой экран был активен (обычно 0 для Main)
+            let returnIndex = 0; 
+            navMap.forEach(item => { if(item.screenId === previousScreenId) returnIndex = item.index; });
+
+            // Небольшая задержка, чтобы хедер начал ехать первым, или одновременно
+            setTimeout(() => {
+                navigate('screen-main', returnIndex, () => {
+                     // 3. После завершения перехода возвращаем меню
+                     navBar.classList.remove('hidden-down');
+                }, 'backward');
+            }, 100); 
+        }
+
+        // Обработчик кнопки Профиль
+        document.getElementById('profile-button').addEventListener('click', () => {
+            openSubPage('screen-account');
+        });
+
+
+        // --- СТАНДАРТНАЯ ЛОГИКА ---
 
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4IXGi1WIYwr12fHYqQ6lGaLDOjgW2q9sf5ovHUrP-sh3jkfBdXhlVZ70NsCL4tNgDCg/exec';
-        const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
+        const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/'; // Используется внутри iframe теперь
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
         const INTERVAL_MS = 3000;
         const BUTTON_SPINNER_SVG = `<svg class="spinner-mini" viewBox="0 0 50 50"><circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
@@ -625,8 +789,12 @@
             }
         }
 
+        // ОБНОВЛЕННЫЙ ОБРАБОТЧИК ГЛАВНОЙ КНОПКИ
         mainActionButton.addEventListener('click', async () => {
-            if (isSlotActive) { showLoading(); window.location.href = TASKS_URL; } else {
+            if (isSlotActive) { 
+                // ВМЕСТО ПЕРЕХОДА ПО ССЫЛКЕ, ОТКРЫВАЕМ ВНУТРЕННЮЮ СТРАНИЦУ
+                openSubPage('screen-tasks');
+            } else {
                 if (canStartSlot) {
                     mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
                     mainActionButton.disabled = true;
@@ -670,4 +838,4 @@
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-    </html>
+            </html>
