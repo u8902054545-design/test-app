@@ -3,33 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Главная страница - Управление сменами</title>
+    <title>Управление сменами</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         
+        /* --- БАЗОВЫЕ НАСТРОЙКИ --- */
+        html, body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F0F0F;
+            height: 100%; /* Важно для контейнера экранов */
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Скроллится только контент внутри экранов, а не body */
+            -webkit-user-select: none; user-select: none;
+            overscroll-behavior-y: none;
+        }
+
+        /* --- ЛОГИКА АНИМАЦИИ (из Кода 2) --- */
         :root {
-            /* Параметры анимации из 2-го кода */
             --transition-duration: 500ms;
             --transition-timing: cubic-bezier(0.2, 0, 0, 1);
         }
 
-        html, body {
-            height: 100%; /* Важно для работы экранов на всю высоту */
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* Скролл теперь внутри экранов */
-            font-family: 'Inter', sans-serif;
-            background-color: #0F0F0F;
-            -webkit-user-select: none; 
-            -ms-user-select: none; 
-            user-select: none; 
-            overscroll-behavior-y: none;
-        }
-
-        /* --- Стили переходов (из кода 2) --- */
         .screen-container {
             width: 100%;
             height: 100%;
@@ -39,29 +37,26 @@
 
         .screen {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow-y: auto; /* Скролл внутри конкретного экрана */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            overflow-y: auto; /* Скролл внутри каждого экрана */
             overflow-x: hidden;
-            background-color: #0F0F0F;
+            padding-bottom: 100px; /* Отступ под нижнее меню */
             
-            /* Настройки перехода */
             transition: transform var(--transition-duration) var(--transition-timing), 
                         opacity var(--transition-duration) var(--transition-timing);
             will-change: transform, opacity;
             backface-visibility: hidden;
-            padding-bottom: 100px; /* Отступ под нижнее меню */
+            background-color: #0F0F0F;
         }
 
-        /* Скрытие скроллбара для красоты */
+        /* Убираем скроллбар */
         .screen::-webkit-scrollbar { display: none; }
         .screen { -ms-overflow-style: none; scrollbar-width: none; }
 
         .screen.active { transform: translateX(0) scale(1); opacity: 1; z-index: 10; }
 
-        /* Анимации движения */
+        /* Анимации перехода */
         .slide-in-right { transform: translateX(0) scale(1); z-index: 10; }
         .slide-out-left { transform: translateX(-25%) scale(0.92); opacity: 0.5; z-index: 0; pointer-events: none; }
         .slide-in-left { transform: translateX(0) scale(1); z-index: 10; }
@@ -69,12 +64,20 @@
         .initial-right { transform: translateX(100%); opacity: 1; }
         .initial-left { transform: translateX(-100%) scale(1); opacity: 1; }
 
-        /* --- Стили UI компонентов (из кода 1) --- */
+        /* --- СТИЛИ ПРИЛОЖЕНИЯ (из Кода 1) --- */
         .header-style {
             border-bottom-left-radius: 24px;
             border-bottom-right-radius: 24px;
             border-bottom: 4px solid #0000FF;
             background-color: #1a1a1a; 
+        }
+
+        /* Iframe Styles */
+        .schedule-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #fff; /* Чтобы не было прозрачным при загрузке */
         }
 
         .nav-item.active .icon-container { background-color: #0000FF; color: #FFFFFF; }
@@ -85,8 +88,6 @@
             background-color: #1F1F1F;
             border: 1px solid rgba(255, 255, 255, 0.05);
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
-            /* z-index должен быть выше экранов */
-            z-index: 50; 
         }
 
         .calendar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
@@ -140,7 +141,6 @@
 
         .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; }
         .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
-        
         .spinner-mini { width: 24px; height: 24px; animation: rotate 2s linear infinite; }
         .path-mini { stroke: #FFFFFF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
 
@@ -153,10 +153,7 @@
         }
         #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
 
-        .shift-card {
-            background-color: #1A1A1A;
-            transition: transform 0.2s ease, background-color 0.2s, opacity 0.3s ease;
-        }
+        .shift-card { background-color: #1A1A1A; transition: transform 0.2s ease, background-color 0.2s, opacity 0.3s ease; }
         .shift-card:active { transform: scale(0.98); background-color: #252525; }
 
         .skeleton-shimmer { position: relative; overflow: hidden; background-color: #1A1A1A; }
@@ -171,29 +168,19 @@
 
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Iframe Specific */
-        .iframe-container {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
     </style>
 </head>
 <body class="text-white">
 
     <div id="loadingOverlay">
-        <svg class="spinner" viewBox="0 0 50 50">
-            <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
-        </svg>
+        <svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg>
     </div>
-
     <div id="notification-area"></div>
 
-    <div class="screen-container" id="app">
-        
+    <div class="screen-container">
+
         <div id="screen-main" class="screen active">
-            <header class="w-full header-style sticky top-0 z-10">
+            <header class="w-full header-style sticky top-0 z-20">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div class="flex justify-between items-center h-8 mb-4">
                         <h1 class="text-lg font-bold text-white" id="screen-title">Главный экран</h1>
@@ -201,52 +188,55 @@
                             <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF;"></i>
                         </button>
                     </div>
-
                     <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
-
                     <div id="shift-action-container" class="w-full mt-4 flex">
                         <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
                         <button id="main-action-button" class="w-full flex items-center justify-center text-center text-white font-bold transition-all duration-300 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
-                             <span class="btn-text">Загрузка...</span>
+                            <span class="btn-text">Загрузка...</span>
                         </button>
                     </div>
                 </div>
             </header>
 
-            <main class="flex flex-col items-center justify-start min-h-[50vh] pt-8 pb-16 px-4 w-full" id="main-content">
+            <main class="flex flex-col items-center justify-start pt-8 px-4 w-full" id="main-content">
                 </main>
         </div>
 
         <div id="screen-schedule" class="screen initial-right">
-             <iframe src="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" class="iframe-container" allow="geolocation"></iframe>
+            <iframe 
+                src="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" 
+                class="schedule-frame"
+                title="Расписание"
+                loading="eager"
+            ></iframe>
         </div>
 
     </div>
 
-    <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2 z-50">
+    <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2 z-40">
         <div class="flex justify-between items-center h-14">
-            <button class="nav-item active flex flex-col items-center justify-center h-full w-1/6" id="nav-home" data-name="Главный">
+            <button class="nav-item active flex flex-col items-center justify-center h-full w-1/6" id="nav-home">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="home" class="w-5 h-5"></i></div>
             </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-schedule" data-name="Расписание">
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-schedule">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
             </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Местоположение">
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-location">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
             </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Выплаты">
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-payments">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
             </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Обучение">
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-education">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
             </button>
-            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" data-url="#" data-name="Чаты">
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-chats">
                 <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="message-square-more" class="w-5 h-5"></i></div>
             </button>
         </div>
     </nav>
     
-    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-[60] flex justify-center items-end">
+    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
         <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl mb-4 sm:mb-0">
             <div class="text-center mb-4">
                 <h2 class="text-2xl font-bold mb-2">Завершить смену?</h2>
@@ -259,7 +249,7 @@
         </div>
     </div>
 
-    <div id="auth-error-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/90 z-[70] flex justify-center items-end backdrop-blur-sm">
+    <div id="auth-error-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/90 z-[60] flex justify-center items-end backdrop-blur-sm">
         <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-8 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] border-t border-white/10">
             <div class="flex flex-col items-center text-center mb-6">
                 <div class="w-20 h-20 rounded-full bg-red-900/20 flex items-center justify-center mb-4 border border-red-500/30">
@@ -275,7 +265,32 @@
     </div>
 
     <script>
-        // --- ЛОГИКА АНИМАЦИИ И НАВИГАЦИИ ---
+        // --- КОНСТАНТЫ И ПЕРЕМЕННЫЕ ---
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4IXGi1WIYwr12fHYqQ6lGaLDOjgW2q9sf5ovHUrP-sh3jkfBdXhlVZ70NsCL4tNgDCg/exec';
+        const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
+        const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
+        const INTERVAL_MS = 3000;
+
+        const BUTTON_SPINNER_SVG = `<svg class="spinner-mini" viewBox="0 0 50 50"><circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
+
+        let isSlotActive = false;
+        let canStartSlot = false;
+        let selectedDateObj = new Date();
+        let lastRenderedState = null;
+
+        // Элементы UI
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const mainActionButton = document.getElementById('main-action-button');
+        const endShiftButton = document.getElementById('end-shift-button');
+        const bottomSheet = document.getElementById('bottom-sheet');
+        const authErrorSheet = document.getElementById('auth-error-sheet');
+        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
+        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
+        const authLoginBtn = document.getElementById('auth-login-btn');
+        const calendarContainer = document.getElementById('calendar-strip');
+        const mainContent = document.getElementById('main-content');
+        
+        // --- НАВИГАЦИЯ И АНИМАЦИЯ ---
         let currentScreenId = 'screen-main';
         let isAnimating = false;
 
@@ -292,22 +307,18 @@
             const targetScreen = document.getElementById(targetScreenId);
             const classes = transitionClasses[direction];
             
-            // 1. Подготовка
             targetScreen.classList.remove('active', classes.entering, classes.exiting, 'initial-left', 'initial-right');
             targetScreen.classList.add(classes.initial);
             
             requestAnimationFrame(() => {
-                // 2. Старт анимации
                 currentScreen.classList.remove('active', 'initial-left', 'initial-right');
                 currentScreen.classList.add(classes.exiting);
                 
                 targetScreen.classList.remove(classes.initial);
                 targetScreen.classList.add(classes.entering);
                 
-                // 3. Завершение (таймаут должен совпадать с CSS transition-duration: 500ms)
                 setTimeout(() => {
                     currentScreen.classList.remove(classes.exiting);
-                    // Куда уходит старый экран
                     if (direction === 'forward') currentScreen.classList.add('initial-left');
                     else currentScreen.classList.add('initial-right');
                     
@@ -316,59 +327,37 @@
                     
                     currentScreenId = targetScreenId;
                     isAnimating = false;
-                }, 500);
+                }, 500); // Время анимации
             });
         }
 
-        // Управление кнопками меню
-        const navHome = document.getElementById('nav-home');
-        const navSchedule = document.getElementById('nav-schedule');
-
-        navHome.addEventListener('click', () => {
-            if (currentScreenId !== 'screen-main') {
-                updateNavActiveState(navHome);
-                navigate('screen-main', 'backward');
-            }
-        });
-
-        navSchedule.addEventListener('click', () => {
-            if (currentScreenId !== 'screen-schedule') {
-                updateNavActiveState(navSchedule);
-                navigate('screen-schedule', 'forward');
-            }
-        });
-
-        function updateNavActiveState(activeBtn) {
-            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            activeBtn.classList.add('active');
+        // Обработчики меню
+        const navItems = document.querySelectorAll('.nav-item');
+        function updateActiveNav(id) {
+            navItems.forEach(item => {
+                if(item.id === id) item.classList.add('active');
+                else item.classList.remove('active');
+            });
         }
 
-        // --- ЛОГИКА ПРИЛОЖЕНИЯ (ИЗ КОДА 1) ---
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4IXGi1WIYwr12fHYqQ6lGaLDOjgW2q9sf5ovHUrP-sh3jkfBdXhlVZ70NsCL4tNgDCg/exec';
-        const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
-        const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
-        const INTERVAL_MS = 3000;
+        document.getElementById('nav-home').addEventListener('click', () => {
+            updateActiveNav('nav-home');
+            navigate('screen-main', 'backward');
+        });
 
-        const BUTTON_SPINNER_SVG = `
-        <svg class="spinner-mini" viewBox="0 0 50 50">
-            <circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle>
-        </svg>`;
+        document.getElementById('nav-schedule').addEventListener('click', () => {
+            updateActiveNav('nav-schedule');
+            navigate('screen-schedule', 'forward');
+            // Iframe уже загружен, никакой дополнительной логики не нужно
+        });
 
-        let isSlotActive = false;
-        let canStartSlot = false;
-        let selectedDateObj = new Date();
-        let lastRenderedState = null; 
+        // Другие кнопки пока просто обновляют UI (заглушки)
+        ['nav-location', 'nav-payments', 'nav-education', 'nav-chats'].forEach(id => {
+            document.getElementById(id).addEventListener('click', () => updateActiveNav(id));
+        });
 
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const mainActionButton = document.getElementById('main-action-button');
-        const endShiftButton = document.getElementById('end-shift-button');
-        const bottomSheet = document.getElementById('bottom-sheet');
-        const authErrorSheet = document.getElementById('auth-error-sheet');
-        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
-        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
-        const authLoginBtn = document.getElementById('auth-login-btn');
-        const calendarContainer = document.getElementById('calendar-strip');
-        const mainContent = document.getElementById('main-content');
+
+        // --- ЛОГИКА ПРИЛОЖЕНИЯ (Смены, Задачи) ---
 
         function showLoading() { loadingOverlay.classList.add('visible'); }
         function hideLoading() { loadingOverlay.classList.remove('visible'); }
@@ -495,6 +484,7 @@
                 }
             } catch (error) {
                 console.error('Auth error:', error);
+                // В случае ошибки сети не блокируем, если данные есть
                 return true; 
             } finally {
                 if (!isSilent) hideLoading();
@@ -668,17 +658,6 @@
             }
         });
 
-        // Обработка кликов по навигации (для ссылок кроме Главной и Расписания)
-        document.querySelectorAll('.nav-item').forEach(item => {
-            const url = item.getAttribute('data-url');
-            if (url && url !== '#') {
-                item.addEventListener('click', () => {
-                    showLoading();
-                    window.location.href = url;
-                });
-            }
-        });
-
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
@@ -688,10 +667,10 @@
             const authOk = await checkUserAuthentication(false);
             if (!authOk) return;
 
+            // Запускаем запросы параллельно
             const p1 = fetchShiftForDate(selectedDateObj, false); 
             const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
 
-            // Iframe уже грузится в фоне благодаря HTML тегу, так что он будет закэширован
             await Promise.all([p1, p2]);
 
             setInterval(async () => {
@@ -707,4 +686,4 @@
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-</html>
+                                                                                                                         </html>
