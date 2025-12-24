@@ -2,603 +2,794 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- ИЗМЕНЕНИЕ: Жестко задаем ширину 1024px, чтобы эмулировать экран ПК -->
-    <meta name="viewport" content="width=1024, user-scalable=yes">
-    <title>Вход в Систему | Nexus Portal v3.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Главная страница - Управление сменами</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         
         :root {
-            --easing-smooth: cubic-bezier(0.16, 1, 0.3, 1); /* Apple-like easing */
-            --easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --transition-duration: 600ms;
+            --transition-timing: cubic-bezier(0.2, 0, 0, 1);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #020617;
-            /* Разрешаем скролл, если экран по вертикали меньше контента в режиме ПК */
-            overflow-x: hidden; 
-            min-width: 1024px; /* Гарантируем минимальную ширину для фона */
-        }
-
-        /* --- Background Animation --- */
-        .bg-animate {
-            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #020617 100%);
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: -1;
-        }
-        
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.4;
-            animation: float 20s ease-in-out infinite;
-        }
-        .orb-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #3b82f6; animation-delay: 0s; }
-        .orb-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: #a855f7; animation-delay: -5s; }
-        .orb-3 { top: 40%; left: 40%; width: 30vw; height: 30vw; background: #ef4444; animation-delay: -10s; opacity: 0.2; }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(30px, 50px); }
-        }
-
-        /* --- Main Card Container --- */
-        #card-wrapper {
-            transition: height 0.5s var(--easing-smooth);
-            will-change: height;
+            background-color: #0F0F0F;
+            height: 100vh;
+            margin: 0;
             overflow: hidden;
-            position: relative;
+            -webkit-user-select: none; 
+            -ms-user-select: none; 
+            user-select: none; 
+            overscroll-behavior-y: none;
         }
 
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 
-                0 0 0 1px rgba(0,0,0,0.2), 
-                0 20px 40px -10px rgba(0,0,0,0.6);
-        }
-
-        /* --- Content Views Transitions --- */
-        .view-section {
+        /* --- Стили для переходов экранов --- */
+        .screen-container {
             width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screen {
             position: absolute;
             top: 0;
             left: 0;
-            opacity: 0;
-            transform: scale(0.96) translateY(10px);
-            pointer-events: none;
-            transition: 
-                opacity 0.4s ease,
-                transform 0.4s var(--easing-smooth);
+            width: 100%;
+            height: 100%;
+            overflow-y: auto; 
+            overflow-x: hidden;
+            background-color: #0F0F0F;
+            transition: transform var(--transition-duration) var(--transition-timing), 
+                        opacity var(--transition-duration) var(--transition-timing);
             will-change: transform, opacity;
-            padding: 2rem; /* Internal padding matches container */
+            backface-visibility: hidden;
+            padding-bottom: 100px;
+        }
+        
+        .screen::-webkit-scrollbar { display: none; }
+        .screen { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .screen.active { transform: translateX(0) scale(1); opacity: 1; z-index: 10; }
+        
+        .slide-in-right { transform: translateX(0) scale(1); z-index: 10; }
+        .slide-out-left { transform: translateX(-25%) scale(0.92); opacity: 0.5; z-index: 0; pointer-events: none; }
+        
+        .slide-in-left { transform: translateX(0) scale(1); z-index: 10; }
+        .slide-out-right { transform: translateX(100%) scale(1); z-index: 0; pointer-events: none; }
+
+        .initial-right { transform: translateX(100%); opacity: 1; }
+        .initial-left { transform: translateX(-100%) scale(1); opacity: 1; }
+
+        /* --- Стили компонентов --- */
+        
+        .header-style {
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            border-bottom: 4px solid #0000FF;
+            background-color: #1a1a1a; 
         }
 
-        .view-section.active {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-            pointer-events: all;
-            position: relative; /* Return to flow to calculate height */
-            z-index: 10;
+        .nav-item.active .icon-container {
+            background-color: #0000FF;
+            color: #FFFFFF; 
+        }
+        .nav-item.active svg { color: #FFFFFF; }
+        .nav-item svg { color: #C4C7C5; transition: color 0.2s; }
+        
+        .nav-bar {
+            background-color: #1F1F1F;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+            z-index: 50; 
         }
 
-        .view-section.inactive {
-            position: absolute; /* Take out of flow */
-            z-index: 0;
-        }
+        .calendar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
+        .calendar-item.selected-border { border: 1px solid #0000FF; background-color: rgba(0, 0, 255, 0.1); }
+        .calendar-item:active { transform: scale(0.95); }
+        
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* --- Interactive Elements --- */
-        .role-card {
-            transition: transform 0.3s var(--easing-bounce), background 0.2s ease, border-color 0.2s ease;
-        }
-        .role-card:hover {
-            transform: scale(1.02);
-            background: rgba(255, 255, 255, 0.03);
-        }
-        .role-card:active {
-            transform: scale(0.98);
-        }
+        .empty-state-icon { color: #0000FF; width: 80px; height: 80px; }
 
-        .custom-input {
+        .close-shift-button {
+            height: 50px; width: 50px; 
+            background-color: #1a1a1a; 
+            border: 1px solid #0000FF; 
+            border-radius: 6px; 
+            flex-shrink: 0;
+            position: relative; 
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
             transition: all 0.2s ease;
-            background: rgba(2, 6, 23, 0.4);
         }
-        .custom-input:focus {
-            background: rgba(2, 6, 23, 0.8);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .close-shift-button:active { transform: scale(0.95); }
+        .close-shift-button::before {
+            content: ''; position: absolute; top: 8px; left: 50%; 
+            transform: translateX(-50%); width: 2px; height: 15px; 
+            background-color: #0000FF; border-radius: 2px; 
+        }
+        .close-shift-button::after {
+            content: ''; position: absolute; width: 30px; height: 30px; 
+            border: 2px solid #0000FF; border-top-color: transparent; 
+            border-radius: 50%; bottom: 8px;
         }
 
-        /* --- Loading Spinner --- */
-        .spinner {
-            animation: spin 0.8s linear infinite;
+        .bottom-sheet-overlay {
+            visibility: hidden; opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .bottom-sheet-content { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
+        .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
 
-        /* --- Toasts --- */
-        #toast-container {
-            position: fixed;
-            top: 1.5rem;
-            right: 1.5rem;
-            z-index: 100;
+        #notification-area {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 480px; z-index: 60;
+            pointer-events: none; display: flex; flex-direction: column; align-items: center;
+        }
+
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
+
+        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; }
+        .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+        
+        .spinner-mini { width: 24px; height: 24px; animation: rotate 2s linear infinite; }
+        .path-mini { stroke: #FFFFFF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+
+        #loadingOverlay {
+            position: fixed; inset: 0;
+            background-color: rgba(15, 15, 15, 0.85); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; transition: opacity 0.4s ease, visibility 0.4s ease;
+            opacity: 0; visibility: hidden; pointer-events: none; 
+        }
+        #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
+
+        .shift-card {
+            background-color: #1A1A1A;
+            transition: transform 0.2s ease, background-color 0.2s, opacity 0.3s ease;
+        }
+        .shift-card:active {
+            transform: scale(0.98);
+            background-color: #252525;
+        }
+
+        .skeleton-shimmer {
+            position: relative; overflow: hidden; background-color: #1A1A1A;
+        }
+        .skeleton-shimmer::after {
+            content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.03) 20%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.03) 80%, rgba(255, 255, 255, 0) 100%);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .skeleton-block { background-color: #2A2A2A; border-radius: 6px; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Стили для iframe */
+        #schedule-container {
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            position: relative;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            flex-grow: 1;
+            background-color: #0F0F0F;
+            position: relative;
+            z-index: 2;
+        }
+        #iframe-loader {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+        /* Когда iframe загружается, он перекрывает лоадер, но если ссылка меняется, мы скроем iframe на секунду */
+        iframe.loading {
+            opacity: 0;
             pointer-events: none;
         }
-        
-        .toast {
-            pointer-events: auto;
-            transform-origin: top right;
-            animation: toastIn 0.4s var(--easing-smooth);
+        iframe {
+            transition: opacity 0.3s ease;
+            opacity: 1;
         }
-        .toast.hiding {
-            animation: toastOut 0.3s var(--easing-smooth) forwards;
-        }
-
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(20px) scale(0.95); }
-            to { opacity: 1; transform: translateX(0) scale(1); }
-        }
-        @keyframes toastOut {
-            to { opacity: 0; transform: translateX(20px) scale(0.95); }
-        }
-
-        /* Font Utilities */
-        .font-mono-code { font-family: 'JetBrains Mono', monospace; }
-        
-        /* Smooth Text Switch */
-        .text-swap-container { position: relative; height: 1.5em; overflow: hidden; }
-        .text-swap-inner { display: flex; flex-direction: column; transition: transform 0.4s var(--easing-smooth); }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 text-slate-200">
+<body class="text-white">
 
-    <!-- Ambient Background -->
-    <div class="bg-animate">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
+    <div id="loadingOverlay">
+        <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
+        </svg>
     </div>
 
-    <!-- Notification Container -->
-    <div id="toast-container"></div>
+    <div id="notification-area"></div>
 
-    <div class="w-full max-w-[440px] relative z-10 flex flex-col gap-6">
-        
-        <!-- Header -->
-        <div class="text-center relative">
-            <div class="inline-flex items-center justify-center p-3 rounded-2xl bg-slate-900/30 border border-slate-700/30 shadow-xl backdrop-blur-md mb-3 ring-1 ring-white/10">
-                <i data-lucide="layout-grid" class="w-8 h-8 text-white"></i>
-            </div>
-            <h1 class="text-3xl font-bold tracking-tight text-white drop-shadow-md">Nexus Portal</h1>
-            <p class="text-slate-400 text-sm mt-2 font-medium">Secure Access Gateway</p>
+    <div class="screen-container">
+
+        <div id="screen-main" class="screen active">
+            <header class="w-full header-style sticky top-0 z-30">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div class="flex justify-between items-center h-8 mb-4">
+                        <h1 class="text-lg font-bold text-white" id="screen-title">Главный экран</h1>
+                        <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-solid hover:bg-white/10 transition-colors" style="border-color: #0000FF;">
+                            <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF;"></i>
+                        </button>
+                    </div>
+
+                    <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
+
+                    <div id="shift-action-container" class="w-full mt-4 flex">
+                        <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
+                        <button id="main-action-button" class="w-full flex items-center justify-center text-center text-white font-bold transition-all duration-300 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
+                             <span class="btn-text">Загрузка...</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex flex-col items-center justify-start min-h-[50vh] pt-8 pb-16 px-4 w-full" id="main-content">
+                </main>
         </div>
 
-        <!-- MAIN CARD WRAPPER -->
-        <!-- Logic: Wrapper animates height. Sections animate opacity/scale inside. -->
-        <div id="card-wrapper" class="glass-panel rounded-3xl w-full">
+        <div id="screen-schedule" class="screen initial-right">
+            <div id="schedule-container">
+                <div id="iframe-loader">
+                    <svg class="spinner" viewBox="0 0 50 50">
+                        <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
+                    </svg>
+                </div>
+                <iframe id="schedule-iframe" src="about:blank"></iframe>
+            </div>
+        </div>
+
+    </div>
+
+    <nav class="nav-bar fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-[calc(100%-3rem)] rounded-full p-2 z-40">
+        <div class="flex justify-between items-center h-14">
             
-            <!-- SECTION 1: ROLE SELECTION -->
-            <div id="view-menu" class="view-section active">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Выберите департамент</h2>
-                
-                <div class="space-y-3">
-                    <!-- Developer -->
-                    <button onclick="nav.toLogin('dev')" class="role-card w-full group flex items-center p-3.5 rounded-2xl border border-transparent hover:border-blue-500/20 cursor-pointer text-left">
-                        <div class="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
-                            <i data-lucide="terminal-square" class="w-6 h-6"></i>
-                        </div>
-                        <div class="ml-4 flex-1 min-w-0">
-                            <div class="flex justify-between items-center mb-0.5">
-                                <h3 class="font-semibold text-white text-base truncate">DevOps Core</h3>
-                            </div>
-                            <p class="text-xs text-slate-400 group-hover:text-slate-300 truncate transition-colors">CI/CD, Source Control</p>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-600 group-hover:text-blue-400 transition-all transform group-hover:translate-x-1"></i>
-                    </button>
+            <button class="nav-item active flex flex-col items-center justify-center h-full w-1/6" id="nav-home">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="home" class="w-5 h-5"></i></div>
+            </button>
+            
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-schedule">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
+            </button>
+            
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-cloud">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
+            </button>
+            
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-payments">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
+            </button>
+            
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-education">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
+            </button>
+            
+            <button class="nav-item flex flex-col items-center justify-center h-full w-1/6" id="nav-chats">
+                <div class="icon-container w-12 h-8 flex items-center justify-center rounded-full transition-colors"><i data-lucide="message-square-more" class="w-5 h-5"></i></div>
+            </button>
 
-                    <!-- Cloud AI -->
-                    <button onclick="nav.toLogin('ai')" class="role-card w-full group flex items-center p-3.5 rounded-2xl border border-transparent hover:border-purple-500/20 cursor-pointer text-left">
-                        <div class="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-all duration-300">
-                            <i data-lucide="cpu" class="w-6 h-6"></i>
-                        </div>
-                        <div class="ml-4 flex-1 min-w-0">
-                            <div class="flex justify-between items-center mb-0.5">
-                                <h3 class="font-semibold text-white text-base truncate">Cloud AI</h3>
-                            </div>
-                            <p class="text-xs text-slate-400 group-hover:text-slate-300 truncate transition-colors">Neural Nets Dashboard</p>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-600 group-hover:text-purple-400 transition-all transform group-hover:translate-x-1"></i>
-                    </button>
-
-                    <!-- DarkCenter -->
-                    <button onclick="nav.toLogin('dark')" class="role-card w-full group flex items-center p-3.5 rounded-2xl border border-transparent hover:border-red-500/20 cursor-pointer text-left">
-                        <div class="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all duration-300">
-                            <i data-lucide="fingerprint" class="w-6 h-6"></i>
-                        </div>
-                        <div class="ml-4 flex-1 min-w-0">
-                            <div class="flex justify-between items-center mb-0.5">
-                                <h3 class="font-semibold text-white text-base truncate">DarkCenter</h3>
-                            </div>
-                            <p class="text-xs text-slate-400 group-hover:text-slate-300 truncate transition-colors">Restricted Area</p>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-600 group-hover:text-red-500 transition-all transform group-hover:translate-x-1"></i>
-                    </button>
-                </div>
-                
-                <div class="mt-6 pt-4 border-t border-slate-700/30 flex justify-center space-x-6 text-[11px] font-medium text-slate-500">
-                    <a href="#" class="hover:text-slate-300 transition-colors">Documentation</a>
-                    <a href="#" class="hover:text-slate-300 transition-colors">Support</a>
-                </div>
+        </div>
+    </nav>
+    
+    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl mb-4 sm:mb-0">
+            <div class="text-center mb-4">
+                <h2 class="text-2xl font-bold mb-2">Завершить смену?</h2>
+                <p class="text-gray-400 text-sm">Убедитесь, что все текущие задачи выполнены.</p>
             </div>
-
-            <!-- SECTION 2: LOGIN FORM -->
-            <div id="view-login" class="view-section inactive">
-                <!-- Top Nav -->
-                <div class="flex items-center justify-between mb-6">
-                    <button onclick="nav.toMenu()" class="group flex items-center text-xs font-medium text-slate-400 hover:text-white transition-colors py-1">
-                        <div class="p-1 rounded-md group-hover:bg-slate-800 transition-colors mr-1.5">
-                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                        </div>
-                        Назад к выбору
-                    </button>
-                    
-                    <!-- Dynamic Badge -->
-                    <div id="role-badge" class="hidden opacity-0 scale-90 transition-all duration-300">
-                        <span class="flex items-center gap-1.5 text-[10px] font-mono-code px-2 py-0.5 rounded border">
-                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                            <span id="role-badge-text">ROLE</span>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <h2 id="login-title" class="text-xl font-bold text-white transition-colors duration-300">Вход</h2>
-                    <p id="login-desc" class="text-xs text-slate-400 mt-1">Подтвердите личность для доступа</p>
-                </div>
-
-                <form onsubmit="handleLogin(event)" class="space-y-4">
-                    
-                    <!-- Input ID -->
-                    <div class="group">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 group-focus-within:text-slate-300 transition-colors">ID Пользователя</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i id="icon-user" data-lucide="user" class="h-4 w-4 text-slate-500 transition-colors duration-300"></i>
-                            </div>
-                            <input type="text" id="inp-id"
-                                class="custom-input block w-full pl-9 pr-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none ring-1 ring-transparent focus:ring-white/10" 
-                                placeholder="username">
-                        </div>
-                    </div>
-
-                    <!-- Input Password -->
-                    <div class="group">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 group-focus-within:text-slate-300 transition-colors">Пароль</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i id="icon-lock" data-lucide="lock" class="h-4 w-4 text-slate-500 transition-colors duration-300"></i>
-                            </div>
-                            <input type="password" id="inp-pass"
-                                class="custom-input block w-full pl-9 pr-10 py-2.5 rounded-xl text-sm text-white placeholder-slate-600 focus:outline-none ring-1 ring-transparent focus:ring-white/10 font-mono-code tracking-widest" 
-                                placeholder="••••••••">
-                            <button type="button" onclick="togglePass()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-600 hover:text-white cursor-pointer transition-colors focus:outline-none">
-                                <i id="icon-eye" data-lucide="eye" class="h-4 w-4"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- DarkCenter 2FA -->
-                    <div id="field-2fa" class="hidden overflow-hidden transition-all duration-300 max-h-0 opacity-0">
-                        <label class="block text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1.5 mt-2">Security Token</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i data-lucide="shield-check" class="h-4 w-4 text-red-500"></i>
-                            </div>
-                            <input type="text" id="inp-2fa"
-                                class="custom-input block w-full pl-9 pr-4 py-2.5 rounded-xl text-sm text-red-100 placeholder-red-900/50 bg-red-950/20 focus:bg-red-950/40 focus:outline-none ring-1 ring-red-500/20 focus:ring-red-500/50 font-mono-code tracking-[0.3em]" 
-                                placeholder="000-000">
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-2">
-                        <label class="flex items-center space-x-2 cursor-pointer group select-none">
-                            <div class="relative w-4 h-4 rounded bg-slate-800 border border-slate-700 group-hover:border-slate-500 transition-colors flex items-center justify-center">
-                                <input type="checkbox" class="peer appearance-none absolute inset-0 w-full h-full cursor-pointer">
-                                <i data-lucide="check" class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity"></i>
-                            </div>
-                            <span class="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">Запомнить меня</span>
-                        </label>
-                    </div>
-
-                    <button type="submit" id="btn-submit" 
-                        class="w-full relative overflow-hidden group py-3 rounded-xl shadow-lg text-sm font-bold text-white transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 mt-2">
-                        <div id="btn-bg" class="absolute inset-0 bg-blue-600 transition-all duration-500"></div>
-                        <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        
-                        <div class="relative flex items-center justify-center gap-2" id="btn-content">
-                            <span>Войти</span>
-                            <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
-                        </div>
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200" id="btn-loading">
-                            <i data-lucide="loader-2" class="w-5 h-5 spinner"></i>
-                        </div>
-                    </button>
-                </form>
+            <div class="flex flex-col space-y-3">
+                <button id="confirm-end-shift-btn" class="w-full text-center text-white font-bold py-4 rounded-md" style="background-color: #0000FF; border-radius: 6px;">Завершить</button>
+                <button id="cancel-end-shift-btn" class="w-full text-center font-bold py-4 rounded-md" style="border: 1px solid #0000FF; color: #0000FF; background-color: transparent; border-radius: 6px;">Не завершать</button>
             </div>
         </div>
+    </div>
 
-        <!-- Footer Info -->
-        <div class="text-center">
-            <p class="text-[10px] text-slate-600 uppercase tracking-widest font-semibold flex items-center justify-center gap-2">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                System Operational
-            </p>
+    <div id="auth-error-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/90 z-[60] flex justify-center items-end backdrop-blur-sm">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-8 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] border-t border-white/10">
+            <div class="flex flex-col items-center text-center mb-6">
+                <div class="w-20 h-20 rounded-full bg-red-900/20 flex items-center justify-center mb-4 border border-red-500/30">
+                    <i data-lucide="shield-alert" class="w-10 h-10 text-red-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Доступ ограничен</h2>
+                <p class="text-gray-400 text-sm leading-relaxed">Не удалось проверить авторизацию или сессия истекла. Пожалуйста, войдите в аккаунт заново.</p>
+            </div>
+            <button id="auth-login-btn" class="w-full text-center text-white font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all" style="background-color: #0000FF;">
+                Войти в аккаунт
+            </button>
         </div>
-
     </div>
 
     <script>
-        lucide.createIcons();
+        // --- ЛОГИКА НАВИГАЦИИ ---
+        let currentScreenId = 'screen-main';
+        const iframeScreenId = 'screen-schedule'; // Используем экран расписания как универсальный контейнер
+        let isAnimating = false;
+        const transitionDuration = 600;
 
-        // Configuration
-        const roles = {
-            dev: {
-                title: 'Developer Access',
-                desc: 'Corporate LDAP Authentication',
-                color: 'blue',
-                hex: '#3b82f6',
-                badge: 'DEV_OPS'
-            },
-            ai: {
-                title: 'Cloud AI Terminal',
-                desc: 'Neural Network Control Interface',
-                color: 'purple',
-                hex: '#a855f7',
-                badge: 'AI_RESEARCH'
-            },
-            dark: {
-                title: 'DarkCenter Protocol',
-                desc: 'Level 5 Security Clearance Required',
-                color: 'red',
-                hex: '#ef4444',
-                badge: 'CLASSIFIED'
-            }
+        const transitionClasses = {
+            forward: { entering: 'slide-in-right', exiting: 'slide-out-left', initial: 'initial-right' },
+            backward: { entering: 'slide-in-left', exiting: 'slide-out-right', initial: 'initial-left' }
         };
 
-        // Navigation Controller
-        const nav = {
-            wrapper: document.getElementById('card-wrapper'),
-            menu: document.getElementById('view-menu'),
-            login: document.getElementById('view-login'),
-            currentRole: null,
+        function navigate(targetScreenId, direction, callback) {
+            if (isAnimating || currentScreenId === targetScreenId) return;
+            isAnimating = true;
 
-            // Utility to update height smoothly
-            updateHeight: function(targetEl) {
-                // To get the height of an absolute element, we temporarily make it relative/block offscreen or assume
-                // simpler logic: We ensure the target element is "active" class logic handles visibility, 
-                // but for height we can use scrollHeight if displayed.
+            const currentScreen = document.getElementById(currentScreenId);
+            const targetScreen = document.getElementById(targetScreenId);
+            const classes = transitionClasses[direction];
+            
+            targetScreen.classList.remove('active', classes.entering, classes.exiting, 'initial-left', 'initial-right');
+            targetScreen.classList.add(classes.initial);
+            targetScreen.style.display = 'block';
+            
+            requestAnimationFrame(() => {
+                currentScreen.classList.remove('active', 'initial-left', 'initial-right');
+                currentScreen.classList.add(classes.exiting);
                 
-                // Better trick: set heights.
-                const menuHeight = this.menu.scrollHeight;
-                // Temporarily make login display block but hidden to measure? 
-                // Since we use the .active/.inactive class toggle, we can just measure after state change,
-                // but that causes a jump.
+                targetScreen.classList.remove(classes.initial);
+                targetScreen.classList.add(classes.entering);
                 
-                // FLIP approach for height:
-                // 1. Get current height.
-                const startHeight = this.wrapper.offsetHeight;
-                
-                // 2. Apply state change (make target visible in DOM flow to measure, but hidden visually)
-                // Actually, our CSS keeps .inactive absolute (out of flow) and .active relative (in flow).
-                // So switching the classes changes the wrapper's content height naturally.
-                // We just need to explicitly set height to px to animate it.
-                
-                this.wrapper.style.height = startHeight + 'px';
-                
-                // Force reflow
-                void this.wrapper.offsetHeight;
-            },
-
-            toLogin: function(role) {
-                this.currentRole = role;
-                const config = roles[role];
-                
-                // 1. Fix current height
-                this.wrapper.style.height = this.wrapper.offsetHeight + 'px';
-
-                // 2. Update Content
-                this.updateTheme(config);
-                
-                // 3. Switch Classes (State)
-                // Small delay to allow button ripple to finish
                 setTimeout(() => {
-                    this.menu.classList.remove('active');
-                    this.menu.classList.add('inactive');
+                    currentScreen.classList.remove(classes.exiting);
                     
-                    this.login.classList.remove('inactive');
-                    this.login.classList.add('active');
-
-                    // 4. Measure new height and apply
-                    // We need to wait for DOM to update styles from class change
-                    const newHeight = this.login.scrollHeight; // + padding
-                    this.wrapper.style.height = newHeight + 'px';
-
-                    // 5. Cleanup height after transition
-                    setTimeout(() => {
-                        this.wrapper.style.height = null; // Auto
-                        // Focus input
-                        document.getElementById('inp-id').focus();
-                    }, 500);
-
-                }, 50);
-            },
-
-            toMenu: function() {
-                // 1. Fix current height
-                this.wrapper.style.height = this.wrapper.offsetHeight + 'px';
-                
-                // 2. Switch Classes
-                this.login.classList.remove('active');
-                this.login.classList.add('inactive');
-                
-                this.menu.classList.remove('inactive');
-                this.menu.classList.add('active');
-                
-                // 3. Measure new height
-                const newHeight = this.menu.scrollHeight;
-                this.wrapper.style.height = newHeight + 'px';
-
-                // 4. Cleanup
-                setTimeout(() => {
-                    this.wrapper.style.height = null;
-                }, 500);
-            },
-
-            updateTheme: function(config) {
-                const title = document.getElementById('login-title');
-                const desc = document.getElementById('login-desc');
-                const btnBg = document.getElementById('btn-bg');
-                const badge = document.getElementById('role-badge');
-                const badgeText = document.getElementById('role-badge-text');
-                const iconUser = document.getElementById('icon-user');
-                const iconLock = document.getElementById('icon-lock');
-                const field2Fa = document.getElementById('field-2fa');
-
-                // Update Text
-                title.innerText = config.title;
-                desc.innerText = config.desc;
-
-                // Update Colors
-                btnBg.className = `absolute inset-0 bg-${config.color}-600 transition-all duration-500`;
-                
-                // Update Badge
-                badgeText.innerText = config.badge;
-                badge.className = `hidden opacity-0 scale-90 transition-all duration-300 text-${config.color}-400 bg-${config.color}-900/20 border-${config.color}-500/30`;
-                
-                // Update Icons (add specific color class)
-                iconUser.className = `h-4 w-4 transition-colors duration-300 text-slate-500 group-focus-within:text-${config.color}-400`;
-                iconLock.className = `h-4 w-4 transition-colors duration-300 text-slate-500 group-focus-within:text-${config.color}-400`;
-
-                // Handle Special Fields (DarkCenter)
-                if (this.currentRole === 'dark') {
-                    // Show 2FA
-                    field2Fa.classList.remove('hidden');
-                    // Small timeout to allow display:block to apply before animating opacity/height
-                    requestAnimationFrame(() => {
-                        field2Fa.style.maxHeight = '100px';
-                        field2Fa.style.opacity = '1';
-                        title.classList.add('text-red-500');
-                    });
+                    if (direction === 'forward') {
+                        currentScreen.classList.add('initial-left');
+                    } else {
+                        currentScreen.classList.add('initial-right');
+                    }
                     
-                    badge.classList.remove('hidden');
-                    setTimeout(() => { badge.classList.remove('opacity-0', 'scale-90'); }, 100);
-
-                } else {
-                    // Hide 2FA
-                    field2Fa.style.maxHeight = '0px';
-                    field2Fa.style.opacity = '0';
-                    setTimeout(() => field2Fa.classList.add('hidden'), 300);
+                    targetScreen.classList.remove(classes.entering, classes.initial);
+                    targetScreen.classList.add('active');
                     
-                    title.classList.remove('text-red-500');
-                    badge.classList.add('opacity-0', 'scale-90');
-                    setTimeout(() => badge.classList.add('hidden'), 300);
-                }
-            }
-        };
+                    currentScreenId = targetScreenId;
+                    isAnimating = false;
 
-        // --- UX Features ---
+                    if (callback) callback();
 
-        function togglePass() {
-            const inp = document.getElementById('inp-pass');
-            const icon = document.getElementById('icon-eye');
-            if (inp.type === 'password') {
-                inp.type = 'text';
-                icon.setAttribute('data-lucide', 'eye-off');
-            } else {
-                inp.type = 'password';
-                icon.setAttribute('data-lucide', 'eye');
-            }
-            lucide.createIcons();
+                }, transitionDuration);
+            });
         }
 
-        function handleLogin(e) {
-            e.preventDefault();
-            const btnContent = document.getElementById('btn-content');
-            const btnLoading = document.getElementById('btn-loading');
-            const btn = document.getElementById('btn-submit');
+        // --- КОНФИГУРАЦИЯ МЕНЮ И ССЫЛОК ---
+        const iframeEl = document.getElementById('schedule-iframe');
+        const navHome = document.getElementById('nav-home');
 
-            // Loading State
-            btn.disabled = true;
-            btnContent.classList.add('opacity-0', 'translate-y-2');
-            btnLoading.classList.remove('opacity-0');
-            
+        // Словарь: ID кнопки -> Ссылка
+        const menuConfig = {
+            'nav-schedule': 'https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/',
+            'nav-cloud': 'https://u8902054545-design.github.io/cloud-darkcenter',
+            'nav-payments': 'https://u8902054545-design.github.io/payments',
+            'nav-education': 'https://u8902054545-design.github.io/education-darkcenter',
+            'nav-chats': 'https://u8902054545-design.github.io/chats-darkcenter'
+        };
+
+        function updateActiveNav(activeBtn) {
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            activeBtn.classList.add('active');
+        }
+
+        // Клик на ГЛАВНЫЙ
+        navHome.addEventListener('click', () => {
+            updateActiveNav(navHome);
+            if (currentScreenId !== 'screen-main') {
+                navigate('screen-main', 'backward');
+            }
+        });
+
+        // Функция загрузки контента в Iframe
+        function loadIframeContent(url) {
+            // Если ссылка та же, не перезагружаем, если только это не пустая страница
+            if (iframeEl.src === url) return;
+
+            // Показываем спиннер (прячем iframe через класс loading или прозрачность)
+            iframeEl.classList.add('loading'); 
+            // Кратковременная задержка чтобы спиннер стал виден до начала загрузки
             setTimeout(() => {
-                const success = Math.random() > 0.3; // 70% success chance
-                
-                if (success) {
-                    showToast('success', 'Доступ разрешен', 'Перенаправление в защищенный сектор...');
-                    setTimeout(() => window.location.reload(), 2000);
-                } else {
-                    showToast('error', 'Ошибка авторизации', 'Неверный идентификатор или токен.');
-                    
-                    // Reset Button
-                    btn.disabled = false;
-                    btnContent.classList.remove('opacity-0', 'translate-y-2');
-                    btnLoading.classList.add('opacity-0');
-                    
-                    // Shake Form
-                    const wrapper = document.getElementById('card-wrapper');
-                    wrapper.animate([
-                        { transform: 'translateX(0)' },
-                        { transform: 'translateX(-4px)' },
-                        { transform: 'translateX(4px)' },
-                        { transform: 'translateX(0)' }
-                    ], { duration: 300 });
-                }
-            }, 1500);
+                 iframeEl.src = url;
+            }, 50);
+
+            // Когда загрузится - показываем
+            iframeEl.onload = () => {
+                iframeEl.classList.remove('loading');
+            };
         }
 
-        // --- Toast System ---
-        function showToast(type, title, msg) {
-            const container = document.getElementById('toast-container');
-            const el = document.createElement('div');
-            
-            let colors = type === 'success' 
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-100' 
-                : 'bg-red-500/10 border-red-500/20 text-red-100';
-            
-            let icon = type === 'success' ? 'check-circle-2' : 'alert-octagon';
-            let iconColor = type === 'success' ? 'text-emerald-400' : 'text-red-400';
+        // Обработчик кликов для всех кнопок меню (кроме Домой)
+        function handleMenuClick(btnId) {
+            const btn = document.getElementById(btnId);
+            const url = menuConfig[btnId];
 
-            el.className = `toast flex items-start w-72 p-4 rounded-2xl border backdrop-blur-xl shadow-2xl ${colors}`;
-            el.innerHTML = `
-                <i data-lucide="${icon}" class="w-5 h-5 ${iconColor} mt-0.5 flex-shrink-0"></i>
-                <div class="ml-3">
-                    <h3 class="text-sm font-semibold">${title}</h3>
-                    <p class="text-xs opacity-80 mt-1 leading-relaxed">${msg}</p>
+            btn.addEventListener('click', () => {
+                updateActiveNav(btn);
+
+                // Если мы уже на экране iframe (например, переключаемся с Расписания на Обучение)
+                if (currentScreenId === iframeScreenId) {
+                    loadIframeContent(url);
+                } else {
+                    // Если мы на главном, сначала переходим, потом грузим
+                    navigate(iframeScreenId, 'forward', () => {
+                        loadIframeContent(url);
+                    });
+                }
+            });
+        }
+
+        // Инициализация всех кнопок меню
+        Object.keys(menuConfig).forEach(id => handleMenuClick(id));
+
+
+        // --- ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ (AUTH, SHIFTS) ---
+        // (Остальной JS код оставлен без изменений функциональности, 
+        // только встроен в общую структуру)
+
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4IXGi1WIYwr12fHYqQ6lGaLDOjgW2q9sf5ovHUrP-sh3jkfBdXhlVZ70NsCL4tNgDCg/exec';
+        const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
+        const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
+        const INTERVAL_MS = 3000;
+
+        const BUTTON_SPINNER_SVG = `
+        <svg class="spinner-mini" viewBox="0 0 50 50">
+            <circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle>
+        </svg>`;
+
+        let isSlotActive = false;
+        let canStartSlot = false;
+        let selectedDateObj = new Date();
+        let lastRenderedState = null; 
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const mainActionButton = document.getElementById('main-action-button');
+        const endShiftButton = document.getElementById('end-shift-button');
+        const bottomSheet = document.getElementById('bottom-sheet');
+        const authErrorSheet = document.getElementById('auth-error-sheet');
+        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
+        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
+        const authLoginBtn = document.getElementById('auth-login-btn');
+        const calendarContainer = document.getElementById('calendar-strip');
+        const mainContent = document.getElementById('main-content');
+
+        function showLoading() { loadingOverlay.classList.add('visible'); }
+        function hideLoading() { loadingOverlay.classList.remove('visible'); }
+
+        function createNotification(type, message) {
+            const area = document.getElementById('notification-area');
+            const note = document.createElement('div');
+            const isSuccess = type === 'success';
+            
+            note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#1a1a1a]/90 ring-1 ring-[#0000FF]' : 'bg-red-900/90'} text-white rounded-xl shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between`;
+            note.innerHTML = `
+                <div class="flex items-center">
+                    <div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3">
+                        <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
+                    </div>
+                    <div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div>
                 </div>
             `;
-            
-            container.appendChild(el);
+            area.appendChild(note);
             lucide.createIcons();
-            
-            setTimeout(() => {
-                el.classList.add('hiding');
-                el.addEventListener('animationend', () => el.remove());
-            }, 3500);
+            setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
+            setTimeout(() => { note.classList.add('opacity-0', '-translate-y-10'); setTimeout(() => note.remove(), 500); }, 3500);
         }
 
-        // Init height
-        // Optional: Pre-calculate heights if needed, but auto works fine with current logic
+        function formatDateForServer(date) {
+            const d = date.getDate().toString().padStart(2, '0');
+            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            const y = date.getFullYear();
+            return `${d}.${m}.${y}`;
+        }
+
+        function renderSkeletons() {
+            lastRenderedState = "skeleton";
+            let html = '<div class="w-full flex flex-col space-y-4 fade-in">';
+            for(let i=0; i<3; i++) {
+                html += `
+                    <div class="w-full skeleton-shimmer p-3 rounded-xl shadow-lg flex justify-between items-center mt-2 h-[68px]">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex-shrink-0 w-7 h-7 rounded-full skeleton-block"></div>
+                            <div class="flex flex-col space-y-2">
+                                <div class="w-20 h-3 skeleton-block"></div>
+                                <div class="w-24 h-4 skeleton-block"></div>
+                            </div>
+                        </div>
+                        <div class="w-16 h-6 skeleton-block"></div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            mainContent.innerHTML = html;
+        }
+
+        function renderEmptyState(message = "Ближайших смен нет") {
+            const stateKey = `empty-${message}`;
+            if (lastRenderedState === stateKey) return;
+            lastRenderedState = stateKey;
+
+            mainContent.innerHTML = `
+                <div id="status-display" class="text-center mt-32 fade-in">
+                    <i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i>
+                    <p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">${message}</p>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function renderShiftCard(shiftData) {
+            const stateKey = `card-${shiftData.time}-${shiftData.duration}`;
+            if (lastRenderedState === stateKey) return;
+            lastRenderedState = stateKey;
+
+            mainContent.innerHTML = `
+                <div class="w-full shift-card text-white p-3 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 fade-in">
+                    <div class="flex items-center space-x-2">
+                        <div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">
+                                Подтверждён
+                            </span>
+                            <p class="text-lg font-bold mt-1">${shiftData.time}</p>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 text-right">
+                        <p class="text-xl font-bold text-white">${shiftData.duration || ''}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showAuthError() {
+            hideLoading();
+            authErrorSheet.classList.add('open');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('authToken');
+        }
+
+        async function checkUserAuthentication(isSilent = false) {
+            if (!isSilent) showLoading();
+            const email = localStorage.getItem('userEmail');
+            const token = localStorage.getItem('authToken');
+            
+            if (!email || !token) { 
+                showAuthError(); 
+                return false; 
+            }
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'cors', cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ auth: true, email: email, token: token })
+                });
+
+                const data = await response.json();
+                if (data.status === 'success' && data.auth_ok) {
+                    return true;
+                } else {
+                    showAuthError();
+                    return false;
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                return true; 
+            } finally {
+                if (!isSilent) hideLoading();
+            }
+        }
+
+        authLoginBtn.addEventListener('click', () => {
+             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
+             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
+        });
+
+        async function fetchShiftForDate(dateObj, isSilent = false) {
+            if (!isSilent) showLoading();
+            const userEmail = localStorage.getItem('userEmail');
+            const dateStr = formatDateForServer(dateObj);
+            
+            try {
+                const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.shift && data.shift.found) {
+                    renderShiftCard(data.shift.data);
+                } else {
+                    renderEmptyState("Смен на этот день нет");
+                }
+            } catch (e) {
+                console.error(e);
+                renderEmptyState("Ошибка загрузки");
+            } finally {
+                if (!isSilent) hideLoading();
+            }
+        }
+
+        async function fetchStatusLogic(isSilent = false) {
+            const userEmail = localStorage.getItem('userEmail');
+            try {
+                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
+                return await response.json();
+            } catch (error) {
+                return null;
+            }
+        }
+        
+        async function updateShiftStatus(newStatus) {
+            const userEmail = localStorage.getItem('userEmail');
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'cors', cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
+                });
+                const data = await response.json();
+                return data.status === 'success';
+            } catch (error) {
+                createNotification('error', 'Сбой при отправке данных');
+                return false;
+            }
+        }
+
+        function updateButtons(data) {
+            if (!data) return;
+
+            const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
+            
+            if (data.canStart !== undefined) canStartSlot = data.canStart;
+            isSlotActive = (status === 'Open');
+
+            const statusTextEl = document.getElementById('status-text');
+
+            if (isSlotActive) {
+                if(statusTextEl && statusTextEl.textContent !== "Смена активна") {
+                    statusTextEl.textContent = "Смена активна";
+                    statusTextEl.classList.remove('text-gray-400');
+                    statusTextEl.classList.add('text-[#0000FF]');
+                }
+                
+                if (mainActionButton.textContent !== 'Перейти к задачам') {
+                    mainActionButton.textContent = 'Перейти к задачам';
+                    mainActionButton.disabled = false;
+                }
+                endShiftButton.style.display = 'flex';
+            } else {
+                if (mainActionButton.textContent !== 'Начать смену') {
+                    mainActionButton.textContent = 'Начать смену';
+                }
+                mainActionButton.disabled = !canStartSlot;
+                endShiftButton.style.display = 'none';
+            }
+        }
+
+        function initCalendar() {
+            calendarContainer.innerHTML = '';
+            const today = new Date();
+            
+            for (let i = 0; i < 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                
+                const item = document.createElement('div');
+                item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer flex-shrink-0 w-14`;
+                
+                if (date.toDateString() === selectedDateObj.toDateString()) {
+                    item.classList.add('selected-border');
+                    item.style.color = '#0000FF';
+                } else {
+                    item.style.color = '#fff';
+                }
+
+                item.innerHTML = `<span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
+                
+                item.addEventListener('click', () => {
+                    if (selectedDateObj.toDateString() === date.toDateString()) return;
+
+                    document.querySelectorAll('.calendar-item').forEach(el => {
+                        el.classList.remove('selected-border');
+                        el.style.color = '#fff';
+                    });
+                    item.classList.add('selected-border');
+                    item.style.color = '#0000FF';
+                    
+                    selectedDateObj = date;
+                    renderSkeletons();
+                    fetchShiftForDate(date, true);
+                });
+
+                calendarContainer.appendChild(item);
+            }
+        }
+
+        mainActionButton.addEventListener('click', async () => {
+            if (isSlotActive) {
+                showLoading();
+                window.location.href = TASKS_URL;
+            } else {
+                if (canStartSlot) {
+                    mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+                    mainActionButton.disabled = true;
+
+                    const success = await updateShiftStatus('Open');
+                    
+                    if (success) {
+                        createNotification('success', 'Смена открыта!');
+                        updateButtons({ shiftStatus: 'Open', canStart: false });
+                    } else {
+                        const realData = await fetchStatusLogic(true);
+                        updateButtons(realData);
+                    }
+                }
+            }
+        });
+
+        endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
+        cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
+
+        confirmEndShiftBtn.addEventListener('click', async () => {
+            bottomSheet.classList.remove('open');
+            endShiftButton.style.display = 'none';
+            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+            mainActionButton.disabled = true;
+
+            const success = await updateShiftStatus('Closed');
+            
+            if (success) {
+                createNotification('success', 'Смена завершена');
+                updateButtons({ shiftStatus: 'Closed', canStart: false });
+                const realData = await fetchStatusLogic(true);
+                updateButtons(realData);
+            } else {
+                updateButtons({ shiftStatus: 'Open' });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+            renderSkeletons();
+            initCalendar();
+
+            const authOk = await checkUserAuthentication(false);
+            if (!authOk) return;
+
+            const p1 = fetchShiftForDate(selectedDateObj, false); 
+            const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
+
+            await Promise.all([p1, p2]);
+
+            setInterval(async () => {
+                const stillAuth = await checkUserAuthentication(true);
+                if (stillAuth) {
+                    const statusData = await fetchStatusLogic(true);
+                    updateButtons(statusData);
+                    fetchShiftForDate(selectedDateObj, true);
+                }
+            }, INTERVAL_MS);
+        });
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-                            </html>
+</html>
