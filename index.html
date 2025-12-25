@@ -816,6 +816,14 @@
             if (success) { createNotification('success', 'Смена завершена'); updateButtons({ shiftStatus: 'Closed', canStart: false }); const realData = await fetchStatusLogic(true); updateButtons(realData); } else { updateButtons({ shiftStatus: 'Open' }); }
         });
 
+        // --- НОВАЯ ЧАСТЬ: ОБРАБОТКА POSTMESSAGE ОТ IFRAME ---
+        window.addEventListener('message', function(event) {
+            // Если пришло сообщение с типом CLOSE_SUB_PAGE, закрываем страницу
+            if (event.data && event.data.type === 'CLOSE_SUB_PAGE') {
+                closeSubPage();
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
@@ -838,4 +846,4 @@
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-            </html>
+    </html>
