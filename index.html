@@ -789,10 +789,8 @@
             }
         }
 
-        // ОБНОВЛЕННЫЙ ОБРАБОТЧИК ГЛАВНОЙ КНОПКИ
         mainActionButton.addEventListener('click', async () => {
             if (isSlotActive) { 
-                // ВМЕСТО ПЕРЕХОДА ПО ССЫЛКЕ, ОТКРЫВАЕМ ВНУТРЕННЮЮ СТРАНИЦУ
                 openSubPage('screen-tasks');
             } else {
                 if (canStartSlot) {
@@ -816,11 +814,20 @@
             if (success) { createNotification('success', 'Смена завершена'); updateButtons({ shiftStatus: 'Closed', canStart: false }); const realData = await fetchStatusLogic(true); updateButtons(realData); } else { updateButtons({ shiftStatus: 'Open' }); }
         });
 
-        // --- НОВАЯ ЧАСТЬ: ОБРАБОТКА POSTMESSAGE ОТ IFRAME ---
+        // --- НОВАЯ ФУНКЦИЯ: ОБРАБОТЧИК СООБЩЕНИЙ ОТ IFRAME (POSTMESSAGE) ---
         window.addEventListener('message', function(event) {
-            // Если пришло сообщение с типом CLOSE_SUB_PAGE, закрываем страницу
-            if (event.data && event.data.type === 'CLOSE_SUB_PAGE') {
-                closeSubPage();
+            // Проверяем сообщение. Если получено "goHome"
+            if (event.data === 'goHome') {
+                // 1. Если мы сейчас не на главном, вызываем функцию возврата
+                if (currentScreenId !== 'screen-main') {
+                    closeSubPage();
+                }
+                
+                // 2. Принудительно обновляем нижнее меню на "Главный"
+                const navHome = document.getElementById('nav-home');
+                if (navHome) {
+                    updateActiveNav(navHome);
+                }
             }
         });
 
