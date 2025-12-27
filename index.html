@@ -14,8 +14,8 @@
             --primary-color: #0000FF; 
             --md-sys-color-surface: #1E1F20; 
             --md-sys-color-on-surface: #E3E3E3;
-            --md-sys-error: #FFB4AB;
             --md-sys-error-container: #93000A;
+            --md-sys-on-error-container: #FFDAD6;
         }
 
         body {
@@ -46,7 +46,7 @@
             background-color: #1a1a1a; 
         }
 
-        /* --- MATERIAL 3 BOTTOM BAR --- */
+        /* --- NAVIGATION --- */
         .nav-bar {
             position: fixed;
             bottom: 20px;
@@ -78,8 +78,11 @@
             color: var(--md-sys-color-on-surface);
         }
 
-        .nav-item svg { width: 24px; height: 24px; }
-        .nav-item.active { background-color: #0000FF; color: #FFFFFF; }
+        .nav-item.active {
+            background-color: #0000FF;
+            color: #FFFFFF;
+        }
+        
         .nav-item:active { transform: scale(0.95); }
 
         /* --- CALENDAR & CARDS --- */
@@ -119,20 +122,15 @@
         .bottom-sheet-overlay {
             visibility: hidden; opacity: 0;
             transition: opacity 0.3s ease, visibility 0.3s ease;
-            pointer-events: none; /* By default allow clicks through if hidden */
         }
         .bottom-sheet-content { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        .bottom-sheet-overlay.open { 
-            visibility: visible; 
-            opacity: 1; 
-            pointer-events: auto; /* Catch all clicks */
-        }
+        .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
         .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
 
-        /* Специальный стиль для блокировки авторизации (выше всего) */
-        #auth-error-sheet {
-            z-index: 9999;
+        /* Специальный класс для БЛОКИРУЮЩЕГО окна ошибки */
+        .auth-blocker {
+            background-color: rgba(0,0,0,0.95); /* Почти полная непрозрачность */
+            backdrop-filter: blur(5px);
         }
 
         #notification-area {
@@ -141,6 +139,7 @@
             pointer-events: none; display: flex; flex-direction: column; align-items: center;
         }
 
+        /* --- LOADERS --- */
         @keyframes rotate { 100% { transform: rotate(360deg); } }
         @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
 
@@ -161,16 +160,11 @@
 
         .shift-card {
             background-color: #1A1A1A;
-            transition: transform 0.2s ease, background-color 0.2s, opacity 0.3s ease;
+            transition: transform 0.2s ease, background-color 0.2s;
         }
-        .shift-card:active {
-            transform: scale(0.98);
-            background-color: #252525;
-        }
+        .shift-card:active { transform: scale(0.98); background-color: #252525; }
 
-        .skeleton-shimmer {
-            position: relative; overflow: hidden; background-color: #1A1A1A;
-        }
+        .skeleton-shimmer { position: relative; overflow: hidden; background-color: #1A1A1A; }
         .skeleton-shimmer::after {
             content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
             transform: translateX(-100%);
@@ -216,25 +210,12 @@
     </div>
 
     <nav class="nav-bar" id="main-nav">
-        <div class="nav-item active" id="nav-home">
-            <i data-lucide="home"></i>
-        </div>
-        
-        <a href="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" class="nav-item" id="nav-schedule">
-            <i data-lucide="calendar-days"></i>
-        </a>
-        <a href="https://u8902054545-design.github.io/cloud-center/" class="nav-item" id="nav-cloud">
-            <i data-lucide="map-pin"></i>
-        </a>
-        <a href="https://u8902054545-design.github.io/payments-darkcenter" class="nav-item" id="nav-payments">
-            <i data-lucide="credit-card"></i>
-        </a>
-        <a href="https://u8902054545-design.github.io/education-darkcenter" class="nav-item" id="nav-education">
-            <i data-lucide="graduation-cap"></i>
-        </a>
-        <a href="https://u8902054545-design.github.io/chats-darkcenter" class="nav-item" id="nav-chats">
-            <i data-lucide="message-square-more"></i>
-        </a>
+        <div class="nav-item active" id="nav-home"><i data-lucide="home"></i></div>
+        <a href="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" class="nav-item" id="nav-schedule"><i data-lucide="calendar-days"></i></a>
+        <a href="https://u8902054545-design.github.io/cloud-center/" class="nav-item" id="nav-cloud"><i data-lucide="map-pin"></i></a>
+        <a href="https://u8902054545-design.github.io/payments-darkcenter" class="nav-item" id="nav-payments"><i data-lucide="credit-card"></i></a>
+        <a href="https://u8902054545-design.github.io/education-darkcenter" class="nav-item" id="nav-education"><i data-lucide="graduation-cap"></i></a>
+        <a href="https://u8902054545-design.github.io/chats-darkcenter" class="nav-item" id="nav-chats"><i data-lucide="message-square-more"></i></a>
     </nav>
     
     <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
@@ -250,39 +231,40 @@
         </div>
     </div>
 
-    <div id="auth-error-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/90 flex justify-center items-end backdrop-blur-md">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1E1F20] text-[#E3E3E3] p-8 rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.8)] border-t border-white/5 pb-10">
-            <div class="flex flex-col items-center text-center mb-6">
-                <div class="w-16 h-16 rounded-full bg-[#93000A] flex items-center justify-center mb-4 shadow-lg">
-                    <i data-lucide="shield-alert" class="w-8 h-8 text-[#FFB4AB]"></i>
+    <div id="auth-error-sheet" class="bottom-sheet-overlay auth-blocker fixed inset-0 z-[999] flex justify-center items-end">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-8 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] border-t border-white/5">
+            <div class="flex flex-col items-center text-center mb-8">
+                <div class="w-24 h-24 rounded-full flex items-center justify-center mb-6" style="background-color: var(--md-sys-error-container);">
+                    <i data-lucide="triangle-alert" class="w-12 h-12" style="color: var(--md-sys-on-error-container);"></i>
                 </div>
-                <h2 class="text-2xl font-bold mb-2 tracking-tight text-[#FFB4AB]">Ошибка авторизации</h2>
-                <p class="text-gray-400 text-sm leading-relaxed max-w-[280px]">
-                    Не удалось подтвердить данные вашего аккаунта. В целях безопасности сессия была прервана.
-                </p>
+                <h2 class="text-2xl font-bold mb-3 tracking-tight">Ошибка авторизации</h2>
+                <p class="text-gray-300 text-base leading-relaxed">Системе не удалось подтвердить вашу личность. Для продолжения работы и доступа к сменам необходимо войти в аккаунт заново.</p>
             </div>
-            <button id="auth-login-btn" class="w-full text-center text-[#1E1F20] font-bold py-4 rounded-full shadow-lg hover:brightness-110 active:scale-95 transition-all" style="background-color: #FFB4AB;">
+            <button id="auth-login-btn" class="w-full text-center text-[#93000A] font-bold py-4 rounded-full shadow-lg hover:brightness-110 active:scale-95 transition-all bg-[#FFDAD6]">
                 Войти в аккаунт
             </button>
         </div>
     </div>
 
     <script>
-        // Ссылки для прямых переходов
+        // Ссылки
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const ACCOUNT_URL = 'https://u8902054545-design.github.io/account-darkcenter/';
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIFsMCw7PfiQ0fRJYtCP51I5rHJowJzgeW0z7yO5t5zSeO44hAor1ie0CELtVVxEM6sg/exec';
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
         
-        const INTERVAL_MS = 3000; // 3 секунды
+        // Настройки
+        const REFRESH_INTERVAL = 3000; // 3 секунды
         const BUTTON_SPINNER_SVG = `<svg class="spinner-mini" viewBox="0 0 50 50"><circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
 
+        // Состояние
         let isSlotActive = false;
         let canStartSlot = false;
         let selectedDateObj = new Date();
         let lastRenderedState = null; 
-        let authCheckInterval = null;
+        let isAuthErrorVisible = false;
 
+        // Элементы
         const loadingOverlay = document.getElementById('loadingOverlay');
         const mainActionButton = document.getElementById('main-action-button');
         const endShiftButton = document.getElementById('end-shift-button');
@@ -294,15 +276,9 @@
         const calendarContainer = document.getElementById('calendar-strip');
         const mainContent = document.getElementById('main-content');
 
-        // Обработчик кнопки Профиль - прямой переход
-        document.getElementById('profile-button').addEventListener('click', () => {
-            window.location.href = ACCOUNT_URL;
-        });
-
-        // Навигация нижней панели
-        document.getElementById('nav-home').addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        // Навигация
+        document.getElementById('profile-button').addEventListener('click', () => { if(!isAuthErrorVisible) window.location.href = ACCOUNT_URL; });
+        document.getElementById('nav-home').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
         function showLoading() { loadingOverlay.classList.add('visible'); }
         function hideLoading() { loadingOverlay.classList.remove('visible'); }
@@ -326,6 +302,7 @@
             return `${d}.${m}.${y}`;
         }
 
+        // Рендеринг (скелетоны, карточки, пусто)
         function renderSkeletons() {
             lastRenderedState = "skeleton";
             let html = '<div class="w-full flex flex-col space-y-4 fade-in">';
@@ -338,6 +315,7 @@
 
         function renderEmptyState(message = "Ближайших смен нет") {
             const stateKey = `empty-${message}`;
+            // Предотвращаем лишнюю перерисовку
             if (lastRenderedState === stateKey) return;
             lastRenderedState = stateKey;
             mainContent.innerHTML = `<div id="status-display" class="text-center mt-32 fade-in"><i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i><p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">${message}</p></div>`;
@@ -346,28 +324,37 @@
 
         function renderShiftCard(shiftData) {
             const stateKey = `card-${shiftData.time}-${shiftData.duration}`;
+            // Предотвращаем лишнюю перерисовку, если данные те же
             if (lastRenderedState === stateKey) return;
             lastRenderedState = stateKey;
+            
             mainContent.innerHTML = `<div class="w-full shift-card text-white p-3 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 fade-in"><div class="flex items-center space-x-2"><div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">Подтверждён</span><p class="text-lg font-bold mt-1">${shiftData.time}</p></div></div><div class="flex-shrink-0 text-right"><p class="text-xl font-bold text-white">${shiftData.duration || ''}</p></div></div>`;
         }
 
-        // --- STRICT AUTH LOGIC ---
-        function showAuthError() {
+        // --- AUTH LOGIC ---
+        function triggerAuthError() {
+            if (isAuthErrorVisible) return;
+            isAuthErrorVisible = true;
             hideLoading();
-            if (authCheckInterval) clearInterval(authCheckInterval); // Stop polling immediately
-            authErrorSheet.classList.add('open'); // Show non-dismissible sheet
+            authErrorSheet.classList.add('open'); // Показываем нескрываемое окно
+            // Удаляем данные, чтобы цикл не пытался спамить сервер
             localStorage.removeItem('userEmail');
             localStorage.removeItem('authToken');
         }
+
+        authLoginBtn.addEventListener('click', () => {
+             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
+             // Редирект на вход
+             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
+        });
 
         async function checkUserAuthentication(isSilent = false) {
             if (!isSilent) showLoading();
             const email = localStorage.getItem('userEmail');
             const token = localStorage.getItem('authToken');
             
-            // Local check first
             if (!email || !token) { 
-                showAuthError(); 
+                triggerAuthError(); 
                 return false; 
             }
 
@@ -379,47 +366,48 @@
                 });
                 const data = await response.json();
                 
-                // Strict Server Check
-                if (data.status === 'success' && data.auth_ok) {
-                    return true;
-                } else {
-                    // Server explicitly denied auth
-                    showAuthError();
+                // Если сервер явно отказал
+                if (data.status === 'success' && data.auth_ok === false) {
+                    triggerAuthError();
                     return false;
                 }
+                return true;
             } catch (error) { 
-                // Network error handling:
-                // If strict mode requires connectivity to function, we might want to block.
-                // But usually, we retry. For now, we return false to skip data update, 
-                // but don't show Fatal Error unless strictly required by business logic.
-                // If the prompt implies "If I can't check, block them", uncomment next line:
-                // showAuthError(); 
-                console.warn("Auth check network error, skipping update");
-                return false; 
+                // Ошибка сети не должна выкидывать пользователя сразу, 
+                // если это не первая загрузка. Но если первая - можно показать ошибку.
+                console.warn("Auth check network error", error);
+                return true; 
             } finally { 
                 if (!isSilent) hideLoading(); 
             }
         }
 
-        authLoginBtn.addEventListener('click', () => {
-             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
-             // Redirect to login page
-             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
-        });
-
+        // --- DATA FETCHING ---
         async function fetchShiftForDate(dateObj, isSilent = false) {
+            if (isAuthErrorVisible) return;
             if (!isSilent) showLoading();
+            
             const userEmail = localStorage.getItem('userEmail');
             const dateStr = formatDateForServer(dateObj);
             try {
                 const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
                 const response = await fetch(url);
                 const data = await response.json();
-                if (data.status === 'success' && data.shift && data.shift.found) { renderShiftCard(data.shift.data); } else { renderEmptyState("Смен на этот день нет"); }
-            } catch (e) { renderEmptyState("Ошибка загрузки"); } finally { if (!isSilent) hideLoading(); }
+                
+                if (data.status === 'success' && data.shift && data.shift.found) { 
+                    renderShiftCard(data.shift.data); 
+                } else { 
+                    renderEmptyState("Смен на этот день нет"); 
+                }
+            } catch (e) { 
+                if(!isSilent) renderEmptyState("Ошибка загрузки"); 
+            } finally { 
+                if (!isSilent) hideLoading(); 
+            }
         }
 
         async function fetchStatusLogic(isSilent = false) {
+            if (isAuthErrorVisible) return null;
             const userEmail = localStorage.getItem('userEmail');
             try {
                 const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
@@ -427,6 +415,7 @@
             } catch (error) { return null; }
         }
         
+        // --- BUTTON ACTIONS ---
         async function updateShiftStatus(newStatus) {
             const userEmail = localStorage.getItem('userEmail');
             try {
@@ -446,6 +435,7 @@
             if (data.canStart !== undefined) canStartSlot = data.canStart;
             isSlotActive = (status === 'Open');
             const statusTextEl = document.getElementById('status-text');
+            
             if (isSlotActive) {
                 if(statusTextEl && statusTextEl.textContent !== "Смена активна") {
                     statusTextEl.textContent = "Смена активна";
@@ -464,6 +454,7 @@
             }
         }
 
+        // --- CALENDAR INIT ---
         function initCalendar() {
             calendarContainer.innerHTML = '';
             const today = new Date();
@@ -490,6 +481,7 @@
             }
         }
 
+        // --- EVENT LISTENERS ---
         mainActionButton.addEventListener('click', async () => {
             if (isSlotActive) { 
                 window.location.href = TASKS_URL;
@@ -515,38 +507,43 @@
             if (success) { createNotification('success', 'Смена завершена'); updateButtons({ shiftStatus: 'Closed', canStart: false }); const realData = await fetchStatusLogic(true); updateButtons(realData); } else { updateButtons({ shiftStatus: 'Open' }); }
         });
 
+        // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             renderSkeletons();
             initCalendar();
             
-            // Initial check
+            // Первичная проверка (не скрытая)
             const authOk = await checkUserAuthentication(false);
-            if (!authOk) return; // Stop if auth failed
+            
+            if (authOk) {
+                // Если ок, грузим данные
+                const p1 = fetchShiftForDate(selectedDateObj, false); 
+                const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
+                await Promise.all([p1, p2]);
 
-            const p1 = fetchShiftForDate(selectedDateObj, false); 
-            const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
-            await Promise.all([p1, p2]);
+                // ЗАПУСК ЦИКЛА ПРОВЕРКИ КАЖДЫЕ 3 СЕКУНДЫ
+                setInterval(async () => {
+                    if (isAuthErrorVisible) return; // Если уже ошибка, не спамим
 
-            // --- MAIN LOOP (Every 3 seconds) ---
-            authCheckInterval = setInterval(async () => {
-                // 1. Strict Auth Check
-                const stillAuth = await checkUserAuthentication(true);
-                
-                // 2. Only fetch data if Auth is OK
-                if (stillAuth) {
-                    const statusData = await fetchStatusLogic(true);
-                    updateButtons(statusData);
-                    // Do not refetch calendar heavily, just status logic usually, 
-                    // but prompt asked for data request. 
-                    // To avoid UI flickering, we usually don't re-render calendar unless changed,
-                    // but we will update the internal data.
-                    // fetchShiftForDate(selectedDateObj, true); // Uncomment if shift data changes dynamically frequently
-                }
-            }, INTERVAL_MS);
+                    // 1. Строгая проверка авторизации
+                    const stillAuth = await checkUserAuthentication(true); // silent
+                    
+                    if (stillAuth) {
+                        // 2. Запрос статуса смены (Client Request)
+                        const statusData = await fetchStatusLogic(true);
+                        updateButtons(statusData);
+                        
+                        // 3. Запрос карточки (Client Request)
+                        // Запрашиваем данные за выбранный день
+                        fetchShiftForDate(selectedDateObj, true);
+                    }
+                }, REFRESH_INTERVAL);
+            }
         });
+
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-    </html>
+</html>
