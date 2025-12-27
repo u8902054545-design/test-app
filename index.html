@@ -2,855 +2,137 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Главная страница - Управление сменами</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Задачи</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
         
         :root {
-            --transition-duration: 600ms;
-            --transition-timing: cubic-bezier(0.2, 0, 0, 1);
-            --md-sys-color-surface: #1E1F20; 
-            --md-sys-color-on-surface: #E3E3E3;
-            --md-sys-color-on-surface-variant: #C4C7C5;
-            --primary-color: #0000FF; 
-            --primary-container: rgba(0, 0, 255, 0.2); 
+            /* Material 3 Dark Palette Tokens */
+            --m3-surface: #1C1B1F;
+            --m3-on-surface: #E6E1E5;
+            --m3-surface-container: #2B2930;
+            --m3-primary-container: #4F378B;
+            --m3-on-primary-container: #EADDFF;
+            --m3-secondary-container: #333333;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0F0F0F;
-            height: 100vh;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--m3-surface);
+            color: var(--m3-on-surface);
             margin: 0;
-            overflow: hidden;
-            -webkit-user-select: none; 
-            -ms-user-select: none; 
-            user-select: none; 
-            overscroll-behavior-y: none;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .screen-container {
-            width: 100%;
-            height: 100%;
+        /* Эффект нажатия (State Layer) в стиле Material 3 */
+        .m3-card {
             position: relative;
             overflow: hidden;
+            transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow-y: auto; 
-            overflow-x: hidden;
-            background-color: #0F0F0F;
-            transition: transform var(--transition-duration) var(--transition-timing), 
-                        opacity var(--transition-duration) var(--transition-timing);
-            will-change: transform, opacity;
-            backface-visibility: hidden;
-            padding-bottom: 90px; /* Отступ для обычных экранов под меню */
-        }
-        
-        /* Для экранов без нижнего меню убираем отступ */
-        #screen-account, #screen-tasks {
-            padding-bottom: 0;
-            z-index: 20; /* Поверх обычных экранов */
+        .m3-card:active {
+            background-color: rgba(255, 255, 255, 0.08);
         }
 
-        .screen::-webkit-scrollbar { display: none; }
-        .screen { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .screen.active { transform: translateX(0) scale(1); opacity: 1; z-index: 10; }
-        .slide-in-right { transform: translateX(0) scale(1); z-index: 10; }
-        .slide-out-left { transform: translateX(-25%) scale(0.92); opacity: 0.5; z-index: 0; pointer-events: none; }
-        .slide-in-left { transform: translateX(0) scale(1); z-index: 10; }
-        .slide-out-right { transform: translateX(100%) scale(1); z-index: 0; pointer-events: none; }
-        .initial-right { transform: translateX(100%); opacity: 1; }
-        .initial-left { transform: translateX(-100%) scale(1); opacity: 1; }
-
-        .header-style {
-            border-bottom-left-radius: 24px;
-            border-bottom-right-radius: 24px;
-            border-bottom: 4px solid var(--primary-color);
-            background-color: #1a1a1a; 
-        }
-
-        /* Стиль для хедера подстраниц (Аккаунт/Задачи) */
-        .sub-header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background-color: #1a1a1a;
+        .icon-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 30;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1);
-        }
-        
-        .sub-header.slide-up {
-            transform: translateY(-100%);
-        }
-
-        .back-button {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            padding: 8px;
-            cursor: pointer;
-        }
-
-        .nav-bar {
-            background-color: var(--md-sys-color-surface);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            z-index: 50;
-            padding-bottom: env(safe-area-inset-bottom);
-            height: 80px; 
-            box-sizing: content-box;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        /* Класс для скрытия меню вниз */
-        .nav-bar.hidden-down {
-            transform: translateY(100%);
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            flex: 1;
-            color: var(--md-sys-color-on-surface-variant);
-            transition: color 0.3s ease;
-            position: relative;
-            cursor: pointer;
-            padding-top: 12px;
-            padding-bottom: 16px;
-        }
-
-        .nav-icon-pill {
-            width: 64px;
-            height: 32px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.3s ease;
-            margin-bottom: 4px;
-        }
-
-        .nav-item svg {
-            transition: color 0.3s ease;
-            width: 24px;
-            height: 24px;
-        }
-
-        .nav-label {
-            font-size: 10px;
-            font-weight: 500;
-            line-height: 1.2;
-            letter-spacing: 0.1px;
-            transition: color 0.3s ease, font-weight 0.3s ease;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-            padding: 0 2px;
-        }
-
-        .nav-item.active .nav-icon-pill {
-            background-color: var(--primary-container);
-        }
-        
-        .nav-item.active svg {
-            color: #FFFFFF;
-        }
-
-        .nav-item.active .nav-label {
-            color: #FFFFFF;
-            font-weight: 700;
-        }
-
-        .calendar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
-        .calendar-item.selected-border { border: 1px solid #0000FF; background-color: rgba(0, 0, 255, 0.1); }
-        .calendar-item:active { transform: scale(0.95); }
-        
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .empty-state-icon { color: #0000FF; width: 80px; height: 80px; }
-
-        .close-shift-button {
-            height: 50px; width: 50px; 
-            background-color: #1a1a1a; 
-            border: 1px solid #0000FF; 
-            border-radius: 6px; 
-            flex-shrink: 0;
-            position: relative; 
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .close-shift-button:active { transform: scale(0.95); }
-        .close-shift-button::before {
-            content: ''; position: absolute; top: 8px; left: 50%; 
-            transform: translateX(-50%); width: 2px; height: 15px; 
-            background-color: #0000FF; border-radius: 2px; 
-        }
-        .close-shift-button::after {
-            content: ''; position: absolute; width: 30px; height: 30px; 
-            border: 2px solid #0000FF; border-top-color: transparent; 
-            border-radius: 50%; bottom: 8px;
-        }
-
-        .bottom-sheet-overlay {
-            visibility: hidden; opacity: 0;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .bottom-sheet-content { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
-        .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
-
-        #notification-area {
-            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 480px; z-index: 60;
-            pointer-events: none; display: flex; flex-direction: column; align-items: center;
-        }
-
-        @keyframes rotate { 100% { transform: rotate(360deg); } }
-        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
-
-        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; }
-        .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
-        
-        .spinner-mini { width: 24px; height: 24px; animation: rotate 2s linear infinite; }
-        .path-mini { stroke: #FFFFFF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
-
-        #loadingOverlay {
-            position: fixed; inset: 0;
-            background-color: rgba(15, 15, 15, 0.85); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; transition: opacity 0.4s ease, visibility 0.4s ease;
-            opacity: 0; visibility: hidden; pointer-events: none; 
-        }
-        #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
-
-        .shift-card {
-            background-color: #1A1A1A;
-            transition: transform 0.2s ease, background-color 0.2s, opacity 0.3s ease;
-        }
-        .shift-card:active {
-            transform: scale(0.98);
-            background-color: #252525;
-        }
-
-        .skeleton-shimmer {
-            position: relative; overflow: hidden; background-color: #1A1A1A;
-        }
-        .skeleton-shimmer::after {
-            content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-            transform: translateX(-100%);
-            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.03) 20%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.03) 80%, rgba(255, 255, 255, 0) 100%);
-            animation: shimmer 2s infinite;
-        }
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
-        .skeleton-block { background-color: #2A2A2A; border-radius: 6px; }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-
-        .iframe-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-        
-        /* Для подстраниц iframe должен отступать сверху, учитывая хедер */
-        .sub-page-content {
-            padding-top: 60px; /* Высота sub-header */
-            height: 100%;
-            box-sizing: border-box;
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            flex-grow: 1;
-            background-color: #0F0F0F;
-            position: relative;
-            z-index: 2;
-        }
-        .iframe-loader-spinner {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
         }
     </style>
 </head>
-<body class="text-white">
+<body class="antialiased">
 
-    <div id="loadingOverlay">
-        <svg class="spinner" viewBox="0 0 50 50">
-            <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
-        </svg>
-    </div>
-
-    <div id="notification-area"></div>
-
-    <div class="screen-container">
-
-        <div id="screen-main" class="screen active">
-            <header class="w-full header-style sticky top-0 z-30">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div class="flex justify-between items-center h-8 mb-4">
-                        <h1 class="text-lg font-bold text-white" id="screen-title">Главный экран</h1>
-                        <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-solid hover:bg-white/10 transition-colors" style="border-color: #0000FF;">
-                            <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF;"></i>
-                        </button>
-                    </div>
-                    <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
-                    <div id="shift-action-container" class="w-full mt-4 flex">
-                        <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
-                        <button id="main-action-button" class="w-full flex items-center justify-center text-center text-white font-bold transition-all duration-300 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
-                             <span class="btn-text">Загрузка...</span>
-                        </button>
-                    </div>
+    <main class="max-w-md mx-auto px-6 py-10">
+        <!-- Заголовок раздела -->
+        <h1 class="text-2xl font-normal mb-8 text-[#E6E1E5]">Облачный центр</h1>
+        
+        <div class="space-y-3">
+            <!-- Сборка -->
+            <button class="m3-card w-full flex items-center p-4 bg-[#2B2930] rounded-[16px] border border-transparent hover:border-gray-700" onclick="console.log('Сборка');">
+                <div class="icon-container bg-[#D0BCFF] text-[#381E72] mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
                 </div>
-            </header>
-            <main class="flex flex-col items-center justify-start min-h-[50vh] pt-8 pb-16 px-4 w-full" id="main-content"></main>
-        </div>
-
-        <div id="screen-schedule" class="screen initial-right">
-            <div class="iframe-container">
-                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
-                <iframe data-src="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/"></iframe>
-            </div>
-        </div>
-
-        <div id="screen-cloud" class="screen initial-right">
-            <div class="iframe-container">
-                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
-                <iframe data-src="https://u8902054545-design.github.io/cloud-center/"></iframe>
-            </div>
-        </div>
-
-        <div id="screen-payments" class="screen initial-right">
-            <div class="iframe-container">
-                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
-                <iframe data-src="https://u8902054545-design.github.io/payments-darkcenter"></iframe>
-            </div>
-        </div>
-
-        <div id="screen-education" class="screen initial-right">
-            <div class="iframe-container">
-                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
-                <iframe data-src="https://u8902054545-design.github.io/education-darkcenter"></iframe>
-            </div>
-        </div>
-
-        <div id="screen-chats" class="screen initial-right">
-            <div class="iframe-container">
-                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
-                <iframe data-src="https://u8902054545-design.github.io/chats-darkcenter"></iframe>
-            </div>
-        </div>
-
-        <div id="screen-account" class="screen initial-right">
-            <div class="sub-header">
-                <div class="back-button" onclick="closeSubPage()">
-                    <i data-lucide="arrow-left" class="w-6 h-6 text-white"></i>
+                <div class="text-left">
+                    <span class="block text-base font-medium">Сборка</span>
                 </div>
-                <span class="font-bold text-lg">Аккаунт</span>
-            </div>
-            <div class="iframe-container sub-page-content">
-                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
-                <iframe data-src="https://u8902054545-design.github.io/account-darkcenter/"></iframe>
-            </div>
-        </div>
+            </button>
 
-        <div id="screen-tasks" class="screen initial-right">
-            <div class="sub-header">
-                <div class="back-button" onclick="closeSubPage()">
-                    <i data-lucide="arrow-left" class="w-6 h-6 text-white"></i>
+            <!-- Приёмка -->
+            <button class="m3-card w-full flex items-center p-4 bg-[#2B2930] rounded-[16px] border border-transparent hover:border-gray-700" onclick="console.log('Приёмка');">
+                <div class="icon-container bg-[#B2F0AD] text-[#00390A] mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.83-9.08"/><path d="m9 11 3 3L22 4"/></svg>
                 </div>
-                <span class="font-bold text-lg">Задачи</span>
-            </div>
-            <div class="iframe-container sub-page-content">
-                <div class="iframe-loader-spinner"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
-                <iframe data-src="https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/"></iframe>
-            </div>
-        </div>
-
-    </div>
-
-    <nav class="nav-bar fixed bottom-0 left-0 w-full" id="main-nav">
-        <div class="flex justify-between items-center h-full max-w-7xl mx-auto w-full">
-            <button class="nav-item active" id="nav-home">
-                <div class="nav-icon-pill"><i data-lucide="home" class="w-5 h-5"></i></div>
-                <span class="nav-label">Главный</span>
-            </button>
-            <button class="nav-item" id="nav-schedule">
-                <div class="nav-icon-pill"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
-                <span class="nav-label">Расписание</span>
-            </button>
-            <button class="nav-item" id="nav-cloud">
-                <div class="nav-icon-pill"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
-                <span class="nav-label">Centers</span>
-            </button>
-            <button class="nav-item" id="nav-payments">
-                <div class="nav-icon-pill"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
-                <span class="nav-label">Выплаты</span>
-            </button>
-            <button class="nav-item" id="nav-education">
-                <div class="nav-icon-pill"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
-                <span class="nav-label">Обучение</span>
-            </button>
-            <button class="nav-item" id="nav-chats">
-                <div class="nav-icon-pill"><i data-lucide="message-square-more" class="w-5 h-5"></i></div>
-                <span class="nav-label">Чаты</span>
-            </button>
-        </div>
-    </nav>
-    
-    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl mb-4 sm:mb-0">
-            <div class="text-center mb-4">
-                <h2 class="text-2xl font-bold mb-2">Завершить смену?</h2>
-                <p class="text-gray-400 text-sm">Убедитесь, что все текущие задачи выполнены.</p>
-            </div>
-            <div class="flex flex-col space-y-3">
-                <button id="confirm-end-shift-btn" class="w-full text-center text-white font-bold py-4 rounded-md" style="background-color: #0000FF; border-radius: 6px;">Завершить</button>
-                <button id="cancel-end-shift-btn" class="w-full text-center font-bold py-4 rounded-md" style="border: 1px solid #0000FF; color: #0000FF; background-color: transparent; border-radius: 6px;">Не завершать</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="auth-error-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/90 z-[60] flex justify-center items-end backdrop-blur-sm">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-8 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] border-t border-white/10">
-            <div class="flex flex-col items-center text-center mb-6">
-                <div class="w-20 h-20 rounded-full bg-red-900/20 flex items-center justify-center mb-4 border border-red-500/30">
-                    <i data-lucide="shield-alert" class="w-10 h-10 text-red-500"></i>
+                <div class="text-left">
+                    <span class="block text-base font-medium">Приёмка</span>
                 </div>
-                <h2 class="text-2xl font-bold mb-2">Доступ ограничен</h2>
-                <p class="text-gray-400 text-sm leading-relaxed">Не удалось проверить авторизацию или сессия истекла. Пожалуйста, войдите в аккаунт заново.</p>
-            </div>
-            <button id="auth-login-btn" class="w-full text-center text-white font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all" style="background-color: #0000FF;">Войти в аккаунт</button>
+            </button>
+
+            <!-- Консолидация -->
+            <button class="m3-card w-full flex items-center p-4 bg-[#2B2930] rounded-[16px] border border-transparent hover:border-gray-700" onclick="console.log('Консолидация');">
+                <div class="icon-container bg-[#FFDDA1] text-[#281900] mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 11.4 6 3.46V21L12 17.54 6 21V14.86Z"/><path d="m12 3.6 6 3.46V10.5L12 7.04 6 10.5V7.04Z"/><path d="m12 7.5 6 3.46V14.5L12 11.04 6 14.5V11.04Z"/></svg>
+                </div>
+                <div class="text-left">
+                    <span class="block text-base font-medium">Консолидация</span>
+                </div>
+            </button>
         </div>
-    </div>
+    </main>
 
     <script>
-        let currentScreenId = 'screen-main';
-        let isAnimating = false;
-        const transitionDuration = 600; 
+        // Константы ссылок
+        const AUTH_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/';
+        const CLOSED_REDIRECT_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-User-Main/';
+        const API_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwq698UMNuC6B4XeEA3ZBZcLbgSKs3BviKUBroscGDvXPnV8ZdSg1voVC346i2VVbk1/exec';
+        const CHECK_INTERVAL = 3000;
 
-        // Навигация нижнего меню
-        const navMap = [
-            { btnId: 'nav-home', screenId: 'screen-main', index: 0 },
-            { btnId: 'nav-schedule', screenId: 'screen-schedule', index: 1 },
-            { btnId: 'nav-cloud', screenId: 'screen-cloud', index: 2 },
-            { btnId: 'nav-payments', screenId: 'screen-payments', index: 3 },
-            { btnId: 'nav-education', screenId: 'screen-education', index: 4 },
-            { btnId: 'nav-chats', screenId: 'screen-chats', index: 5 }
-        ];
-
-        let currentIndex = 0;
-        let previousScreenId = null; // Для возврата назад с подстраниц
-        
-        const transitionClasses = {
-            forward: { entering: 'slide-in-right', exiting: 'slide-out-left', initial: 'initial-right' },
-            backward: { entering: 'slide-in-left', exiting: 'slide-out-right', initial: 'initial-left' }
-        };
-
-        function navigate(targetScreenId, targetIndex, callback, forceDirection = null) {
-            if (isAnimating || currentScreenId === targetScreenId) return;
-            isAnimating = true;
-            
-            // Определяем направление. Если forceDirection не задан, вычисляем по индексу
-            let direction;
-            if (forceDirection) {
-                direction = forceDirection;
-            } else {
-                direction = targetIndex > currentIndex ? 'forward' : 'backward';
-            }
-            
-            // Если это навигация по меню, обновляем индекс
-            if (targetIndex !== null) {
-                currentIndex = targetIndex;
-            }
-
-            const currentScreen = document.getElementById(currentScreenId);
-            const targetScreen = document.getElementById(targetScreenId);
-            const classes = transitionClasses[direction];
-            
-            // Подготовка целевого экрана
-            targetScreen.classList.remove('active', classes.entering, classes.exiting, 'initial-left', 'initial-right');
-            targetScreen.classList.add(classes.initial);
-            targetScreen.style.display = 'block'; 
-            
-            // Принудительный рефлоу, чтобы CSS анимация сработала
-            targetScreen.offsetHeight; 
-
-            requestAnimationFrame(() => {
-                currentScreen.classList.remove('active', 'initial-left', 'initial-right');
-                currentScreen.classList.add(classes.exiting);
-                
-                targetScreen.classList.remove(classes.initial);
-                targetScreen.classList.add(classes.entering);
-                
-                setTimeout(() => {
-                    currentScreen.classList.remove(classes.exiting);
-                    // После анимации сдвигаем "старый" экран в правильную сторону
-                    if (direction === 'forward') { currentScreen.classList.add('initial-left'); } else { currentScreen.classList.add('initial-right'); }
-                    
-                    targetScreen.classList.remove(classes.entering, classes.initial);
-                    targetScreen.classList.add('active');
-                    
-                    previousScreenId = currentScreenId;
-                    currentScreenId = targetScreenId;
-                    isAnimating = false;
-                    
-                    if (callback) callback();
-                }, transitionDuration);
-            });
-        }
-
-        navMap.forEach(navItem => {
-            const btn = document.getElementById(navItem.btnId);
-            if(btn) {
-                btn.addEventListener('click', () => {
-                    updateActiveNav(btn);
-                    navigate(navItem.screenId, navItem.index, () => {
-                        loadIframeIfNeeded(navItem.screenId);
-                    });
-                });
-            }
-        });
-
-        function updateActiveNav(activeBtn) {
-            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            activeBtn.classList.add('active');
-        }
-        
-        function loadIframeIfNeeded(screenId) {
-            const screen = document.getElementById(screenId);
-            const iframe = screen.querySelector('iframe');
-            if (iframe && !iframe.src && iframe.getAttribute('data-src')) {
-                iframe.src = iframe.getAttribute('data-src');
-            }
-        }
-
-        // --- ЛОГИКА ДЛЯ НОВЫХ ЭКРАНОВ (АККАУНТ / ЗАДАЧИ) ---
-
-        const navBar = document.getElementById('main-nav');
-
-        // Открытие подстраницы (с анимацией меню вниз)
-        function openSubPage(targetScreenId) {
-            if (isAnimating) return;
-            
-            // 1. Скрываем нижнее меню
-            navBar.classList.add('hidden-down');
-            
-            // 2. Загружаем iframe если надо
-            loadIframeIfNeeded(targetScreenId);
-            
-            // 3. Переход на новый экран (как будто идем вперед)
-            // Используем null индекс, чтобы не сбивать логику нижнего меню, но forceDirection 'forward'
-            navigate(targetScreenId, null, null, 'forward');
-            
-            // Сбрасываем положение хедера на всякий случай (возвращаем из "уехавшего" состояния)
-            const header = document.getElementById(targetScreenId).querySelector('.sub-header');
-            if(header) header.classList.remove('slide-up');
-        }
-
-        // Закрытие подстраницы (возврат назад)
-        function closeSubPage() {
-            if (isAnimating) return;
-            
-            const currentScreen = document.getElementById(currentScreenId);
-            const header = currentScreen.querySelector('.sub-header');
-
-            // 1. Анимация хедера вверх
-            if (header) {
-                header.classList.add('slide-up');
-            }
-
-            // 2. Навигация назад к предыдущему экрану (обычно screen-main)
-            // Возвращаем индекс в зависимости от того, какой экран был активен (обычно 0 для Main)
-            let returnIndex = 0; 
-            navMap.forEach(item => { if(item.screenId === previousScreenId) returnIndex = item.index; });
-
-            // Небольшая задержка, чтобы хедер начал ехать первым, или одновременно
-            setTimeout(() => {
-                navigate('screen-main', returnIndex, () => {
-                     // 3. После завершения перехода возвращаем меню
-                     navBar.classList.remove('hidden-down');
-                }, 'backward');
-            }, 100); 
-        }
-
-        // Обработчик кнопки Профиль
-        document.getElementById('profile-button').addEventListener('click', () => {
-            openSubPage('screen-account');
-        });
-
-
-        // --- СТАНДАРТНАЯ ЛОГИКА ---
-
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4IXGi1WIYwr12fHYqQ6lGaLDOjgW2q9sf5ovHUrP-sh3jkfBdXhlVZ70NsCL4tNgDCg/exec';
-        const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/'; // Используется внутри iframe теперь
-        const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
-        const INTERVAL_MS = 3000;
-        const BUTTON_SPINNER_SVG = `<svg class="spinner-mini" viewBox="0 0 50 50"><circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
-
-        let isSlotActive = false;
-        let canStartSlot = false;
-        let selectedDateObj = new Date();
-        let lastRenderedState = null; 
-
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const mainActionButton = document.getElementById('main-action-button');
-        const endShiftButton = document.getElementById('end-shift-button');
-        const bottomSheet = document.getElementById('bottom-sheet');
-        const authErrorSheet = document.getElementById('auth-error-sheet');
-        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
-        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
-        const authLoginBtn = document.getElementById('auth-login-btn');
-        const calendarContainer = document.getElementById('calendar-strip');
-        const mainContent = document.getElementById('main-content');
-
-        function showLoading() { loadingOverlay.classList.add('visible'); }
-        function hideLoading() { loadingOverlay.classList.remove('visible'); }
-
-        function createNotification(type, message) {
-            const area = document.getElementById('notification-area');
-            const note = document.createElement('div');
-            const isSuccess = type === 'success';
-            note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#1a1a1a]/90 ring-1 ring-[#0000FF]' : 'bg-red-900/90'} text-white rounded-xl shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between`;
-            note.innerHTML = `<div class="flex items-center"><div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3"><i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i></div><div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div></div>`;
-            area.appendChild(note);
-            lucide.createIcons();
-            setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
-            setTimeout(() => { note.classList.add('opacity-0', '-translate-y-10'); setTimeout(() => note.remove(), 500); }, 3500);
-        }
-
-        function formatDateForServer(date) {
-            const d = date.getDate().toString().padStart(2, '0');
-            const m = (date.getMonth() + 1).toString().padStart(2, '0');
-            const y = date.getFullYear();
-            return `${d}.${m}.${y}`;
-        }
-
-        function renderSkeletons() {
-            lastRenderedState = "skeleton";
-            let html = '<div class="w-full flex flex-col space-y-4 fade-in">';
-            for(let i=0; i<3; i++) {
-                html += `<div class="w-full skeleton-shimmer p-3 rounded-xl shadow-lg flex justify-between items-center mt-2 h-[68px]"><div class="flex items-center space-x-2"><div class="flex-shrink-0 w-7 h-7 rounded-full skeleton-block"></div><div class="flex flex-col space-y-2"><div class="w-20 h-3 skeleton-block"></div><div class="w-24 h-4 skeleton-block"></div></div></div><div class="w-16 h-6 skeleton-block"></div></div>`;
-            }
-            html += '</div>';
-            mainContent.innerHTML = html;
-        }
-
-        function renderEmptyState(message = "Ближайших смен нет") {
-            const stateKey = `empty-${message}`;
-            if (lastRenderedState === stateKey) return;
-            lastRenderedState = stateKey;
-            mainContent.innerHTML = `<div id="status-display" class="text-center mt-32 fade-in"><i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i><p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">${message}</p></div>`;
-            lucide.createIcons();
-        }
-
-        function renderShiftCard(shiftData) {
-            const stateKey = `card-${shiftData.time}-${shiftData.duration}`;
-            if (lastRenderedState === stateKey) return;
-            lastRenderedState = stateKey;
-            mainContent.innerHTML = `<div class="w-full shift-card text-white p-3 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 fade-in"><div class="flex items-center space-x-2"><div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">Подтверждён</span><p class="text-lg font-bold mt-1">${shiftData.time}</p></div></div><div class="flex-shrink-0 text-right"><p class="text-xl font-bold text-white">${shiftData.duration || ''}</p></div></div>`;
-        }
-
-        function showAuthError() {
-            hideLoading();
-            authErrorSheet.classList.add('open');
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('authToken');
-        }
-
-        async function checkUserAuthentication(isSilent = false) {
-            if (!isSilent) showLoading();
-            const email = localStorage.getItem('userEmail');
-            const token = localStorage.getItem('authToken');
-            if (!email || !token) { showAuthError(); return false; }
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'cors', cache: 'no-cache',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ auth: true, email: email, token: token })
-                });
-                const data = await response.json();
-                return data.status === 'success' && data.auth_ok;
-            } catch (error) { return true; } finally { if (!isSilent) hideLoading(); }
-        }
-
-        authLoginBtn.addEventListener('click', () => {
-             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
-             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
-        });
-
-        async function fetchShiftForDate(dateObj, isSilent = false) {
-            if (!isSilent) showLoading();
+        async function checkShiftStatusAndRedirect() {
             const userEmail = localStorage.getItem('userEmail');
-            const dateStr = formatDateForServer(dateObj);
-            try {
-                const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data.status === 'success' && data.shift && data.shift.found) { renderShiftCard(data.shift.data); } else { renderEmptyState("Смен на этот день нет"); }
-            } catch (e) { renderEmptyState("Ошибка загрузки"); } finally { if (!isSilent) hideLoading(); }
-        }
 
-        async function fetchStatusLogic(isSilent = false) {
-            const userEmail = localStorage.getItem('userEmail');
+            if (!userEmail) {
+                console.warn('Email не найден. Редирект...');
+                window.location.replace(AUTH_URL);
+                return;
+            }
+
             try {
-                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
-                return await response.json();
-            } catch (error) { return null; }
-        }
-        
-        async function updateShiftStatus(newStatus) {
-            const userEmail = localStorage.getItem('userEmail');
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'cors', cache: 'no-cache',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
+                const response = await fetch(`${API_ENDPOINT_URL}?email=${encodeURIComponent(userEmail)}`, {
+                    method: 'GET',
+                    cache: 'no-cache'
                 });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
                 const data = await response.json();
-                return data.status === 'success';
-            } catch (error) { createNotification('error', 'Сбой при отправке данных'); return false; }
-        }
 
-        function updateButtons(data) {
-            if (!data) return;
-            const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
-            if (data.canStart !== undefined) canStartSlot = data.canStart;
-            isSlotActive = (status === 'Open');
-            const statusTextEl = document.getElementById('status-text');
-            if (isSlotActive) {
-                if(statusTextEl && statusTextEl.textContent !== "Смена активна") {
-                    statusTextEl.textContent = "Смена активна";
-                    statusTextEl.classList.remove('text-gray-400');
-                    statusTextEl.classList.add('text-[#0000FF]');
+                if (data.action === 'auth_redirect') {
+                    window.location.replace(AUTH_URL);
+                    clearInterval(statusCheckInterval);
+                    return;
                 }
-                if (mainActionButton.textContent !== 'Перейти к задачам') {
-                    mainActionButton.textContent = 'Перейти к задачам';
-                    mainActionButton.disabled = false;
+
+                const currentStatus = data.shift_status ? data.shift_status.trim() : '';
+                if (currentStatus === 'Closed') {
+                    window.location.replace(CLOSED_REDIRECT_URL);
+                    clearInterval(statusCheckInterval);
+                    return;
                 }
-                endShiftButton.style.display = 'flex';
-            } else {
-                if (mainActionButton.textContent !== 'Начать смену') { mainActionButton.textContent = 'Начать смену'; }
-                mainActionButton.disabled = !canStartSlot;
-                endShiftButton.style.display = 'none';
+
+            } catch (error) {
+                console.error('Ошибка связи с сервером:', error);
             }
         }
 
-        function initCalendar() {
-            calendarContainer.innerHTML = '';
-            const today = new Date();
-            for (let i = 0; i < 14; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                const item = document.createElement('div');
-                item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer flex-shrink-0 w-14`;
-                if (date.toDateString() === selectedDateObj.toDateString()) {
-                    item.classList.add('selected-border');
-                    item.style.color = '#0000FF';
-                } else { item.style.color = '#fff'; }
-                item.innerHTML = `<span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
-                item.addEventListener('click', () => {
-                    if (selectedDateObj.toDateString() === date.toDateString()) return;
-                    document.querySelectorAll('.calendar-item').forEach(el => { el.classList.remove('selected-border'); el.style.color = '#fff'; });
-                    item.classList.add('selected-border');
-                    item.style.color = '#0000FF';
-                    selectedDateObj = date;
-                    renderSkeletons();
-                    fetchShiftForDate(date, true);
-                });
-                calendarContainer.appendChild(item);
-            }
-        }
-
-        mainActionButton.addEventListener('click', async () => {
-            if (isSlotActive) { 
-                openSubPage('screen-tasks');
-            } else {
-                if (canStartSlot) {
-                    mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-                    mainActionButton.disabled = true;
-                    const success = await updateShiftStatus('Open');
-                    if (success) { createNotification('success', 'Смена открыта!'); updateButtons({ shiftStatus: 'Open', canStart: false }); } else { const realData = await fetchStatusLogic(true); updateButtons(realData); }
-                }
-            }
-        });
-
-        endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
-        cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
-
-        confirmEndShiftBtn.addEventListener('click', async () => {
-            bottomSheet.classList.remove('open');
-            endShiftButton.style.display = 'none';
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-            mainActionButton.disabled = true;
-            const success = await updateShiftStatus('Closed');
-            if (success) { createNotification('success', 'Смена завершена'); updateButtons({ shiftStatus: 'Closed', canStart: false }); const realData = await fetchStatusLogic(true); updateButtons(realData); } else { updateButtons({ shiftStatus: 'Open' }); }
-        });
-
-        // --- НОВАЯ ФУНКЦИЯ: ОБРАБОТЧИК СООБЩЕНИЙ ОТ IFRAME (POSTMESSAGE) ---
-        window.addEventListener('message', function(event) {
-            // Проверяем сообщение. Если получено "goHome"
-            if (event.data === 'goHome') {
-                // 1. Если мы сейчас не на главном, вызываем функцию возврата
-                if (currentScreenId !== 'screen-main') {
-                    closeSubPage();
-                }
-                
-                // 2. Принудительно обновляем нижнее меню на "Главный"
-                const navHome = document.getElementById('nav-home');
-                if (navHome) {
-                    updateActiveNav(navHome);
-                }
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            lucide.createIcons();
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-            renderSkeletons();
-            initCalendar();
-            const authOk = await checkUserAuthentication(false);
-            if (!authOk) return;
-            const p1 = fetchShiftForDate(selectedDateObj, false); 
-            const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
-            await Promise.all([p1, p2]);
-            setInterval(async () => {
-                const stillAuth = await checkUserAuthentication(true);
-                if (stillAuth) {
-                    const statusData = await fetchStatusLogic(true);
-                    updateButtons(statusData);
-                    fetchShiftForDate(selectedDateObj, true);
-                }
-            }, INTERVAL_MS);
-        });
-        document.addEventListener('contextmenu', e => e.preventDefault());
+        checkShiftStatusAndRedirect();
+        const statusCheckInterval = setInterval(checkShiftStatusAndRedirect, CHECK_INTERVAL);
     </script>
 </body>
-    </html>
+</html>
