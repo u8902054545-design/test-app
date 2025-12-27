@@ -3,419 +3,511 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Расписание смен</title>
+    <title>Главная страница - Управление сменами</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary-dark': '#0F0F0F',
-                        'accent-blue': '#0000FF', 
-                        'text-light': '#E0E0E0',
-                        'text-muted': '#A0A0A0',
-                        'surface-dark': '#1A1A1A', 
-                        'surface-light': '#2A2A2A',
-                        'blue-900': '#1E3A8A', 
-                        'info-surface': '#252525',
-                        'page-bg': '#0F0F0F',
-                        'card-bg': '#1A1A1A',
-                        'bs-bg': '#121212',
-                        'blue-status': '#0000FF',
-                    },
-                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         
-        body { background-color: #0F0F0F; color: #E0E0E0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        /* Стили Спинера */
-        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; transform-origin: center center; }
-        .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
-        @keyframes rotate { 100% { transform: rotate(360deg); } }
-        @keyframes dash {
-            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
-            50% { stroke-dasharray: 70, 150; stroke-dashoffset: -25px; }
-            100% { stroke-dasharray: 70, 150; stroke-dashoffset: -125px; }
+        :root {
+            --primary-color: #0000FF; 
+            --md-sys-color-surface: #1E1F20; 
+            --md-sys-color-on-surface: #E3E3E3;
         }
-        
-        #loadingOverlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: rgba(15, 15, 15, 0.8);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; transition: opacity 0.3s ease, visibility 0.3s ease;
-            opacity: 0; visibility: hidden; pointer-events: none;
-        }
-        #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
 
-        .hide-scrollbar::-webkit-scrollbar { height: 0px; background: transparent; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Bottom Sheet */
-        .bottom-sheet {
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.6);
-            background-color: #121212;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F0F0F;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Скролл только внутри контейнера */
+            -webkit-user-select: none; 
+            user-select: none; 
         }
-        
-        .time-btn {
-            border: 1px solid #333; background-color: #1A1A1A; color: #E0E0E0;
-            transition: all 0.2s; min-width: 80px; flex-shrink: 0; text-align: center;
-        }
-        .time-btn.selected { background-color: #0000FF; border-color: #0000FF; color: white; font-weight: 700; }
 
-        /* --- СТИЛИ НИЖНЕГО МЕНЮ --- */
+        .screen-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow-y: auto; /* Скролл для контента */
+            padding-bottom: 100px; /* Отступ под плавающее меню */
+        }
+
+        .screen-container::-webkit-scrollbar { display: none; }
+        .screen-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .header-style {
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            border-bottom: 4px solid var(--primary-color);
+            background-color: #1a1a1a; 
+        }
+
+        /* --- MATERIAL 3 BOTTOM BAR (FLOATING) --- */
         .nav-bar {
             position: fixed;
-            bottom: 24px;
+            bottom: 20px; /* Минимальный отступ от низа */
             left: 50%;
             transform: translateX(-50%);
-            width: calc(100% - 32px);
-            max-width: 500px;
+            width: calc(100% - 32px); /* Отступы по бокам */
+            max-width: 500px; /* Ограничение ширины на больших экранах */
             height: 70px; 
-            background-color: #1E1F20;
-            border-radius: 35px;
+            background-color: var(--md-sys-color-surface);
+            border-radius: 35px; /* Сильное скругление */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            padding: 0 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             z-index: 50;
+            box-sizing: border-box;
         }
 
         .nav-item {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 48px;
-            height: 48px;
-            border-radius: 24px;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
             cursor: pointer;
             transition: all 0.2s ease;
-            color: #E3E3E3;
-            text-decoration: none;
+            color: var(--md-sys-color-on-surface);
         }
 
-        .nav-item svg { width: 22px; height: 22px; }
+        /* Убираем названия */
+        .nav-label {
+            display: none;
+        }
 
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Активное состояние */
         .nav-item.active {
             background-color: #0000FF;
             color: #FFFFFF;
         }
         
-        .nav-item:active { transform: scale(0.9); }
+        .nav-item:active {
+            transform: scale(0.95);
+        }
 
-        .btn-save { padding: 12px; border-radius: 6px; background-color: #0000FF; color: white; width: 100%; font-weight: 600; text-align: center; }
-        .btn-save:disabled { background-color: #1A1A1A; color: #555; border: 1px solid #333; }
-        .btn-delete { padding: 12px; border-radius: 6px; background-color: #121212; border: 1px solid #0000FF; color: #0000FF; width: 100%; font-weight: 600; text-align: center; margin-top: 12px; }
+        /* --- КАЛЕНДАРЬ И КАРТОЧКИ --- */
+        .calendar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
+        .calendar-item.selected-border { border: 1px solid #0000FF; background-color: rgba(0, 0, 255, 0.1); }
+        .calendar-item:active { transform: scale(0.95); }
+        
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-        @keyframes slideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .toast-enter { animation: slideIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .empty-state-icon { color: #0000FF; width: 80px; height: 80px; }
+
+        .close-shift-button {
+            height: 50px; width: 50px; 
+            background-color: #1a1a1a; 
+            border: 1px solid #0000FF; 
+            border-radius: 6px; 
+            flex-shrink: 0;
+            position: relative; 
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .close-shift-button:active { transform: scale(0.95); }
+        .close-shift-button::before {
+            content: ''; position: absolute; top: 8px; left: 50%; 
+            transform: translateX(-50%); width: 2px; height: 15px; 
+            background-color: #0000FF; border-radius: 2px; 
+        }
+        .close-shift-button::after {
+            content: ''; position: absolute; width: 30px; height: 30px; 
+            border: 2px solid #0000FF; border-top-color: transparent; 
+            border-radius: 50%; bottom: 8px;
+        }
+
+        .bottom-sheet-overlay {
+            visibility: hidden; opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .bottom-sheet-content { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
+        .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
+
+        #notification-area {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 480px; z-index: 60;
+            pointer-events: none; display: flex; flex-direction: column; align-items: center;
+        }
+
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
+
+        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; }
+        .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+        
+        .spinner-mini { width: 24px; height: 24px; animation: rotate 2s linear infinite; }
+        .path-mini { stroke: #FFFFFF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+
+        #loadingOverlay {
+            position: fixed; inset: 0;
+            background-color: rgba(15, 15, 15, 0.85); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; transition: opacity 0.4s ease, visibility 0.4s ease;
+            opacity: 0; visibility: hidden; pointer-events: none; 
+        }
+        #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
+
+        .shift-card {
+            background-color: #1A1A1A;
+            transition: transform 0.2s ease, background-color 0.2s, opacity 0.3s ease;
+        }
+        .shift-card:active {
+            transform: scale(0.98);
+            background-color: #252525;
+        }
+
+        .skeleton-shimmer {
+            position: relative; overflow: hidden; background-color: #1A1A1A;
+        }
+        .skeleton-shimmer::after {
+            content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.03) 20%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.03) 80%, rgba(255, 255, 255, 0) 100%);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .skeleton-block { background-color: #2A2A2A; border-radius: 6px; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
     </style>
 </head>
-
-<body class="min-h-screen relative overflow-x-hidden">
-
-    <div id="toast-container" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[110] flex flex-col items-center gap-3 w-full max-w-sm pointer-events-none px-4"></div>
+<body class="text-white">
 
     <div id="loadingOverlay">
-        <svg class="spinner" viewBox="25 25 50 50">
-            <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10" />
+        <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
         </svg>
     </div>
 
-    <header class="fixed top-0 left-0 w-full z-10 bg-primary-dark px-3 py-1 border-b border-surface-dark/50">
-        <div class="relative flex justify-center items-center h-10 mb-2 pt-0">
-            <h1 class="text-lg font-bold text-text-light text-center tracking-wide" style="font-size: 16px;">Расписание</h1>
-        </div>
-    </header>
+    <div id="notification-area"></div>
 
-    <div class="h-14"></div>
-
-    <div class="w-full px-3 pb-32"> 
-        <div id="calendar-container" class="space-y-1 pb-4"></div>
+    <div class="screen-container">
+        <header class="w-full header-style sticky top-0 z-30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex justify-between items-center h-8 mb-4">
+                    <h1 class="text-lg font-bold text-white" id="screen-title">Главный экран</h1>
+                    <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-solid hover:bg-white/10 transition-colors" style="border-color: #0000FF;">
+                        <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF;"></i>
+                    </button>
+                </div>
+                <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
+                <div id="shift-action-container" class="w-full mt-4 flex">
+                    <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
+                    <button id="main-action-button" class="w-full flex items-center justify-center text-center text-white font-bold transition-all duration-300 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
+                         <span class="btn-text">Загрузка...</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+        <main class="flex flex-col items-center justify-start min-h-[50vh] pt-8 px-4 w-full" id="main-content"></main>
     </div>
 
     <nav class="nav-bar" id="main-nav">
-        <a href="https://u8902054545-design.github.io/DarkCenter-Cloud-User-Main/" class="nav-item">
+        <div class="nav-item active" id="nav-home">
             <i data-lucide="home"></i>
-        </a>
+        </div>
         
-        <a href="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" class="nav-item active">
+        <a href="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" class="nav-item" id="nav-schedule">
             <i data-lucide="calendar-days"></i>
         </a>
-
-        <a href="https://u8902054545-design.github.io/cloud-center/" class="nav-item">
+        <a href="https://u8902054545-design.github.io/cloud-center/" class="nav-item" id="nav-cloud">
             <i data-lucide="map-pin"></i>
         </a>
-
-        <a href="https://u8902054545-design.github.io/payments-darkcenter" class="nav-item">
+        <a href="https://u8902054545-design.github.io/payments-darkcenter" class="nav-item" id="nav-payments">
             <i data-lucide="credit-card"></i>
         </a>
-
-        <a href="https://u8902054545-design.github.io/education-darkcenter" class="nav-item">
+        <a href="https://u8902054545-design.github.io/education-darkcenter" class="nav-item" id="nav-education">
             <i data-lucide="graduation-cap"></i>
         </a>
-
-        <a href="https://u8902054545-design.github.io/chats-darkcenter" class="nav-item">
+        <a href="https://u8902054545-design.github.io/chats-darkcenter" class="nav-item" id="nav-chats">
             <i data-lucide="message-square-more"></i>
         </a>
     </nav>
-
-    <div id="bs-backdrop" class="fixed inset-0 bg-black/70 z-40 hidden opacity-0 transition-opacity duration-300" onclick="closeBottomSheet()"></div>
-    <div id="bs-container" class="fixed bottom-0 left-0 w-full z-50 rounded-t-2xl transform translate-y-full bottom-sheet flex flex-col max-h-[85vh]">
-        <div class="absolute top-4 right-4 text-text-muted p-1" onclick="closeBottomSheet()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </div>
-        <div class="w-full flex justify-center pt-3 pb-1" onclick="closeBottomSheet()"><div class="w-12 h-1.5 bg-gray-600 rounded-full"></div></div>
-        <div class="px-5 py-3 border-b border-white/10"><h2 id="bs-title" class="text-lg font-bold text-white pr-6">Интервал</h2></div>
-        <div class="p-5 overflow-y-auto flex-1">
-            <div class="mb-6">
-                <p class="text-sm text-text-muted mb-3 font-medium">Время начала</p>
-                <div id="start-time-scroll" class="flex overflow-x-auto space-x-3 hide-scrollbar pb-2"></div>
+    
+    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl mb-4 sm:mb-0">
+            <div class="text-center mb-4">
+                <h2 class="text-2xl font-bold mb-2">Завершить смену?</h2>
+                <p class="text-gray-400 text-sm">Убедитесь, что все текущие задачи выполнены.</p>
             </div>
-            <div id="end-time-wrapper" class="hidden mb-2 opacity-0 transition-opacity duration-300">
-                <p class="text-sm text-text-muted mb-3 font-medium">Время завершения</p>
-                <div id="end-time-scroll" class="flex overflow-x-auto space-x-3 hide-scrollbar pb-2"></div>
+            <div class="flex flex-col space-y-3">
+                <button id="confirm-end-shift-btn" class="w-full text-center text-white font-bold py-4 rounded-md" style="background-color: #0000FF; border-radius: 6px;">Завершить</button>
+                <button id="cancel-end-shift-btn" class="w-full text-center font-bold py-4 rounded-md" style="border: 1px solid #0000FF; color: #0000FF; background-color: transparent; border-radius: 6px;">Не завершать</button>
             </div>
-        </div>
-        <div class="p-5 border-t border-white/10 bg-bs-bg w-full pb-10">
-            <button id="btn-save-interval" class="btn-save" disabled onclick="saveInterval()">Сохранить</button>
-            <button id="btn-delete-interval" class="btn-delete hidden" onclick="openDeleteConfirmation()">Удалить интервал</button>
         </div>
     </div>
 
-    <div id="confirm-backdrop" class="fixed inset-0 bg-black/70 z-[60] hidden opacity-0 transition-opacity duration-300" onclick="closeDeleteConfirmation()"></div>
-    <div id="confirm-container" class="fixed bottom-0 left-0 w-full z-[70] rounded-t-2xl transform translate-y-full bottom-sheet bg-bs-bg p-6">
-        <div class="w-full flex justify-center mb-4"><div class="w-12 h-1.5 bg-gray-600 rounded-full"></div></div>
-        <h2 class="text-xl font-bold text-white mb-2">Удалить интервал?</h2>
-        <div class="space-y-3 mt-6">
-            <button onclick="confirmDelete()" class="w-full py-4 bg-accent-blue text-white font-bold rounded-xl">Удалить</button>
-            <button onclick="closeDeleteConfirmation()" class="w-full py-4 bg-transparent border border-gray-600 text-white font-bold rounded-xl">Отмена</button>
+    <div id="auth-error-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/90 z-[60] flex justify-center items-end backdrop-blur-sm">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-8 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] border-t border-white/10">
+            <div class="flex flex-col items-center text-center mb-6">
+                <div class="w-20 h-20 rounded-full bg-red-900/20 flex items-center justify-center mb-4 border border-red-500/30">
+                    <i data-lucide="shield-alert" class="w-10 h-10 text-red-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Доступ ограничен</h2>
+                <p class="text-gray-400 text-sm leading-relaxed">Не удалось проверить авторизацию или сессия истекла. Пожалуйста, войдите в аккаунт заново.</p>
+            </div>
+            <button id="auth-login-btn" class="w-full text-center text-white font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all" style="background-color: #0000FF;">Войти в аккаунт</button>
         </div>
-        <div class="h-6"></div>
     </div>
 
     <script>
-        // Инициализация иконок меню
-        lucide.createIcons();
+        // Ссылки для прямых переходов (Задачи и Аккаунт)
+        const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
+        const ACCOUNT_URL = 'https://u8902054545-design.github.io/account-darkcenter/';
 
-        const API_URL = "https://script.google.com/macros/s/AKfycbwJm1fzRK0KIBNbwl_wI1aOctRL-zKQ7u41Gj-_lYe0JHRjkOA2wGm7GO12OS9fZCdk/exec";
-        const AUTH_PAGE_URL = "https://u8902054545-design.github.io/Auth-ITC-Platform/";
+        // --- ОБНОВЛЕННЫЙ URL ---
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYpJuW7tlvROd8SE6W9G5vefS5iVWjjYGN01ePGZU-kyH-TmXeRkB4lLUl17rvg5innw/exec';
         
-        let userEmail = localStorage.getItem('userEmail');
-        let authToken = localStorage.getItem('authToken');
+        const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
+        const INTERVAL_MS = 3000;
+        const BUTTON_SPINNER_SVG = `<svg class="spinner-mini" viewBox="0 0 50 50"><circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
 
-        function logout() { localStorage.clear(); window.location.href = AUTH_PAGE_URL; }
-        if (!userEmail || !authToken) logout();
+        let isSlotActive = false;
+        let canStartSlot = false;
+        let selectedDateObj = new Date();
+        let lastRenderedState = null; 
 
-        async function validateAccess() {
-            try {
-                const response = await fetch(`${API_URL}?action=check_auth&userEmail=${encodeURIComponent(userEmail)}&authToken=${encodeURIComponent(authToken)}`);
-                const result = await response.json();
-                if (!result.authorized) logout();
-            } catch (e) { console.error("Auth check failed", e); }
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const mainActionButton = document.getElementById('main-action-button');
+        const endShiftButton = document.getElementById('end-shift-button');
+        const bottomSheet = document.getElementById('bottom-sheet');
+        const authErrorSheet = document.getElementById('auth-error-sheet');
+        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
+        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
+        const authLoginBtn = document.getElementById('auth-login-btn');
+        const calendarContainer = document.getElementById('calendar-strip');
+        const mainContent = document.getElementById('main-content');
+
+        // Обработчик кнопки Профиль - прямой переход
+        document.getElementById('profile-button').addEventListener('click', () => {
+            window.location.href = ACCOUNT_URL;
+        });
+
+        // Навигация нижней панели (только для Главной страницы, остальные ссылки в HTML)
+        document.getElementById('nav-home').addEventListener('click', () => {
+            // Мы уже на главной, можно добавить скролл вверх или обновление
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        function showLoading() { loadingOverlay.classList.add('visible'); }
+        function hideLoading() { loadingOverlay.classList.remove('visible'); }
+
+        function createNotification(type, message) {
+            const area = document.getElementById('notification-area');
+            const note = document.createElement('div');
+            const isSuccess = type === 'success';
+            note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#1a1a1a]/90 ring-1 ring-[#0000FF]' : 'bg-red-900/90'} text-white rounded-xl shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between`;
+            note.innerHTML = `<div class="flex items-center"><div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3"><i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i></div><div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div></div>`;
+            area.appendChild(note);
+            lucide.createIcons();
+            setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
+            setTimeout(() => { note.classList.add('opacity-0', '-translate-y-10'); setTimeout(() => note.remove(), 500); }, 3500);
         }
 
-        const shiftsMap = new Map();
-        const today = new Date(); today.setHours(0,0,0,0);
-        let isSheetOpen = false;
+        function formatDateForServer(date) {
+            const d = date.getDate().toString().padStart(2, '0');
+            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            const y = date.getFullYear();
+            return `${d}.${m}.${y}`;
+        }
 
-        function showLoading(show) { document.getElementById('loadingOverlay').classList.toggle('visible', show); }
+        function renderSkeletons() {
+            lastRenderedState = "skeleton";
+            let html = '<div class="w-full flex flex-col space-y-4 fade-in">';
+            for(let i=0; i<3; i++) {
+                html += `<div class="w-full skeleton-shimmer p-3 rounded-xl shadow-lg flex justify-between items-center mt-2 h-[68px]"><div class="flex items-center space-x-2"><div class="flex-shrink-0 w-7 h-7 rounded-full skeleton-block"></div><div class="flex flex-col space-y-2"><div class="w-20 h-3 skeleton-block"></div><div class="w-24 h-4 skeleton-block"></div></div></div><div class="w-16 h-6 skeleton-block"></div></div>`;
+            }
+            html += '</div>';
+            mainContent.innerHTML = html;
+        }
 
-        async function loadData(isSilent = false) {
-            if (isSilent && isSheetOpen) return;
-            if (!isSilent) showLoading(true);
+        function renderEmptyState(message = "Ближайших смен нет") {
+            const stateKey = `empty-${message}`;
+            if (lastRenderedState === stateKey) return;
+            lastRenderedState = stateKey;
+            mainContent.innerHTML = `<div id="status-display" class="text-center mt-32 fade-in"><i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i><p id="status-text" class="text-xl text-gray-400 mt-4 font-medium">${message}</p></div>`;
+            lucide.createIcons();
+        }
+
+        function renderShiftCard(shiftData) {
+            const stateKey = `card-${shiftData.time}-${shiftData.duration}`;
+            if (lastRenderedState === stateKey) return;
+            lastRenderedState = stateKey;
+            mainContent.innerHTML = `<div class="w-full shift-card text-white p-3 rounded-xl shadow-lg flex justify-between items-center cursor-pointer mt-4 fade-in"><div class="flex items-center space-x-2"><div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><span class="inline-block px-1.5 py-0.5 text-xs font-semibold rounded-lg bg-green-900/30 text-green-400">Подтверждён</span><p class="text-lg font-bold mt-1">${shiftData.time}</p></div></div><div class="flex-shrink-0 text-right"><p class="text-xl font-bold text-white">${shiftData.duration || ''}</p></div></div>`;
+        }
+
+        function showAuthError() {
+            hideLoading();
+            authErrorSheet.classList.add('open');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('authToken');
+        }
+
+        async function checkUserAuthentication(isSilent = false) {
+            if (!isSilent) showLoading();
+            const email = localStorage.getItem('userEmail');
+            const token = localStorage.getItem('authToken');
+            if (!email || !token) { showAuthError(); return false; }
             try {
-                const resp = await fetch(`${API_URL}?userEmail=${encodeURIComponent(userEmail)}&authToken=${encodeURIComponent(authToken)}`);
-                const data = await resp.json();
-                shiftsMap.clear();
-                if (Array.isArray(data)) {
-                    data.forEach(item => {
-                        if (item.interval) {
-                            let type = 'pending';
-                            if (item.status === 'Подтверждён') type = 'confirmed';
-                            else if (item.status === 'Не подтверждён') type = 'unconfirmed';
-                            else if (item.status === 'Отменён') type = 'canceled';
-                            else if (item.status === 'Завершён') type = 'completed';
-                            shiftsMap.set(item.date, { type, time: item.interval, duration: item.duration });
-                        }
-                    });
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'cors', cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ auth: true, email: email, token: token })
+                });
+                const data = await response.json();
+                return data.status === 'success' && data.auth_ok;
+            } catch (error) { return true; } finally { if (!isSilent) hideLoading(); }
+        }
+
+        authLoginBtn.addEventListener('click', () => {
+             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
+             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
+        });
+
+        async function fetchShiftForDate(dateObj, isSilent = false) {
+            if (!isSilent) showLoading();
+            const userEmail = localStorage.getItem('userEmail');
+            const dateStr = formatDateForServer(dateObj);
+            try {
+                const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.status === 'success' && data.shift && data.shift.found) { renderShiftCard(data.shift.data); } else { renderEmptyState("Смен на этот день нет"); }
+            } catch (e) { renderEmptyState("Ошибка загрузки"); } finally { if (!isSilent) hideLoading(); }
+        }
+
+        async function fetchStatusLogic(isSilent = false) {
+            const userEmail = localStorage.getItem('userEmail');
+            try {
+                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
+                return await response.json();
+            } catch (error) { return null; }
+        }
+        
+        async function updateShiftStatus(newStatus) {
+            const userEmail = localStorage.getItem('userEmail');
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'cors', cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
+                });
+                const data = await response.json();
+                return data.status === 'success';
+            } catch (error) { createNotification('error', 'Сбой при отправке данных'); return false; }
+        }
+
+        function updateButtons(data) {
+            if (!data) return;
+            const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
+            if (data.canStart !== undefined) canStartSlot = data.canStart;
+            isSlotActive = (status === 'Open');
+            const statusTextEl = document.getElementById('status-text');
+            if (isSlotActive) {
+                if(statusTextEl && statusTextEl.textContent !== "Смена активна") {
+                    statusTextEl.textContent = "Смена активна";
+                    statusTextEl.classList.remove('text-gray-400');
+                    statusTextEl.classList.add('text-[#0000FF]');
                 }
-                renderCalendar();
-            } catch (e) { console.error("Ошибка сети", e); }
-            finally { if (!isSilent) showLoading(false); }
-        }
-
-        function getWeekKey(date) {
-            const day = date.getDay();
-            const diff = date.getDate() - (day === 0 ? 6 : day - 1);
-            return new Date(date.getFullYear(), date.getMonth(), diff).toDateString();
-        }
-
-        function formatWeekHeader(date) {
-            const day = date.getDay();
-            const start = new Date(date); start.setDate(date.getDate() - (day === 0 ? 6 : day - 1));
-            const end = new Date(start); end.setDate(start.getDate() + 6);
-            const df = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' });
-            return (df.format(start) + ' — ' + df.format(end)).replace(/^\w/, c => c.toUpperCase());
-        }
-
-        const ICON_PLUS = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>`;
-
-        function renderCalendar() {
-            const container = document.getElementById('calendar-container');
-            const dayNames = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
-            let currentWeek = '';
-            let html = '';
-            for (let i = -30; i <= 30; i++) {
-                const date = new Date(today); date.setDate(today.getDate() + i);
-                const dateKey = date.toDateString();
-                const weekKey = getWeekKey(date);
-                if (weekKey !== currentWeek) {
-                    currentWeek = weekKey;
-                    html += `<div class="text-left text-xl font-bold text-text-light mt-4 mb-2 pl-2">${formatWeekHeader(date)}</div>`;
+                if (mainActionButton.textContent !== 'Перейти к задачам') {
+                    mainActionButton.textContent = 'Перейти к задачам';
+                    mainActionButton.disabled = false;
                 }
-                const isToday = date.getTime() === today.getTime();
-                const isPast = date.getTime() < today.getTime();
-                const shift = shiftsMap.get(dateKey);
-                html += `
-                <div class="flex items-center space-x-3 p-2 rounded-lg" ${isToday ? 'id="today-marker"' : ''}>
-                    <div class="flex flex-col items-center flex-shrink-0 w-12 p-2 rounded-lg ${isToday ? 'bg-accent-blue' : (isPast ? '' : 'hover:bg-surface-dark')}">
-                        <span class="text-xs font-semibold ${isToday ? 'text-white' : 'text-text-muted'}">${dayNames[date.getDay()]}</span>
-                        <span class="text-xl font-bold mt-0.5 ${isToday ? 'text-white' : (isPast ? 'text-text-muted' : 'text-text-light')}">${date.getDate()}</span>
-                    </div>
-                    <div class="flex-grow flex">
-                        ${shift ? getCardHTML(shift, dateKey) : (isPast ? '<div class="flex-grow h-12 flex items-center p-4 rounded-lg bg-surface-dark text-sm font-semibold text-text-muted">Неактивный</div>' : `<div onclick="openBottomSheetByDate('${date.toISOString()}')" class="w-12 h-12 flex items-center justify-center rounded-md bg-surface-dark text-accent-blue cursor-pointer">${ICON_PLUS}</div>`)}
-                    </div>
-                </div>`;
-            }
-            container.innerHTML = html;
-        }
-
-        function getCardHTML(s, dKey) {
-            const ICON_CHECK = `<svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>`;
-            const ICON_CLOCK = `<svg class="w-4 h-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
-            
-            let icon, bg, txt, clr;
-            if (s.type==='confirmed') { icon=ICON_CHECK; bg="bg-green-500"; txt="Подтверждён"; clr="text-green-400"; }
-            else if (s.type==='completed') { icon=ICON_CHECK; bg="bg-blue-status"; txt="Завершён"; clr="text-blue-400"; }
-            else if (s.type==='pending') { icon=ICON_CLOCK; bg="bg-page-bg border-2 border-yellow-500"; txt="Ожидает подтверждения"; clr="text-yellow-500"; }
-            else { icon=ICON_CHECK; bg="bg-red-600"; txt="Отменён"; clr="text-red-400"; }
-
-            const clickAttr = s.type === 'pending' ? `onclick="openBottomSheetByDate('${new Date(dKey).toISOString()}', true, '${s.time}')"` : '';
-            return `<div ${clickAttr} class="bg-card-bg text-white p-3 rounded-xl flex justify-between items-center flex-grow cursor-pointer"><div class="flex items-center space-x-2"><div class="w-7 h-7 rounded-full ${bg} flex items-center justify-center">${icon}</div><div><span class="text-xs font-semibold ${clr}">${txt}</span><p class="text-sm font-bold">${s.time}</p></div></div><p class="text-lg font-bold">${s.duration}</p></div>`;
-        }
-
-        let currentState = { date: null, start: null, end: null };
-
-        function openBottomSheetByDate(dateIso, isEdit = false, existingInterval = null) {
-            currentState.date = new Date(dateIso);
-            isSheetOpen = true;
-            document.getElementById('bs-title').textContent = `Интервал на ${new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' }).format(currentState.date)}`;
-            document.getElementById('btn-delete-interval').classList.toggle('hidden', !isEdit);
-            renderStartScroll();
-            document.getElementById('bs-backdrop').classList.remove('hidden');
-            setTimeout(() => document.getElementById('bs-backdrop').classList.remove('opacity-0'), 10);
-            document.getElementById('bs-container').classList.remove('translate-y-full');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function renderStartScroll() {
-            const startScroll = document.getElementById('start-time-scroll');
-            startScroll.innerHTML = '';
-            for (let i=0; i<24; i++) {
-                const b = document.createElement('button');
-                b.className = 'time-btn p-2 rounded text-sm font-medium';
-                b.textContent = i.toString().padStart(2,'0')+':00';
-                b.onclick = () => {
-                    currentState.start = i;
-                    document.querySelectorAll('#start-time-scroll .time-btn').forEach(x=>x.classList.remove('selected'));
-                    b.classList.add('selected');
-                    renderEndScroll(i);
-                };
-                startScroll.appendChild(b);
+                endShiftButton.style.display = 'flex';
+            } else {
+                if (mainActionButton.textContent !== 'Начать смену') { mainActionButton.textContent = 'Начать смену'; }
+                mainActionButton.disabled = !canStartSlot;
+                endShiftButton.style.display = 'none';
             }
         }
 
-        function renderEndScroll(start) {
-            const endScroll = document.getElementById('end-time-scroll');
-            endScroll.innerHTML = '';
-            for (let h=start+2; h<=start+18; h++) {
-                const d = h >= 24 ? h-24 : h;
-                const b = document.createElement('button');
-                b.className = 'time-btn p-2 rounded text-sm font-medium';
-                b.textContent = d.toString().padStart(2,'0')+':00'+(h>=24?' (+1)':'');
-                b.onclick = () => {
-                    currentState.end = h;
-                    document.querySelectorAll('#end-time-scroll .time-btn').forEach(x=>x.classList.remove('selected'));
-                    b.classList.add('selected');
-                    document.getElementById('btn-save-interval').disabled = false;
-                };
-                endScroll.appendChild(b);
+        function initCalendar() {
+            calendarContainer.innerHTML = '';
+            const today = new Date();
+            for (let i = 0; i < 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const item = document.createElement('div');
+                item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer flex-shrink-0 w-14`;
+                if (date.toDateString() === selectedDateObj.toDateString()) {
+                    item.classList.add('selected-border');
+                    item.style.color = '#0000FF';
+                } else { item.style.color = '#fff'; }
+                item.innerHTML = `<span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
+                item.addEventListener('click', () => {
+                    if (selectedDateObj.toDateString() === date.toDateString()) return;
+                    document.querySelectorAll('.calendar-item').forEach(el => { el.classList.remove('selected-border'); el.style.color = '#fff'; });
+                    item.classList.add('selected-border');
+                    item.style.color = '#0000FF';
+                    selectedDateObj = date;
+                    renderSkeletons();
+                    fetchShiftForDate(date, true);
+                });
+                calendarContainer.appendChild(item);
             }
-            document.getElementById('end-time-wrapper').classList.remove('hidden');
-            setTimeout(()=>document.getElementById('end-time-wrapper').classList.remove('opacity-0'), 50);
         }
 
-        function closeBottomSheet() {
-            isSheetOpen = false;
-            document.getElementById('bs-backdrop').classList.add('opacity-0');
-            document.getElementById('bs-container').classList.add('translate-y-full');
-            setTimeout(() => { document.getElementById('bs-backdrop').classList.add('hidden'); document.body.style.overflow = ''; }, 300);
-        }
+        mainActionButton.addEventListener('click', async () => {
+            if (isSlotActive) { 
+                // Резкий переход к задачам (URL)
+                window.location.href = TASKS_URL;
+            } else {
+                if (canStartSlot) {
+                    mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+                    mainActionButton.disabled = true;
+                    const success = await updateShiftStatus('Open');
+                    if (success) { createNotification('success', 'Смена открыта!'); updateButtons({ shiftStatus: 'Open', canStart: false }); } else { const realData = await fetchStatusLogic(true); updateButtons(realData); }
+                }
+            }
+        });
 
-        function openDeleteConfirmation() {
-            document.getElementById('confirm-backdrop').classList.remove('hidden');
-            setTimeout(() => document.getElementById('confirm-backdrop').classList.remove('opacity-0'), 10);
-            document.getElementById('confirm-container').classList.remove('translate-y-full');
-        }
+        endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
+        cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
 
-        function closeDeleteConfirmation() {
-            document.getElementById('confirm-backdrop').classList.add('opacity-0');
-            document.getElementById('confirm-container').classList.add('translate-y-full');
-            setTimeout(() => document.getElementById('confirm-backdrop').classList.add('hidden'), 300);
-        }
+        confirmEndShiftBtn.addEventListener('click', async () => {
+            bottomSheet.classList.remove('open');
+            endShiftButton.style.display = 'none';
+            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+            mainActionButton.disabled = true;
+            const success = await updateShiftStatus('Closed');
+            if (success) { createNotification('success', 'Смена завершена'); updateButtons({ shiftStatus: 'Closed', canStart: false }); const realData = await fetchStatusLogic(true); updateButtons(realData); } else { updateButtons({ shiftStatus: 'Open' }); }
+        });
 
-        async function confirmDelete() {
-            closeDeleteConfirmation();
-            showLoading(true);
-            try {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify({
-                    action: 'delete', userEmail, authToken, date: currentState.date.toISOString()
-                })});
-                closeBottomSheet(); await loadData();
-            } catch (err) { showLoading(false); }
-        }
-
-        async function saveInterval() {
-            showLoading(true);
-            const s = currentState.start.toString().padStart(2,'0')+':00';
-            const e = (currentState.end >= 24 ? currentState.end-24 : currentState.end).toString().padStart(2,'0')+':00';
-            const suffix = currentState.end >= 24 ? ' (+1)' : '';
-            try {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify({
-                    action: 'save', userEmail, authToken, date: currentState.date.toISOString(),
-                    interval: `${s} — ${e}${suffix}`, duration: `${currentState.end - currentState.start} ч`
-                })});
-                closeBottomSheet(); await loadData();
-            } catch (err) { showLoading(false); }
-        }
-
-        window.onload = async () => {
-            await validateAccess();
-            await loadData();
-            setTimeout(() => {
-                const el = document.getElementById('today-marker');
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 500);
-            setInterval(async () => { await loadData(true); }, 5000);
-        };
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+            renderSkeletons();
+            initCalendar();
+            const authOk = await checkUserAuthentication(false);
+            if (!authOk) return;
+            const p1 = fetchShiftForDate(selectedDateObj, false); 
+            const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
+            await Promise.all([p1, p2]);
+            setInterval(async () => {
+                const stillAuth = await checkUserAuthentication(true);
+                if (stillAuth) {
+                    const statusData = await fetchStatusLogic(true);
+                    updateButtons(statusData);
+                    fetchShiftForDate(selectedDateObj, true);
+                }
+            }, INTERVAL_MS);
+        });
+        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-</html>
+    </html>
