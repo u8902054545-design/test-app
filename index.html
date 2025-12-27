@@ -266,12 +266,12 @@
     </div>
 
     <script>
-        // Ссылки для прямых переходов (Задачи и Аккаунт)
+        // Ссылки для прямых переходов
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const ACCOUNT_URL = 'https://u8902054545-design.github.io/account-darkcenter/';
 
-        // --- ОБНОВЛЕННЫЙ URL ---
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0X3FzcfIb57en_16LEWSkleZO_W9UnSYtED9RWpg9WPZ8G-m4aAnPPiH5_cqxps2Z_Q/exec';
+        // --- ОБНОВЛЕННЫЙ URL WEB APP ---
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIFsMCw7PfiQ0fRJYtCP51I5rHJowJzgeW0z7yO5t5zSeO44hAor1ie0CELtVVxEM6sg/exec';
         
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
         const INTERVAL_MS = 3000;
@@ -298,9 +298,8 @@
             window.location.href = ACCOUNT_URL;
         });
 
-        // Навигация нижней панели (только для Главной страницы, остальные ссылки в HTML)
+        // Навигация нижней панели
         document.getElementById('nav-home').addEventListener('click', () => {
-            // Мы уже на главной, можно добавить скролл вверх или обновление
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
