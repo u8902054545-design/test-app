@@ -16,6 +16,10 @@
             --md-sys-color-on-surface: #E3E3E3;
             --md-sys-error-container: #93000A;
             --md-sys-on-error-container: #FFDAD6;
+            
+            /* Настройки анимации из Кода 2 */
+            --transition-duration: 600ms;
+            --transition-timing: cubic-bezier(0.2, 0, 0, 1);
         }
 
         body {
@@ -23,21 +27,55 @@
             background-color: #0F0F0F;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
+            overflow: hidden; /* Важно для анимации */
             -webkit-user-select: none; 
             user-select: none; 
         }
 
-        .screen-container {
+        /* --- КОНТЕЙНЕР ДЛЯ АНИМАЦИИ --- */
+        /* Этот контейнер будет анимироваться */
+        .page-transition-wrapper {
             width: 100%;
             height: 100%;
             position: relative;
-            overflow-y: auto;
+            overflow-y: auto; /* Скролл внутри враппера */
             padding-bottom: 100px;
+            background-color: #0F0F0F;
+            
+            /* Базовые свойства перехода */
+            transition: transform var(--transition-duration) var(--transition-timing), 
+                        opacity var(--transition-duration) var(--transition-timing);
+            will-change: transform, opacity;
+        }
+        
+        /* Скрытие скроллбара */
+        .page-transition-wrapper::-webkit-scrollbar { display: none; }
+        .page-transition-wrapper { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* --- СОСТОЯНИЯ АНИМАЦИИ --- */
+
+        /* Состояние: Страница уходит "Вперёд" (Exit Forward) */
+        /* Имитация: текущий экран сдвигается влево и затемняется */
+        .page-exit-forward {
+            transform: translateX(-25%) scale(0.92) !important;
+            opacity: 0;
+            pointer-events: none;
         }
 
-        .screen-container::-webkit-scrollbar { display: none; }
-        .screen-container { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Состояние: Страница появляется "Назад" (Enter Backward) - начальная точка */
+        /* Имитация: экран прилетает слева или проявляется из глубины */
+        .page-enter-backward-initial {
+            transform: translateX(-10%) scale(0.95);
+            opacity: 0;
+        }
+
+        /* Активное состояние (нормальный вид) */
+        .page-active {
+            transform: translateX(0) scale(1);
+            opacity: 1;
+        }
+
+        /* --- ОСТАЛЬНЫЕ СТИЛИ (Legacy) --- */
 
         .header-style {
             border-bottom-left-radius: 24px;
@@ -64,6 +102,15 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             z-index: 50;
             box-sizing: border-box;
+            /* Навигация должна оставаться поверх анимации страницы */
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        /* Скрываем навбар при переходе со страницы */
+        .nav-hidden {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+            pointer-events: none;
         }
 
         .nav-item {
@@ -127,9 +174,8 @@
         .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
         .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
 
-        /* Специальный класс для БЛОКИРУЮЩЕГО окна ошибки */
         .auth-blocker {
-            background-color: rgba(0,0,0,0.95); /* Почти полная непрозрачность */
+            background-color: rgba(0,0,0,0.95); 
             backdrop-filter: blur(5px);
         }
 
@@ -188,7 +234,7 @@
 
     <div id="notification-area"></div>
 
-    <div class="screen-container">
+    <div id="page-wrapper" class="page-transition-wrapper page-enter-backward-initial">
         <header class="w-full header-style sticky top-0 z-30">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div class="flex justify-between items-center h-8 mb-4">
@@ -211,11 +257,11 @@
 
     <nav class="nav-bar" id="main-nav">
         <div class="nav-item active" id="nav-home"><i data-lucide="home"></i></div>
-        <a href="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" class="nav-item" id="nav-schedule"><i data-lucide="calendar-days"></i></a>
-        <a href="https://u8902054545-design.github.io/cloud-center/" class="nav-item" id="nav-cloud"><i data-lucide="map-pin"></i></a>
-        <a href="https://u8902054545-design.github.io/payments-darkcenter" class="nav-item" id="nav-payments"><i data-lucide="credit-card"></i></a>
-        <a href="https://u8902054545-design.github.io/education-darkcenter" class="nav-item" id="nav-education"><i data-lucide="graduation-cap"></i></a>
-        <a href="https://u8902054545-design.github.io/chats-darkcenter" class="nav-item" id="nav-chats"><i data-lucide="message-square-more"></i></a>
+        <div class="nav-item" id="nav-schedule" data-href="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/"><i data-lucide="calendar-days"></i></div>
+        <div class="nav-item" id="nav-cloud" data-href="https://u8902054545-design.github.io/cloud-center/"><i data-lucide="map-pin"></i></div>
+        <div class="nav-item" id="nav-payments" data-href="https://u8902054545-design.github.io/payments-darkcenter"><i data-lucide="credit-card"></i></div>
+        <div class="nav-item" id="nav-education" data-href="https://u8902054545-design.github.io/education-darkcenter"><i data-lucide="graduation-cap"></i></div>
+        <div class="nav-item" id="nav-chats" data-href="https://u8902054545-design.github.io/chats-darkcenter"><i data-lucide="message-square-more"></i></div>
     </nav>
     
     <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
@@ -247,6 +293,40 @@
     </div>
 
     <script>
+        // --- ANIMATION LOGIC START ---
+        
+        // Функция для перехода с анимацией (Вперёд)
+        function navigateWithAnimation(url) {
+            if (!url) return;
+            
+            const wrapper = document.getElementById('page-wrapper');
+            const navBar = document.getElementById('main-nav');
+            
+            // Запускаем анимацию выхода
+            wrapper.classList.add('page-exit-forward');
+            navBar.classList.add('nav-hidden');
+            
+            // Ждем завершения анимации (600ms как в CSS)
+            setTimeout(() => {
+                window.location.href = url;
+            }, 600);
+        }
+
+        // Навешиваем обработчики на навигацию
+        document.querySelectorAll('.nav-item[data-href]').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Удаляем active у всех, добавляем текущему (визуальный отклик перед уходом)
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+                
+                const url = item.getAttribute('data-href');
+                navigateWithAnimation(url);
+            });
+        });
+
+        // --- ANIMATION LOGIC END ---
+
         // Ссылки
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const ACCOUNT_URL = 'https://u8902054545-design.github.io/account-darkcenter/';
@@ -277,9 +357,15 @@
         const calendarContainer = document.getElementById('calendar-strip');
         const mainContent = document.getElementById('main-content');
 
-        // Навигация
-        document.getElementById('profile-button').addEventListener('click', () => { if(!isAuthErrorVisible) window.location.href = ACCOUNT_URL; });
-        document.getElementById('nav-home').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        // Навигация (Профиль также используем через функцию анимации, если нужно)
+        document.getElementById('profile-button').addEventListener('click', () => { 
+            if(!isAuthErrorVisible) navigateWithAnimation(ACCOUNT_URL); 
+        });
+        
+        document.getElementById('nav-home').addEventListener('click', () => { 
+            // Это текущая страница, просто скролл вверх
+            document.getElementById('page-wrapper').scrollTo({ top: 0, behavior: 'smooth' }); 
+        });
 
         function showLoading() { loadingOverlay.classList.add('visible'); }
         function hideLoading() { loadingOverlay.classList.remove('visible'); }
@@ -341,7 +427,8 @@
 
         authLoginBtn.addEventListener('click', () => {
              authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
-             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
+             // Анимация при переходе на логин
+             navigateWithAnimation(LOGOUT_URL);
         });
 
         async function checkUserAuthentication(isSilent = false) {
@@ -501,11 +588,10 @@
                 const freshData = await fetchStatusLogic(true);
                 
                 if (isSlotActive) {
-                    // --- ПЕРЕХОД К ЗАДАЧАМ ---
-                    // Проверяем, действительно ли смена открыта на сервере
+                    // --- ПЕРЕХОД К ЗАДАЧАМ С АНИМАЦИЕЙ ---
                     if (freshData && freshData.shiftStatus === 'Open') {
-                        window.location.href = TASKS_URL;
-                        // Не снимаем флаг isProcessingAction, так как уходим со страницы
+                        // Используем функцию анимации вместо прямого редиректа
+                        navigateWithAnimation(TASKS_URL);
                     } else {
                         createNotification('error', 'Ошибка: Смена закрыта или не найдена');
                         updateButtons(freshData); // Обновляем состояние кнопки
@@ -564,6 +650,16 @@
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', async () => {
+            
+            // --- ЗАПУСК АНИМАЦИИ ВХОДА ---
+            // Убираем начальный класс смещения, запускаем плавный переход на место
+            requestAnimationFrame(() => {
+                const wrapper = document.getElementById('page-wrapper');
+                wrapper.classList.remove('page-enter-backward-initial');
+                wrapper.classList.add('page-active');
+            });
+            // ------------------------------
+
             lucide.createIcons();
             mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             renderSkeletons();
@@ -587,8 +683,6 @@
                         const statusData = await fetchStatusLogic(true);
                         
                         // Логика обнаружения открытия смены с другого устройства
-                        // Если локально мы думаем, что смена закрыта (!isSlotActive),
-                        // а сервер говорит, что она открыта ('Open'), значит, это произошло удаленно.
                         if (statusData && statusData.shiftStatus === 'Open' && !isSlotActive) {
                              createNotification('success', 'Смена открыта с другого устройства/приложения');
                         }
