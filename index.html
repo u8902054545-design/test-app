@@ -118,6 +118,42 @@
             border-radius: 50%; bottom: 8px;
         }
 
+        /* --- NEW CARD STYLES --- */
+        .m3-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #0000FF; 
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 255, 0.15);
+        }
+
+        .m3-card:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Glass pill for duration */
+        .glass-pill {
+            background: rgba(0, 0, 255, 0.1);
+            border: 1px solid rgba(0, 0, 255, 0.3);
+            color: #fff;
+        }
+
+        /* Custom Button in Card */
+        .btn-card-action {
+            background-color: #0000FF;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 255, 0.3);
+        }
+        .btn-card-action:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 255, 0.3);
+        }
+
         /* --- BOTTOM SHEETS --- */
         .bottom-sheet-overlay {
             visibility: hidden; opacity: 0;
@@ -128,7 +164,7 @@
         .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
 
         .auth-blocker {
-            background-color: rgba(0,0,0,0.95); 
+            background-color: rgba(0,0,0,0.95);
             backdrop-filter: blur(5px);
         }
 
@@ -156,38 +192,6 @@
             opacity: 0; visibility: hidden; pointer-events: none; 
         }
         #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
-
-        /* --- NEW CARD STYLES (M3 GLASS) --- */
-        .m3-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid #0000FF; /* Цвет рамки #0000FF */
-            border-radius: 24px;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(12px);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 24px -1px rgba(0, 0, 255, 0.15); /* Тень синеватая */
-        }
-        
-        .m3-card:active {
-            transform: scale(0.98);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .m3-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-            transition: left 0.5s;
-        }
-        .m3-card:active::before { left: 100%; }
-
-        .glass-pill {
-            background: rgba(0, 0, 255, 0.05);
-            border: 1px solid rgba(0, 0, 255, 0.3);
-            color: #fff;
-        }
 
         .skeleton-shimmer { position: relative; overflow: hidden; background-color: #1A1A1A; }
         .skeleton-shimmer::after {
@@ -223,7 +227,6 @@
                     </button>
                 </div>
                 <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
-                
                 <div id="shift-action-container" class="w-full mt-4 flex">
                     <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
                     <button id="main-action-button" class="w-full flex items-center justify-center text-center text-white font-bold transition-all duration-300 shadow-lg disabled:opacity-50" style="padding: 14px; border-radius: 6px; background-color: #0000FF; height: 50px;">
@@ -232,8 +235,9 @@
                 </div>
             </div>
         </header>
-
-        <main class="flex flex-col items-center justify-start min-h-[50vh] pt-2 px-4 w-full" id="main-content"></main>
+        
+        <main class="flex flex-col items-center justify-start pt-2 px-4 w-full" id="main-content">
+            </main>
     </div>
 
     <nav class="nav-bar" id="main-nav">
@@ -281,8 +285,9 @@
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
         
         // Настройки
-        const REFRESH_INTERVAL = 3000; // 3 секунды
+        const REFRESH_INTERVAL = 3000;
         const BUTTON_SPINNER_SVG = `<svg class="spinner-mini" viewBox="0 0 50 50"><circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
+        const HOURLY_RATE = 366; // Для примерного расчета дохода
 
         // Состояние
         let isSlotActive = false;
@@ -290,7 +295,7 @@
         let selectedDateObj = new Date();
         let lastRenderedState = null; 
         let isAuthErrorVisible = false;
-        let isProcessingAction = false; // Блокировка повторных нажатий
+        let isProcessingAction = false; 
 
         // Элементы
         const loadingOverlay = document.getElementById('loadingOverlay');
@@ -330,14 +335,30 @@
             return `${d}.${m}.${y}`;
         }
 
-        // Рендеринг (скелетоны, карточки, пусто)
+        // --- RENDER LOGIC UPDATED FOR NEW CARD ---
+
         function renderSkeletons() {
             lastRenderedState = "skeleton";
-            let html = '<div class="w-full flex flex-col space-y-4 fade-in">';
-            for(let i=0; i<3; i++) {
-                html += `<div class="w-full skeleton-shimmer p-3 rounded-xl shadow-lg flex justify-between items-center mt-2 h-[68px]"><div class="flex items-center space-x-2"><div class="flex-shrink-0 w-7 h-7 rounded-full skeleton-block"></div><div class="flex flex-col space-y-2"><div class="w-20 h-3 skeleton-block"></div><div class="w-24 h-4 skeleton-block"></div></div></div><div class="w-16 h-6 skeleton-block"></div></div>`;
-            }
-            html += '</div>';
+            // Скелетон под большую карточку
+            let html = `
+            <div class="w-full flex flex-col space-y-2 fade-in mt-2">
+                <div class="flex justify-between items-end px-1">
+                    <div class="w-32 h-6 skeleton-block skeleton-shimmer"></div>
+                    <div class="w-20 h-6 rounded-full skeleton-block skeleton-shimmer"></div>
+                </div>
+                <div class="w-full m3-card p-6 h-[220px] flex flex-col justify-between skeleton-shimmer border border-[#0000FF]/30">
+                     <div class="flex justify-between">
+                         <div class="w-40 h-8 skeleton-block bg-[#2A2A2A]"></div>
+                         <div class="w-16 h-12 rounded-xl skeleton-block bg-[#2A2A2A]"></div>
+                     </div>
+                     <div class="w-full h-px bg-[#2A2A2A] my-4"></div>
+                     <div class="flex justify-between items-center">
+                         <div class="w-24 h-10 skeleton-block bg-[#2A2A2A]"></div>
+                         <div class="w-20 h-8 skeleton-block bg-[#2A2A2A]"></div>
+                     </div>
+                </div>
+                <div class="w-full h-12 rounded-xl skeleton-block skeleton-shimmer mt-2"></div>
+            </div>`;
             mainContent.innerHTML = html;
         }
 
@@ -349,43 +370,114 @@
             lucide.createIcons();
         }
 
-        // --- ОБНОВЛЕННАЯ ФУНКЦИЯ КАРТОЧКИ (Стиль M3/Code 2, Цвет #0000FF) ---
+        // Расчет "Через N часов" (приблизительный парсинг)
+        function getTimeDifferenceText(timeStr) {
+            try {
+                // Ожидаем формат "HH:mm - HH:mm"
+                const startTime = timeStr.split('-')[0].trim();
+                const [hours, minutes] = startTime.split(':').map(Number);
+                
+                const now = new Date();
+                const shiftStart = new Date(selectedDateObj);
+                shiftStart.setHours(hours, minutes, 0, 0);
+
+                // Если смена сегодня и время прошло, или дата прошла
+                if (shiftStart < now) {
+                    return "Сейчас идет";
+                }
+
+                const diffMs = shiftStart - now;
+                const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                
+                if (diffHrs > 24) return ""; // Слишком долго
+                if (diffHrs < 1) return "Скоро";
+                return `Через ${diffHrs} ч.`;
+            } catch (e) {
+                return "";
+            }
+        }
+
+        function parseDuration(durationStr) {
+            // Пытаемся вытащить число из строки "12 ч", "12 hours" и т.д.
+            const match = durationStr.match(/(\d+)/);
+            return match ? parseInt(match[0]) : 0;
+        }
+
         function renderShiftCard(shiftData) {
             const stateKey = `card-${shiftData.time}-${shiftData.duration}`;
             if (lastRenderedState === stateKey) return;
             lastRenderedState = stateKey;
-            
-            // Здесь мы используем структуру из 2 кода, но с данными из 1 кода
-            // И применяем цвет #0000FF для рамки и акцентов
+
+            const timeDiffText = getTimeDifferenceText(shiftData.time);
+            const hoursDuration = parseDuration(shiftData.duration || "0");
+            const estimatedIncome = hoursDuration * HOURLY_RATE;
+            const incomeFormatted = estimatedIncome > 0 ? `≈ ${estimatedIncome.toLocaleString('ru-RU')} ₽` : "Расчет...";
+
             mainContent.innerHTML = `
-            <article class="m3-card w-full p-5 mb-4 fade-in">
-                <div class="flex items-center justify-between mb-5">
-                    <div class="flex flex-col">
-                        <div class="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
-                            ${shiftData.time}
+            <div class="w-full max-w-[400px] fade-in mt-2">
+                <div class="flex justify-between items-end mb-3 px-1">
+                    <h2 class="text-xl font-semibold tracking-tight text-white">Ближайшая смена</h2>
+                    ${timeDiffText ? `
+                    <div class="flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium animate-pulse" style="color: #0000FF; background-color: rgba(0,0,255,0.1); border-color: rgba(0,0,255,0.2);">
+                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                        <span>${timeDiffText}</span>
+                    </div>` : ''}
+                </div>
+
+                <article class="m3-card p-6 mb-4">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex flex-col">
+                            <div class="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
+                                ${shiftData.time}
+                            </div>
+                            <div class="text-sm text-gray-500 font-medium mt-1">
+                                ${selectedDateObj.toLocaleDateString('ru-RU', {day: 'numeric', month: 'short'})}
+                            </div>
                         </div>
-                        <div class="text-sm text-gray-500 font-medium mt-1">Сегодня, ${selectedDateObj.toLocaleDateString('ru-RU', {day:'numeric', month:'short'})}</div>
+
+                        <div class="glass-pill px-3 py-1.5 rounded-xl flex flex-col items-center justify-center min-w-[60px]">
+                            <span class="text-lg font-bold text-gray-200 leading-none">${hoursDuration || '-'}</span>
+                            <span class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">часов</span>
+                        </div>
                     </div>
 
-                    <div class="glass-pill px-3 py-2 rounded-xl flex flex-col items-center justify-center min-w-[60px]" style="border-color: #0000FF; background-color: rgba(0,0,255,0.05);">
-                        <span class="text-lg font-bold text-white leading-none">${shiftData.duration || '--'}</span>
-                        <span class="text-[10px] uppercase text-gray-400 font-bold tracking-wider mt-1">Часов</span>
-                    </div>
-                </div>
+                    <div class="h-px w-full bg-gradient-to-r from-transparent via-[#0000FF] to-transparent mb-6 opacity-30"></div>
 
-                <div class="h-px w-full bg-gray-800 mb-5"></div>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2.5 rounded-xl border" style="background-color: rgba(0,0,255,0.1); border-color: rgba(0,0,255,0.1);">
+                                    <i data-lucide="wallet" class="w-5 h-5" style="color: #0000FF;"></i>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">Доход</span>
+                                    <span class="text-2xl font-bold text-white tracking-tight">${incomeFormatted}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="text-right">
+                                <div class="flex items-center justify-end gap-1.5 text-sm font-medium mb-0.5" style="color: #0000FF;">
+                                    <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                                    <span>Эффективно</span>
+                                </div>
+                                <div class="text-sm text-gray-400">
+                                    ≈ ${HOURLY_RATE} ₽ / час
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
 
-                <div class="flex items-center gap-3">
-                    <div class="p-2.5 rounded-xl border" style="background-color: rgba(0, 0, 255, 0.1); border-color: rgba(0, 0, 255, 0.2);">
-                        <i data-lucide="wallet" class="w-5 h-5" style="color: #0000FF;"></i>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">Статус смены</span>
-                        <span class="text-xl font-bold text-white tracking-tight">Подтверждена</span>
-                    </div>
-                </div>
-            </article>
-            `;
+                <button class="w-full btn-card-action h-12 rounded-xl flex items-center justify-center gap-2 font-medium text-white group relative overflow-hidden">
+                    <span class="relative z-10">Подробнее о смене</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 relative z-10 transition-transform group-hover:translate-x-1"></i>
+                </button>
+
+                <p class="mt-4 text-center text-xs text-gray-600">
+                    Расчет является предварительным
+                </p>
+            </div>`;
+            
             lucide.createIcons();
         }
 
@@ -543,7 +635,6 @@
         mainActionButton.addEventListener('click', async () => {
             if (isProcessingAction) return;
             isProcessingAction = true;
-
             mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             mainActionButton.disabled = true;
 
@@ -628,20 +719,13 @@
 
                 setInterval(async () => {
                     if (isAuthErrorVisible) return;
-
-                    const stillAuth = await checkUserAuthentication(true);
-                    
+                    const stillAuth = await checkUserAuthentication(true); 
                     if (stillAuth) {
                         const statusData = await fetchStatusLogic(true);
-                        
                         if (statusData && statusData.shiftStatus === 'Open' && !isSlotActive) {
-                             createNotification('success', 'Смена открыта с другого устройства/приложения');
+                             createNotification('success', 'Смена открыта с другого устройства');
                         }
-
-                        if (!isProcessingAction) {
-                            updateButtons(statusData);
-                        }
-                        
+                        if (!isProcessingAction) updateButtons(statusData);
                         fetchShiftForDate(selectedDateObj, true);
                     }
                 }, REFRESH_INTERVAL);
@@ -651,4 +735,4 @@
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-    </html>
+</html>
