@@ -70,7 +70,7 @@
             background: var(--m3-surface);
             z-index: 9999;
             display: flex;
-            flex-col: column;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             transition: opacity 0.5s ease;
@@ -85,7 +85,6 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Page Transitions */
         .page {
             position: fixed;
             inset: 0;
@@ -317,7 +316,7 @@
                 <div id="interactive-area" class="opacity-40 pointer-events-none transition-opacity duration-300 w-full">
                     <h2 class="text-xs font-bold uppercase tracking-widest mb-3 text-blue-500 opacity-80">Python Source (Initial)</h2>
                     <div class="bg-[#000] rounded-[24px] p-6 border border-[#333] relative w-full shadow-lg">
-                        <pre id="python-code-block" class="text-sm text-[#A6E22E] font-['Fira_Code']"># Загрузка задания из Google Docs...</pre>
+                        <pre id="python-code-block" class="text-sm text-[#A6E22E] font-['Fira_Code']"># Загрузка кода...</pre>
                         <button onclick="copyCode()" class="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full text-blue-400">
                             <i data-lucide="copy" class="w-5 h-5"></i>
                         </button>
@@ -405,8 +404,7 @@ push_to_main_stream(blocks_data)</pre>
 
     <script>
         // --- CONFIGURATION ---
-        // НОВЫЙ URL СКРИПТА
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzucrMM49KHGcOyAXuvU2Y5jngNAv_3UqlFQOpyFgqgNbyVWvB_69o7HsHHCA-M-SbY/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYIThLvfF1N6s2PhzvqvI5Q7YP_XWARDGVF80sjDyjAbUX34WeSazYBooafEBN2--Y/exec';
         const AUTH_REDIRECT_URL = "https://u8902054545-design.github.io/Auth-ITC-Platform/";
         const SHIFT_REDIRECT_URL = "https://u8902054545-design.github.io/DarkCenter-Cloud-User-Main/";
 
@@ -469,7 +467,6 @@ push_to_main_stream(blocks_data)</pre>
         let userActiveTasks = [];
         let activeTaskId = null;
         let returnClickCount = 0;
-        let isFetching = false;
         
         // Elements
         const tasksContainer = document.getElementById('tasks-container');
@@ -488,32 +485,12 @@ push_to_main_stream(blocks_data)</pre>
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        // НОВАЯ ФУНКЦИЯ: ПОДГРУЗКА PYTHON КОДА
-        async function fetchPythonSource() {
-            const codeBlock = document.getElementById('python-code-block');
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=getPythonCode`);
-                const data = await response.json();
-                if (data.status === 'Success') {
-                    codeBlock.textContent = data.code;
-                } else {
-                    codeBlock.textContent = "# Не удалось загрузить код.\n# Пожалуйста, обновите страницу.";
-                    console.error("Code load error:", data);
-                }
-            } catch (e) {
-                console.error("Code fetch error:", e);
-                codeBlock.textContent = "# Ошибка соединения при загрузке кода.\n# Проверьте интернет.";
-            }
-        }
-
-        // 1. Fetch Waiting Tasks (Pool)
         async function fetchTasks() {
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getTasks`);
                 const serverTasks = await response.json();
                 const serverIds = serverTasks.map(st => st.id);
 
-                // Если задача пропала из пула, но мы её не взяли и не она у нас в активе - просто удаляем из DOM
                 poolTasks = poolTasks.filter(t => {
                     if (!serverIds.includes(t.id)) {
                         t.element.remove();
@@ -525,7 +502,7 @@ push_to_main_stream(blocks_data)</pre>
                 serverTasks.forEach(st => {
                     const existing = poolTasks.find(t => t.id === st.id);
                     if (existing) {
-                         existing.durationSeconds = st.durationSeconds; // sync time
+                         existing.durationSeconds = st.durationSeconds;
                     } else {
                         const taskObj = createTaskIdObj(st.id, st.durationSeconds, false);
                         poolTasks.push(taskObj);
@@ -539,7 +516,6 @@ push_to_main_stream(blocks_data)</pre>
             } catch (error) { console.error('Fetch pool error:', error); }
         }
 
-        // 2. Fetch User Active Tasks (In Progress)
         async function fetchUserActiveTasks() {
             const email = localStorage.getItem('userEmail');
             if(!email) return;
@@ -548,10 +524,8 @@ push_to_main_stream(blocks_data)</pre>
                 const response = await fetch(`${SCRIPT_URL}?action=getUserActiveTasks&email=${encodeURIComponent(email)}`);
                 const activeData = await response.json();
                 
-                // Diff logic similar to pool
                 const activeIds = activeData.map(t => t.id);
                 
-                // Remove finished or vanished
                 userActiveTasks = userActiveTasks.filter(t => {
                     if (!activeIds.includes(t.id)) {
                         t.element.remove();
@@ -564,7 +538,7 @@ push_to_main_stream(blocks_data)</pre>
                     const existing = userActiveTasks.find(t => t.id === st.id);
                     if (existing) {
                         existing.durationSeconds = st.durationSeconds;
-                        existing.stage = st.stage; // Update stage from server
+                        existing.stage = st.stage;
                     } else {
                         const taskObj = createTaskIdObj(st.id, st.durationSeconds, true, st.stage);
                         userActiveTasks.push(taskObj);
@@ -581,12 +555,7 @@ push_to_main_stream(blocks_data)</pre>
 
         function createTaskIdObj(id, duration, isActive, stage = 'ASSEMBLY') {
             const card = document.createElement('div');
-            // Если задача активная, даем ей особый стиль
             card.className = isActive ? 'm3-card m3-card-active w-full text-left' : 'm3-card w-full text-left';
-            
-            // Onclick behavior:
-            // Pool task -> openAssembly (standard)
-            // Active task -> restoreSession (restore state)
             card.onclick = isActive ? () => restoreSession(id, stage) : () => openAssembly(id);
 
             card.innerHTML = `
@@ -610,7 +579,6 @@ push_to_main_stream(blocks_data)</pre>
             const count = poolTasks.length;
             taskCounterContainer.classList.toggle('hidden', count === 0);
             tasksContainer.classList.toggle('hidden', count === 0);
-            // Если активных задач нет, показываем empty state при пустом пуле
             if(userActiveTasks.length === 0) {
                  emptyState.classList.toggle('hidden', count > 0);
             } else {
@@ -676,37 +644,32 @@ push_to_main_stream(blocks_data)</pre>
         // --- NAVIGATION & STAGES ---
 
         function resetTaskState() {
-            // Очистка полей ввода финального этапа
             document.getElementById('final-block-1').value = '';
             document.getElementById('final-block-2').value = '';
+            document.getElementById('python-code-block').innerText = 'Загрузка кода...';
             
-            // Сброс визуального отображения кода
             const codeEntry = document.getElementById('final-code-entry');
             codeEntry.textContent = 'Waiting for inputs...';
             codeEntry.className = 'bg-purple-900/50 px-2 rounded italic text-white/50';
 
-            // Полный сброс кнопки "Завершить выполнение"
             const finishBtn = document.getElementById('finish-task-btn');
             finishBtn.disabled = false;
             finishBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> Завершить выполнение';
             finishBtn.classList.remove('!bg-red-500');
 
-            // Очистка поля токена (если использовалось)
             document.getElementById('token-input').value = '';
         }
 
-        // 1. Open New Task from Pool
         function openAssembly(id) {
             activeTaskId = id;
             returnClickCount = 0;
             fabRestore.classList.remove('visible');
             
-            resetTaskState(); // Сброс данных предыдущей задачи
+            resetTaskState();
 
             document.getElementById('header-task-id').textContent = id;
             setupPageTransition();
 
-            // Reset UI for "New Start"
             document.getElementById('stage-coding').classList.remove('hidden');
             document.getElementById('stage-final').classList.add('hidden');
             document.getElementById('start-overlay').style.display = 'flex';
@@ -721,37 +684,33 @@ push_to_main_stream(blocks_data)</pre>
             setAssemblyLabel('Текущая задача', 'blue');
         }
 
-        // 2. Restore Active Task Session
-        function restoreSession(id, stage) {
+        async function restoreSession(id, stage) {
             activeTaskId = id;
             returnClickCount = 0;
             fabRestore.classList.remove('visible');
             
-            resetTaskState(); // Сброс данных, чтобы поля были чистыми при переключении
+            resetTaskState();
 
             document.getElementById('header-task-id').textContent = id;
             setupPageTransition();
-
-            // It's already started, so hide start button
             document.getElementById('start-overlay').style.display = 'none';
 
+            // При восстановлении сессии тоже подгружаем код
+            loadPythonCode();
+
             if (stage === 'FINAL') {
-                // Restore to Final Stage
                 document.getElementById('stage-coding').classList.add('hidden');
                 document.getElementById('stage-final').classList.remove('hidden');
                 fabRestore.classList.add('visible');
                 setAssemblyLabel('Финальный этап', 'purple');
             } else {
-                // Restore to Coding Stage (Already unlocked)
                 document.getElementById('stage-coding').classList.remove('hidden');
                 document.getElementById('stage-final').classList.add('hidden');
-                
                 document.getElementById('interactive-area').style.opacity = '1';
                 document.getElementById('interactive-area').style.pointerEvents = 'auto';
                 document.getElementById('action-area').classList.remove('hidden');
                 document.getElementById('secondary-btn').classList.remove('visible');
-                document.getElementById('return-code-btn').disabled = true; // User needs to copy again if they left
-                
+                document.getElementById('return-code-btn').disabled = true;
                 setAssemblyLabel('Текущая задача', 'blue');
             }
         }
@@ -782,13 +741,26 @@ push_to_main_stream(blocks_data)</pre>
                 assemblyPage.classList.add('page-hidden');
                 fabRestore.classList.remove('visible');
                 closeAllSheets();
-                // Refresh lists
                 fetchTasks();
                 fetchUserActiveTasks();
             }, 500);
         }
 
         // --- ACTIONS ---
+
+        // Загрузка кода из GAS
+        async function loadPythonCode() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getPythonCode`);
+                const data = await response.json();
+                if (data.code) {
+                    document.getElementById('python-code-block').innerText = data.code;
+                }
+            } catch (e) {
+                console.error("Code load error:", e);
+                document.getElementById('python-code-block').innerText = "# Ошибка загрузки кода сервера";
+            }
+        }
 
         async function startAssembly() {
             const btn = document.getElementById('btn-start-assembly');
@@ -800,7 +772,9 @@ push_to_main_stream(blocks_data)</pre>
             const email = localStorage.getItem('userEmail');
 
             try {
-                // Action: startTask
+                // Сначала грузим код, потом регистрируем старт
+                await loadPythonCode();
+
                 const response = await fetch(`${SCRIPT_URL}?action=startTask&email=${encodeURIComponent(email)}&taskId=${encodeURIComponent(activeTaskId)}`);
                 const result = await response.json();
 
@@ -809,7 +783,6 @@ push_to_main_stream(blocks_data)</pre>
                     document.getElementById('interactive-area').style.opacity = '1';
                     document.getElementById('interactive-area').style.pointerEvents = 'auto';
                     document.getElementById('action-area').classList.remove('hidden');
-                    // Refresh background lists so it moves from pool to active
                     fetchTasks();
                     fetchUserActiveTasks();
                 } else {
@@ -872,17 +845,13 @@ push_to_main_stream(blocks_data)</pre>
             }
         }
 
-        // UPDATE STAGE TO FINAL
         function handleTableClose() {
             closeAllSheets();
-            
-            // UI Transition
             document.getElementById('stage-coding').classList.add('hidden');
             document.getElementById('stage-final').classList.remove('hidden');
             fabRestore.classList.add('visible');
             setAssemblyLabel('Финальный этап', 'purple');
             
-            // Server Update
             const email = localStorage.getItem('userEmail');
             if (activeTaskId && email) {
                 fetch(`${SCRIPT_URL}?action=updateStage&email=${encodeURIComponent(email)}&taskId=${encodeURIComponent(activeTaskId)}&stage=FINAL`)
@@ -918,7 +887,6 @@ push_to_main_stream(blocks_data)</pre>
             const email = localStorage.getItem('userEmail');
             const btn = document.getElementById('finish-task-btn');
             btn.disabled = true;
-            const originalContent = btn.innerHTML;
             btn.innerHTML = `<span class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Сохранение...`;
 
             try {
@@ -956,7 +924,6 @@ push_to_main_stream(blocks_data)</pre>
 
         function initAppLogic() {
             lucide.createIcons();
-            fetchPythonSource(); // ЗАГРУЖАЕМ КОД ПРИ СТАРТЕ
             performBackgroundUpdates(); 
             setInterval(tickTimers, 1000); 
             setInterval(performBackgroundUpdates, 4000); 
