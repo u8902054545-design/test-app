@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Task Manager & Assembly System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <script type="module">
@@ -32,11 +32,11 @@
 
     <style>
         :root {
-            /* Обновленная цветовая палитра (Blue Material Design 3) */
-            --m3-surface: #0b1219; /* Темно-синий фон */
+            /* Palette */
+            --m3-surface: #0b1219;
             --m3-on-surface: #E6E1E5;
-            --m3-surface-container: #161c24; /* Чуть светлее темно-синий */
-            --m3-primary: #a8c7fa; /* Светло-голубой для акцентов текста */
+            --m3-surface-container: #161c24;
+            --m3-primary: #a8c7fa;
             --m3-on-primary: #ffffff;
             --m3-secondary-container: #232a3b;
             --m3-on-secondary-container: #dce4f0;
@@ -47,7 +47,6 @@
             --m3-warning-container: #633b00;
             --m3-on-warning-container: #ffdcbe;
             
-            /* Главный цвет кнопок по запросу */
             --md-sys-color-primary: #0000FF; 
             
             --md-sys-color-outline: #4f5b68;
@@ -67,7 +66,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- NEW SPINNER STYLES (FROM CODE 2) --- */
+        /* --- SPINNER --- */
         .spinner {
             width: 48px; 
             height: 48px;
@@ -76,125 +75,82 @@
             display: block;
         }
 
-        .spinner-btn {
-            width: 24px;
-            height: 24px;
-        }
-
+        .spinner-btn { width: 24px; height: 24px; }
+        
         .path {
-            stroke: #0000FF; /* Синий цвет по умолчанию */
+            stroke: #0000FF;
             stroke-linecap: round;
             stroke-width: 4; 
             stroke-dasharray: 1, 150; 
             animation: dash 1.5s ease-in-out infinite; 
         }
 
-        .path-white {
-            stroke: #FFFFFF !important; /* Белый цвет для кнопок */
-        }
+        .path-white { stroke: #FFFFFF !important; }
 
-        @keyframes rotate {
-            100% { transform: rotate(360deg); }
-        }
-
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
         @keyframes dash {
-            0% {
-                stroke-dasharray: 1, 150;
-                stroke-dashoffset: 0;
-            }
-            50% {
-                stroke-dasharray: 70, 150; 
-                stroke-dashoffset: -25px;
-            }
-            100% {
-                stroke-dasharray: 70, 150;
-                stroke-dashoffset: -125px;
-            }
+            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 70, 150; stroke-dashoffset: -25px; }
+            100% { stroke-dasharray: 70, 150; stroke-dashoffset: -125px; }
         }
 
-        /* --- LOADING SCREEN --- */
+        /* --- LAYOUT --- */
         #auth-loader {
-            position: fixed;
-            inset: 0;
-            background: var(--m3-surface);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: fixed; inset: 0; background: var(--m3-surface); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 0.5s ease;
         }
 
         .page {
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0; 
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s, filter 0.5s;
-            background: var(--m3-surface);
-            z-index: 10;
-            overflow-y: auto;
+            background: var(--m3-surface); z-index: 10; overflow-y: auto;
+            padding-bottom: 100px; /* Space for bottom bar */
         }
         .page-hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
         .page-active { transform: translateX(0); opacity: 1; z-index: 20; }
-        
         .page-back-exit { transform: translateX(100%); opacity: 0; }
         .page-back-enter { transform: scale(0.92); opacity: 0.5; filter: brightness(0.5); }
 
         .sticky-header {
-            position: sticky;
-            top: 0;
-            height: 64px;
+            position: sticky; top: 0; height: 64px;
             background-color: var(--m3-surface);
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; z-index: 100;
             border-bottom: 1px solid rgba(230, 225, 229, 0.1);
+        }
+        
+        /* Updated Page Titles */
+        .page-title {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            font-size: 16px; font-weight: 700; color: white;
+            white-space: nowrap;
         }
 
         .m3-card {
             background-color: var(--m3-surface-container);
-            border-radius: 16px;
-            padding: 16px;
+            border-radius: 16px; padding: 16px;
             transition: transform 0.2s ease;
-            border: 1px solid transparent;
-            cursor: pointer;
+            border: 1px solid transparent; cursor: pointer;
         }
         .m3-card:active { transform: scale(0.98); }
-        
-        .m3-card-active {
-            background-color: var(--active-task-color);
-            border: 1px solid var(--md-sys-color-primary);
-        }
+        .m3-card-active { background-color: var(--active-task-color); border: 1px solid var(--md-sys-color-primary); }
 
         .m3-chip {
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-weight: 500;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            justify-content: center;
+            border-radius: 8px; padding: 6px 12px;
+            font-weight: 500; font-size: 0.85rem;
+            display: inline-flex; align-items: center; gap: 6px; justify-content: center;
         }
-
         .timer-default { background-color: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
         .timer-warning { background-color: var(--m3-warning-container); color: var(--m3-on-warning-container); }
         .timer-error { background-color: var(--m3-on-error); color: var(--m3-error); }
 
+        /* Notification */
         .notification {
-            position: fixed;
-            top: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 32px);
-            max-width: 400px;
-            padding: 14px 16px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 2000;
-            transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            width: calc(100% - 32px); max-width: 400px; padding: 14px 16px;
+            border-radius: 12px; display: flex; align-items: center; gap: 12px;
+            z-index: 2000; transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 8px 30px rgba(0,0,0,0.6);
         }
         .notification.show { top: 16px; }
@@ -208,41 +164,47 @@
         .bottom-sheet {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: var(--m3-surface-container);
-            border-radius: 28px 28px 0 0;
-            padding: 24px;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.32, 1, 0.23, 1);
-            z-index: 1001;
-            max-width: 600px;
-            margin: 0 auto;
+            border-radius: 28px 28px 0 0; padding: 24px;
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.32, 1, 0.23, 1);
+            z-index: 1001; max-width: 600px; margin: 0 auto;
         }
         .bottom-sheet.open { transform: translateY(0); }
 
+        /* --- UPDATED BUTTON STYLES --- */
         .m3-button {
             background-color: var(--md-sys-color-primary);
             color: var(--m3-on-primary);
-            border-radius: 100px;
-            padding: 14px 28px;
+            border-radius: 12px; /* R 12px */
+            padding: 14px; /* Internal 14px */
             font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: opacity 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            cursor: pointer; transition: opacity 0.2s;
+            width: 100%;
+            border: none;
+            outline: none;
         }
         .m3-button:disabled { opacity: 0.8; cursor: not-allowed; }
         
         .m3-button-tonal {
             background-color: var(--m3-secondary-container);
             color: var(--m3-on-secondary-container);
-            border-radius: 100px;
-            padding: 12px 24px;
-            opacity: 0;
-            transform: translateY(20px);
+            border-radius: 12px; /* R 12px */
+            padding: 14px;
+            width: 100%;
+            opacity: 0; transform: translateY(20px);
             transition: all 0.4s ease;
+            display: flex; align-items: center; justify-content: center;
         }
         .m3-button-tonal.visible { opacity: 1; transform: translateY(0); }
+
+        /* --- BOTTOM FIXED ACTION BAR --- */
+        .bottom-action-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            padding: 0 16px 16px 16px; /* Minimal bottom offset */
+            background: linear-gradient(to top, var(--m3-surface) 80%, transparent);
+            z-index: 50;
+            display: flex; flex-direction: column; gap: 10px;
+        }
 
         .google-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #1e1e1e; border: 1px solid var(--google-table-border); }
         .google-table th { background: var(--google-table-header); border: 1px solid var(--google-table-border); padding: 8px 12px; text-align: left; color: #bdc1c6; }
@@ -254,42 +216,54 @@
         .m3-textfield input:focus + label, .m3-textfield input:not(:placeholder-shown) + label { top: 0; font-size: 12px; color: var(--m3-primary); }
 
         .fab-recovery {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
+            position: fixed; bottom: 100px; /* Raised above bottom bar */
+            right: 24px; width: 56px; height: 56px;
             border-radius: 16px;
-            background: var(--m3-secondary-container);
-            color: var(--m3-on-secondary-container);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: var(--m3-secondary-container); color: var(--m3-on-secondary-container);
+            display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            z-index: 50;
-            transform: scale(0);
+            z-index: 50; transform: scale(0);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .fab-recovery.visible { transform: scale(1); }
 
+        /* --- UPDATED CODE BLOCK STYLES --- */
         #python-code-block, .final-code-block {
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-width: 100%;
-        }
-        #final-code-entry {
-            display: inline-block;
-            white-space: pre-wrap;
-            word-break: break-all;
-            vertical-align: middle;
-            max-width: 100%;
+            white-space: pre-wrap; word-break: break-all; max-width: 100%;
         }
         
+        /* Container for Python Code with Blue Border */
+        .python-container {
+            background-color: #0b0a0d; /* Slightly darker than black for IDE feel */
+            border-radius: 12px; 
+            padding: 20px;
+            border: 2px solid #0000FF; /* REQUIRED: Blue Border */
+            position: relative;
+            width: 100%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            min-height: 150px;
+        }
+
+        /* Syntax Highlighting Colors */
+        .syn-keyword { color: #cc99cd; font-weight: bold; } /* Purple/Pink */
+        .syn-func { color: #61afef; } /* Blue */
+        .syn-string { color: #98c379; } /* Green */
+        .syn-comment { color: #7f848e; font-style: italic; } /* Grey */
+        .syn-number { color: #d19a66; } /* Orange */
+        .syn-default { color: #abb2bf; } /* Standard text */
+
         .code-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        
+        #task-id-badge {
+            background-color: #004a77;
+            color: #c2e7ff;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-block;
         }
     </style>
 </head>
@@ -318,14 +292,14 @@
     <div id="page-list" class="page page-active">
         <header class="sticky-header">
             <button class="p-2 -ml-2 rounded-full hover:bg-white/10" onclick="window.location.reload()"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
-            <h1 class="text-xl font-medium absolute left-1/2 -translate-x-1/2">Разработка</h1>
-        </header>
+            <h1 class="page-title">Разработка</h1> </header>
         <div class="max-w-md mx-auto p-4">
             
             <div id="active-tasks-wrapper" class="hidden mb-6">
                 <h2 id="active-tasks-header" class="text-xs font-bold uppercase tracking-widest text-blue-400 mb-3 opacity-90 pl-1"></h2>
                 <div id="active-tasks-container" class="space-y-3"></div>
-                <div class="h-px bg-white/5 my-6"></div> </div>
+                <div class="h-px bg-white/5 my-6"></div> 
+            </div>
 
             <div id="task-counter-container" class="mb-4 hidden">
                 <h2 id="task-counter" class="text-3xl font-bold text-[#E6E1E5]">Ожидают 0</h2>
@@ -341,44 +315,39 @@
     </div>
 
     <div id="page-assembly" class="page page-hidden">
-        <header class="sticky-header justify-between">
+        <header class="sticky-header">
             <button onclick="closeAssembly()" class="p-2 -ml-2 rounded-full hover:bg-white/10"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
-            <div id="assembly-timer" class="m3-chip timer-default">
-                <i data-lucide="timer" class="w-3.5 h-3.5"></i>
-                <span id="assembly-timer-text">--:--</span>
-            </div>
-        </header>
+            <h1 class="page-title">Выполнение разработки</h1> </header>
 
-        <div class="p-6 flex flex-col items-center max-w-xl mx-auto w-full gap-6">
-            <div class="w-full text-center mb-4">
-                <span id="assembly-label" class="text-[12px] uppercase text-blue-400 font-bold tracking-[0.2em] block mb-1 opacity-70">Текущая задача</span>
-                <h2 id="header-task-id" class="text-3xl font-black text-white tracking-tight break-all leading-tight">----</h2>
-            </div>
-
-            <div id="start-overlay" class="w-full flex justify-center py-6">
-                <button id="btn-start-assembly" onclick="startAssembly()" class="m3-button text-lg px-10 py-5 shadow-2xl">
-                    <i data-lucide="play" class="w-5 h-5 fill-current"></i> Начать выполнение
-                </button>
+        <div class="p-6 flex flex-col items-center max-w-xl mx-auto w-full gap-4">
+            
+            <div class="w-full flex justify-between items-center mb-2">
+                <div id="task-id-badge" class="tracking-widest font-mono">ID: <span id="header-task-id">--</span></div>
+                <div id="assembly-timer" class="m3-chip timer-default">
+                    <i data-lucide="timer" class="w-3.5 h-3.5"></i>
+                    <span id="assembly-timer-text">--:--</span>
+                </div>
             </div>
 
             <div id="stage-coding" class="w-full space-y-6">
                 <div id="interactive-area" class="opacity-40 pointer-events-none transition-opacity duration-300 w-full">
-                    <h2 class="text-xs font-bold uppercase tracking-widest mb-3 text-blue-500 opacity-80">Python Source (Initial)</h2>
-                    <div class="bg-[#000] rounded-[24px] p-6 border border-[#333] relative w-full shadow-lg min-h-[150px]">
+                    
+                    <div class="python-container">
                         <div id="python-loading-spinner" class="code-container absolute inset-0 flex items-center justify-center">
                             <svg class="spinner" viewBox="25 25 50 50">
                                 <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10"/>
                             </svg>
                         </div>
-                        <pre id="python-code-block" class="text-sm text-[#A6E22E] font-['Fira_Code'] hidden"></pre>
-                        <button onclick="copyCode()" class="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full text-blue-400">
+                        <pre id="python-code-block" class="text-sm font-['Fira_Code'] hidden"></pre>
+                        <button onclick="copyCode()" class="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full text-blue-400 z-10">
                             <i data-lucide="copy" class="w-5 h-5"></i>
                         </button>
                     </div>
+
                 </div>
 
                 <div id="action-area" class="w-full flex flex-col items-center gap-4 hidden">
-                    <button id="return-code-btn" disabled onclick="handleReturnClick()" class="m3-button w-full">Вернуть входной код</button>
+                    <button id="return-code-btn" disabled onclick="handleReturnClick()" class="m3-button w-full" style="background-color: var(--m3-surface-container); color: white; border: 1px solid var(--md-sys-color-outline);">Вернуть входной код</button>
                     <button id="secondary-btn" onclick="openAuthSheet()" class="m3-button-tonal w-full">Return of block input</button>
                 </div>
             </div>
@@ -408,13 +377,18 @@ push_to_main_stream(blocks_data)</pre>
                         <label>Block ID 2</label>
                     </div>
                 </div>
-
-                <button id="finish-task-btn" onclick="finalizeTaskProcess()" class="m3-button w-full shadow-lg">
-                    <i data-lucide="check-circle" class="w-5 h-5"></i> Завершить выполнение
-                </button>
             </div>
         </div>
         
+        <div class="bottom-action-bar">
+            <button id="btn-start-assembly" onclick="startAssembly()" class="m3-button text-lg shadow-2xl hidden">
+                <i data-lucide="play" class="w-5 h-5 fill-current"></i> Начать выполнение
+            </button>
+            <button id="finish-task-btn" onclick="finalizeTaskProcess()" class="m3-button w-full shadow-lg hidden">
+                <i data-lucide="check-circle" class="w-5 h-5"></i> Завершить выполнение
+            </button>
+        </div>
+
         <button id="fab-restore" class="fab-recovery" onclick="reopenConfigTable()">
             <i data-lucide="table"></i>
         </button>
@@ -462,13 +436,54 @@ push_to_main_stream(blocks_data)</pre>
         const AUTH_REDIRECT_URL = "https://u8902054545-design.github.io/Auth-ITC-Platform/";
         const SHIFT_REDIRECT_URL = "https://u8902054545-design.github.io/DarkCenter-Cloud-User-Main/";
         
-        // --- SPINNER HTML CONSTANT ---
+        // --- SPINNER HTML ---
         const whiteSpinnerHtml = `
         <svg class="spinner spinner-btn" viewBox="25 25 50 50">
             <circle class="path path-white" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10"/>
         </svg>`;
 
-        // --- AUTHENTICATION LOGIC ---
+        // --- SYNTAX HIGHLIGHTER FUNCTION ---
+        function syntaxHighlight(code) {
+            if (!code) return "";
+            // Replace unsafe characters
+            let s = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
+            // Regex patterns for Python-ish syntax
+            const patterns = [
+                { regex: /(#.*$)/gm, cls: 'syn-comment' }, // Comments
+                { regex: /"(.*?)"|'(.*?)'/g, cls: 'syn-string' }, // Strings
+                { regex: /\b(def|class|import|from|return|if|else|elif|for|while|try|except|with|as|pass|lambda|True|False|None)\b/g, cls: 'syn-keyword' }, // Keywords
+                { regex: /\b(\d+)\b/g, cls: 'syn-number' }, // Numbers
+                { regex: /\b([a-zA-Z_][a-zA-Z0-9_]*)(?=\()/g, cls: 'syn-func' } // Functions called
+            ];
+
+            // Apply patterns using a placeholder strategy to prevent double-replacing
+            // (Simple implementation for display purposes)
+            // A more robust way involves tokenizing, but regex is okay for small snippets
+            
+            // For simplicity in vanilla JS without conflicts, we will do basic replacement order
+            // Note: Strings first to avoid highlighting keywords inside strings
+            
+            // Since regex replace in a loop on already replaced HTML is risky, we will use a naive approach suitable for this UI context.
+            // 1. Strings
+            s = s.replace(/"(.*?)"|'(.*?)'/g, '<span class="syn-string">$&</span>');
+            // 2. Comments (Careful with spans) - Better to run comment regex on lines
+            // 3. Keywords
+            s = s.replace(/\b(def|class|import|from|return|if|else|elif|for|while|try|except|with|as|pass|lambda|True|False|None)\b/g, '<span class="syn-keyword">$1</span>');
+            // 4. Functions
+            s = s.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)(?=\()/g, '<span class="syn-func">$1</span>');
+            
+            // Fix comments overriding (very naive fix)
+            // Re-apply comments last to cover anything inside them
+             s = s.replace(/(#.*$)/gm, '<span class="syn-comment">$1</span>');
+            
+            // Clean up nested spans in comments if any (simple cleanup)
+            s = s.replace(/<span class="syn-comment">.*?<span.*?>(.*?)<\/span>.*?<\/span>/g, '<span class="syn-comment"># $1</span>');
+
+            return s;
+        }
+
+        // --- AUTH ---
         async function checkUserAuthorization(isBackground = false) {
             const email = localStorage.getItem('userEmail');
             const token = localStorage.getItem('authToken');
@@ -528,7 +543,6 @@ push_to_main_stream(blocks_data)</pre>
         let activeTaskId = null;
         let returnClickCount = 0;
         
-        // Elements
         const tasksContainer = document.getElementById('tasks-container');
         const activeTasksContainer = document.getElementById('active-tasks-container');
         const activeTasksWrapper = document.getElementById('active-tasks-wrapper');
@@ -707,10 +721,9 @@ push_to_main_stream(blocks_data)</pre>
             document.getElementById('final-block-1').value = '';
             document.getElementById('final-block-2').value = '';
             
-            // Reset python block to loading state
             document.getElementById('python-loading-spinner').classList.remove('hidden');
             document.getElementById('python-code-block').classList.add('hidden');
-            document.getElementById('python-code-block').innerText = '';
+            document.getElementById('python-code-block').innerHTML = ''; // innerHTML for highlighted
             
             const codeEntry = document.getElementById('final-code-entry');
             codeEntry.textContent = 'Waiting for inputs...';
@@ -722,6 +735,22 @@ push_to_main_stream(blocks_data)</pre>
             finishBtn.classList.remove('!bg-red-500');
 
             document.getElementById('token-input').value = '';
+        }
+
+        function toggleMainButtons(mode) {
+            const startBtn = document.getElementById('btn-start-assembly');
+            const finishBtn = document.getElementById('finish-task-btn');
+            
+            if (mode === 'START') {
+                startBtn.classList.remove('hidden');
+                finishBtn.classList.add('hidden');
+            } else if (mode === 'FINISH') {
+                startBtn.classList.add('hidden');
+                finishBtn.classList.remove('hidden');
+            } else {
+                startBtn.classList.add('hidden');
+                finishBtn.classList.add('hidden');
+            }
         }
 
         function openAssembly(id) {
@@ -736,16 +765,17 @@ push_to_main_stream(blocks_data)</pre>
 
             document.getElementById('stage-coding').classList.remove('hidden');
             document.getElementById('stage-final').classList.add('hidden');
-            document.getElementById('start-overlay').style.display = 'flex';
+            
+            // Show Start Button
+            toggleMainButtons('START');
             
             document.getElementById('interactive-area').style.opacity = '0.4';
             document.getElementById('interactive-area').style.pointerEvents = 'none';
             document.getElementById('action-area').classList.add('hidden');
             
-            document.getElementById('btn-start-assembly').disabled = false;
-            document.getElementById('btn-start-assembly').innerHTML = '<i data-lucide="play" class="w-5 h-5 fill-current"></i> Начать выполнение';
-            
-            setAssemblyLabel('Текущая задача', 'blue');
+            const btn = document.getElementById('btn-start-assembly');
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="play" class="w-5 h-5 fill-current"></i> Начать выполнение';
         }
 
         async function restoreSession(id, stage) {
@@ -757,25 +787,28 @@ push_to_main_stream(blocks_data)</pre>
 
             document.getElementById('header-task-id').textContent = id;
             setupPageTransition();
-            document.getElementById('start-overlay').style.display = 'none';
 
-            // При восстановлении сессии тоже подгружаем код
             loadPythonCode();
 
             if (stage === 'FINAL') {
                 document.getElementById('stage-coding').classList.add('hidden');
                 document.getElementById('stage-final').classList.remove('hidden');
                 fabRestore.classList.add('visible');
-                setAssemblyLabel('Финальный этап', 'purple');
+                toggleMainButtons('FINISH');
             } else {
                 document.getElementById('stage-coding').classList.remove('hidden');
                 document.getElementById('stage-final').classList.add('hidden');
+                
                 document.getElementById('interactive-area').style.opacity = '1';
                 document.getElementById('interactive-area').style.pointerEvents = 'auto';
                 document.getElementById('action-area').classList.remove('hidden');
                 document.getElementById('secondary-btn').classList.remove('visible');
                 document.getElementById('return-code-btn').disabled = true;
-                setAssemblyLabel('Текущая задача', 'blue');
+                
+                // If restored in assembly, we don't show Start button (already started), and Finish is for next stage
+                // But we probably need to process to Finish.
+                // For this logic, if we are in ASSEMBLY stage but restored, user is working on Code/Auth.
+                toggleMainButtons('NONE'); 
             }
         }
 
@@ -786,12 +819,6 @@ push_to_main_stream(blocks_data)</pre>
             assemblyPage.classList.remove('page-hidden');
             assemblyPage.classList.add('page-active');
             lucide.createIcons();
-        }
-
-        function setAssemblyLabel(text, color) {
-            const lbl = document.getElementById('assembly-label');
-            lbl.textContent = text;
-            lbl.className = `text-[12px] uppercase text-${color}-400 font-bold tracking-[0.2em] block mb-1 opacity-100`;
         }
 
         function closeAssembly() {
@@ -812,29 +839,26 @@ push_to_main_stream(blocks_data)</pre>
 
         // --- ACTIONS ---
 
-        // Загрузка кода из GAS
         async function loadPythonCode() {
             try {
-                // Показываем спиннер перед загрузкой
                 document.getElementById('python-loading-spinner').classList.remove('hidden');
                 document.getElementById('python-code-block').classList.add('hidden');
 
                 const response = await fetch(`${SCRIPT_URL}?action=getPythonCode`);
                 const data = await response.json();
                 
-                // Скрываем спиннер, показываем код
                 document.getElementById('python-loading-spinner').classList.add('hidden');
                 const codeBlock = document.getElementById('python-code-block');
                 codeBlock.classList.remove('hidden');
 
                 if (data.code) {
-                    codeBlock.innerText = data.code;
+                    codeBlock.innerHTML = syntaxHighlight(data.code);
                 }
             } catch (e) {
                 console.error("Code load error:", e);
                 document.getElementById('python-loading-spinner').classList.add('hidden');
                 document.getElementById('python-code-block').classList.remove('hidden');
-                document.getElementById('python-code-block').innerText = "# Ошибка загрузки кода сервера";
+                document.getElementById('python-code-block').textContent = "# Ошибка загрузки кода сервера";
             }
         }
 
@@ -844,20 +868,18 @@ push_to_main_stream(blocks_data)</pre>
             const originalContent = btn.innerHTML;
             
             btn.disabled = true;
-            // Используем только белый спиннер без текста
             btn.innerHTML = whiteSpinnerHtml;
 
             const email = localStorage.getItem('userEmail');
 
             try {
-                // Сначала грузим код, потом регистрируем старт
                 await loadPythonCode();
 
                 const response = await fetch(`${SCRIPT_URL}?action=startTask&email=${encodeURIComponent(email)}&taskId=${encodeURIComponent(activeTaskId)}`);
                 const result = await response.json();
 
                 if (result.status === 'Success') {
-                    document.getElementById('start-overlay').style.display = 'none';
+                    toggleMainButtons('NONE'); // Hide start button
                     document.getElementById('interactive-area').style.opacity = '1';
                     document.getElementById('interactive-area').style.pointerEvents = 'auto';
                     document.getElementById('action-area').classList.remove('hidden');
@@ -875,7 +897,9 @@ push_to_main_stream(blocks_data)</pre>
         }
 
         function copyCode() {
-            const code = document.getElementById('python-code-block').innerText;
+            // Get text only (strip html)
+            const codeBlock = document.getElementById('python-code-block');
+            const code = codeBlock.innerText;
             navigator.clipboard.writeText(code).then(() => {
                 document.getElementById('return-code-btn').disabled = false;
             });
@@ -928,7 +952,7 @@ push_to_main_stream(blocks_data)</pre>
             document.getElementById('stage-coding').classList.add('hidden');
             document.getElementById('stage-final').classList.remove('hidden');
             fabRestore.classList.add('visible');
-            setAssemblyLabel('Финальный этап', 'purple');
+            toggleMainButtons('FINISH'); // Show Finish button
             
             const email = localStorage.getItem('userEmail');
             if (activeTaskId && email) {
@@ -965,7 +989,6 @@ push_to_main_stream(blocks_data)</pre>
             const email = localStorage.getItem('userEmail');
             const btn = document.getElementById('finish-task-btn');
             btn.disabled = true;
-            // Используем только белый спиннер без текста
             btn.innerHTML = whiteSpinnerHtml;
 
             try {
@@ -1005,7 +1028,6 @@ push_to_main_stream(blocks_data)</pre>
             lucide.createIcons();
             performBackgroundUpdates(); 
             setInterval(tickTimers, 1000); 
-            // Обновление данных каждые 3 секунды
             setInterval(performBackgroundUpdates, 3000); 
         }
 
