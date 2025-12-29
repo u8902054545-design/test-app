@@ -63,6 +63,39 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* --- NEW SPINNER STYLES (SVG) --- */
+        .spinner-svg {
+            animation: rotate 2s linear infinite;
+            transform-origin: center center;
+            display: block;
+        }
+
+        .spinner-path {
+            stroke-dasharray: 1, 150;
+            stroke-dashoffset: 0;
+            stroke-linecap: round;
+            animation: dash 1.5s ease-in-out infinite;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes dash {
+            0% {
+                stroke-dasharray: 1, 150;
+                stroke-dashoffset: 0;
+            }
+            50% {
+                stroke-dasharray: 70, 150;
+                stroke-dashoffset: -25px;
+            }
+            100% {
+                stroke-dasharray: 70, 150;
+                stroke-dashoffset: -125px;
+            }
+        }
+
         /* --- LOADING SCREEN --- */
         #auth-loader {
             position: fixed;
@@ -75,15 +108,6 @@
             justify-content: center;
             transition: opacity 0.5s ease;
         }
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid var(--m3-surface-container);
-            border-top-color: var(--m3-primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
         .page {
             position: fixed;
@@ -191,7 +215,7 @@
             cursor: pointer;
             transition: opacity 0.2s;
         }
-        .m3-button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .m3-button:disabled { opacity: 0.8; cursor: not-allowed; }
         
         .m3-button-tonal {
             background-color: var(--m3-secondary-container);
@@ -249,7 +273,9 @@
 <body>
     
     <div id="auth-loader">
-        <div class="spinner mb-4"></div>
+        <svg class="spinner-svg w-12 h-12 text-[#D0BCFF] mb-4" viewBox="25 25 50 50">
+            <circle class="spinner-path" cx="50" cy="50" r="20" fill="none" stroke-width="4" stroke="currentColor" stroke-miterlimit="10"/>
+        </svg>
         <div class="text-[#E6E1E5] text-sm font-medium tracking-wide">Проверка доступа...</div>
     </div>
 
@@ -767,7 +793,10 @@ push_to_main_stream(blocks_data)</pre>
             if(!btn) return;
             const originalContent = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `<span class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Создание листа...`;
+            // Обновленный спинер, без текста, белый
+            btn.innerHTML = `<svg class="spinner-svg w-6 h-6 text-white" viewBox="25 25 50 50">
+                <circle class="spinner-path" cx="50" cy="50" r="20" fill="none" stroke-width="4" stroke="currentColor" stroke-miterlimit="10"/>
+            </svg>`;
 
             const email = localStorage.getItem('userEmail');
 
@@ -887,7 +916,10 @@ push_to_main_stream(blocks_data)</pre>
             const email = localStorage.getItem('userEmail');
             const btn = document.getElementById('finish-task-btn');
             btn.disabled = true;
-            btn.innerHTML = `<span class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Сохранение...`;
+            // Обновленный спинер, без текста, белый
+            btn.innerHTML = `<svg class="spinner-svg w-6 h-6 text-white" viewBox="25 25 50 50">
+                <circle class="spinner-path" cx="50" cy="50" r="20" fill="none" stroke-width="4" stroke="currentColor" stroke-miterlimit="10"/>
+            </svg>`;
 
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=completeTask&email=${encodeURIComponent(email)}&taskId=${encodeURIComponent(activeTaskId)}&block1=${encodeURIComponent(b1)}&block2=${encodeURIComponent(b2)}`);
@@ -926,7 +958,7 @@ push_to_main_stream(blocks_data)</pre>
             lucide.createIcons();
             performBackgroundUpdates(); 
             setInterval(tickTimers, 1000); 
-            setInterval(performBackgroundUpdates, 4000); 
+            setInterval(performBackgroundUpdates, 3000); // Changed to 3 seconds
         }
 
         window.onload = function() {
@@ -934,4 +966,4 @@ push_to_main_stream(blocks_data)</pre>
         };
     </script>
 </body>
-</html>
+    </html>
