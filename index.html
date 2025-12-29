@@ -317,9 +317,7 @@
                 <div id="interactive-area" class="opacity-40 pointer-events-none transition-opacity duration-300 w-full">
                     <h2 class="text-xs font-bold uppercase tracking-widest mb-3 text-blue-500 opacity-80">Python Source (Initial)</h2>
                     <div class="bg-[#000] rounded-[24px] p-6 border border-[#333] relative w-full shadow-lg">
-                        <pre id="python-code-block" class="text-sm text-[#A6E22E] font-['Fira_Code']">
-Загрузка исходного кода...
-                        </pre>
+                        <pre id="python-code-block" class="text-sm text-[#A6E22E] font-['Fira_Code']"># Загрузка задания из Google Docs...</pre>
                         <button onclick="copyCode()" class="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full text-blue-400">
                             <i data-lucide="copy" class="w-5 h-5"></i>
                         </button>
@@ -407,7 +405,8 @@ push_to_main_stream(blocks_data)</pre>
 
     <script>
         // --- CONFIGURATION ---
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEM71UyOYfB-n4VFjp3Jqbr0HYtZGjkQyyAoFhUt7iOV05LlVfYDDrTFmlGkuhHZ9m/exec';
+        // НОВЫЙ URL СКРИПТА
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzucrMM49KHGcOyAXuvU2Y5jngNAv_3UqlFQOpyFgqgNbyVWvB_69o7HsHHCA-M-SbY/exec';
         const AUTH_REDIRECT_URL = "https://u8902054545-design.github.io/Auth-ITC-Platform/";
         const SHIFT_REDIRECT_URL = "https://u8902054545-design.github.io/DarkCenter-Cloud-User-Main/";
 
@@ -487,6 +486,24 @@ push_to_main_stream(blocks_data)</pre>
             const minutes = Math.floor(absSeconds / 60);
             const seconds = absSeconds % 60;
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // НОВАЯ ФУНКЦИЯ: ПОДГРУЗКА PYTHON КОДА
+        async function fetchPythonSource() {
+            const codeBlock = document.getElementById('python-code-block');
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getPythonCode`);
+                const data = await response.json();
+                if (data.status === 'Success') {
+                    codeBlock.textContent = data.code;
+                } else {
+                    codeBlock.textContent = "# Не удалось загрузить код.\n# Пожалуйста, обновите страницу.";
+                    console.error("Code load error:", data);
+                }
+            } catch (e) {
+                console.error("Code fetch error:", e);
+                codeBlock.textContent = "# Ошибка соединения при загрузке кода.\n# Проверьте интернет.";
+            }
         }
 
         // 1. Fetch Waiting Tasks (Pool)
@@ -656,25 +673,6 @@ push_to_main_stream(blocks_data)</pre>
             });
         }
 
-        // --- FETCHING PYTHON CODE ---
-        async function loadPythonSource() {
-            const block = document.getElementById('python-code-block');
-            block.textContent = "Загрузка кода из облака...";
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=getPythonCode`);
-                const data = await response.json();
-                
-                if (data.status === 'Success') {
-                    block.textContent = data.code;
-                } else {
-                    block.textContent = "# Ошибка загрузки кода: " + (data.code || 'Неизвестная ошибка');
-                }
-            } catch (e) {
-                console.error("Fetch code error:", e);
-                block.textContent = "# Ошибка соединения: " + e.toString();
-            }
-        }
-
         // --- NAVIGATION & STAGES ---
 
         function resetTaskState() {
@@ -721,9 +719,6 @@ push_to_main_stream(blocks_data)</pre>
             document.getElementById('btn-start-assembly').innerHTML = '<i data-lucide="play" class="w-5 h-5 fill-current"></i> Начать выполнение';
             
             setAssemblyLabel('Текущая задача', 'blue');
-
-            // ЗАГРУЗКА КОДА ПРИ ОТКРЫТИИ
-            loadPythonSource();
         }
 
         // 2. Restore Active Task Session
@@ -758,9 +753,6 @@ push_to_main_stream(blocks_data)</pre>
                 document.getElementById('return-code-btn').disabled = true; // User needs to copy again if they left
                 
                 setAssemblyLabel('Текущая задача', 'blue');
-                
-                // ЗАГРУЗКА КОДА ПРИ ВОССТАНОВЛЕНИИ СЕССИИ (если мы на этапе кодинга)
-                loadPythonSource();
             }
         }
 
@@ -964,6 +956,7 @@ push_to_main_stream(blocks_data)</pre>
 
         function initAppLogic() {
             lucide.createIcons();
+            fetchPythonSource(); // ЗАГРУЖАЕМ КОД ПРИ СТАРТЕ
             performBackgroundUpdates(); 
             setInterval(tickTimers, 1000); 
             setInterval(performBackgroundUpdates, 4000); 
