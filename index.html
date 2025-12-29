@@ -6,6 +6,7 @@
     <title>Task Manager & Assembly System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <script type="module">
@@ -31,29 +32,32 @@
 
     <style>
         :root {
-            --m3-surface: #1C1B1F;
+            /* Обновленная цветовая палитра (Blue Material Design 3) */
+            --m3-surface: #0b1219; /* Темно-синий фон */
             --m3-on-surface: #E6E1E5;
-            --m3-surface-container: #2B2930;
-            --m3-primary: #D0BCFF;
-            --m3-on-primary: #381E72;
-            --m3-secondary-container: #4A4458;
-            --m3-on-secondary-container: #E8DEF8;
+            --m3-surface-container: #161c24; /* Чуть светлее темно-синий */
+            --m3-primary: #a8c7fa; /* Светло-голубой для акцентов текста */
+            --m3-on-primary: #ffffff;
+            --m3-secondary-container: #232a3b;
+            --m3-on-secondary-container: #dce4f0;
             --m3-error: #F2B8B5;
             --m3-on-error: #601410;
-            --m3-tertiary-container: #004a77; 
+            --m3-tertiary-container: #0f2e45; 
             --m3-on-tertiary-container: #c2e7ff;
             --m3-warning-container: #633b00;
             --m3-on-warning-container: #ffdcbe;
-            --md-sys-color-primary: #D0BCFF;
-            --md-sys-color-surface: #1C1B1F;
-            --md-sys-color-outline: #938F99;
+            
+            /* Главный цвет кнопок по запросу */
+            --md-sys-color-primary: #0000FF; 
+            
+            --md-sys-color-outline: #4f5b68;
             --google-table-border: #3c4043;
             --google-table-header: #202124;
-            --active-task-color: #2d2a35;
+            --active-task-color: #1a2230;
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Inter', 'Roboto', sans-serif;
             background-color: var(--m3-surface);
             color: var(--m3-on-surface);
             margin: 0;
@@ -63,18 +67,30 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- NEW SPINNER STYLES (SVG) --- */
-        .spinner-svg {
-            animation: rotate 2s linear infinite;
+        /* --- NEW SPINNER STYLES (FROM CODE 2) --- */
+        .spinner {
+            width: 48px; 
+            height: 48px;
+            animation: rotate 2s linear infinite; 
             transform-origin: center center;
             display: block;
         }
 
-        .spinner-path {
-            stroke-dasharray: 1, 150;
-            stroke-dashoffset: 0;
+        .spinner-btn {
+            width: 24px;
+            height: 24px;
+        }
+
+        .path {
+            stroke: #0000FF; /* Синий цвет по умолчанию */
             stroke-linecap: round;
-            animation: dash 1.5s ease-in-out infinite;
+            stroke-width: 4; 
+            stroke-dasharray: 1, 150; 
+            animation: dash 1.5s ease-in-out infinite; 
+        }
+
+        .path-white {
+            stroke: #FFFFFF !important; /* Белый цвет для кнопок */
         }
 
         @keyframes rotate {
@@ -87,7 +103,7 @@
                 stroke-dashoffset: 0;
             }
             50% {
-                stroke-dasharray: 70, 150;
+                stroke-dasharray: 70, 150; 
                 stroke-dashoffset: -25px;
             }
             100% {
@@ -147,7 +163,7 @@
         
         .m3-card-active {
             background-color: var(--active-task-color);
-            border: 1px solid var(--m3-primary);
+            border: 1px solid var(--md-sys-color-primary);
         }
 
         .m3-chip {
@@ -268,15 +284,22 @@
             vertical-align: middle;
             max-width: 100%;
         }
+        
+        .code-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px;
+        }
     </style>
 </head>
 <body>
     
     <div id="auth-loader">
-        <svg class="spinner-svg w-12 h-12 text-[#D0BCFF] mb-4" viewBox="25 25 50 50">
-            <circle class="spinner-path" cx="50" cy="50" r="20" fill="none" stroke-width="4" stroke="currentColor" stroke-miterlimit="10"/>
+        <svg class="spinner mb-4" viewBox="25 25 50 50">
+            <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10"/>
         </svg>
-        <div class="text-[#E6E1E5] text-sm font-medium tracking-wide">Проверка доступа...</div>
+        <div class="text-[#E6E1E5] text-sm font-medium tracking-wide">Обновление конфигурации...</div>
     </div>
 
     <div id="notif-error" class="notification notification-error">
@@ -341,8 +364,13 @@
             <div id="stage-coding" class="w-full space-y-6">
                 <div id="interactive-area" class="opacity-40 pointer-events-none transition-opacity duration-300 w-full">
                     <h2 class="text-xs font-bold uppercase tracking-widest mb-3 text-blue-500 opacity-80">Python Source (Initial)</h2>
-                    <div class="bg-[#000] rounded-[24px] p-6 border border-[#333] relative w-full shadow-lg">
-                        <pre id="python-code-block" class="text-sm text-[#A6E22E] font-['Fira_Code']"># Загрузка кода...</pre>
+                    <div class="bg-[#000] rounded-[24px] p-6 border border-[#333] relative w-full shadow-lg min-h-[150px]">
+                        <div id="python-loading-spinner" class="code-container absolute inset-0 flex items-center justify-center">
+                            <svg class="spinner" viewBox="25 25 50 50">
+                                <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10"/>
+                            </svg>
+                        </div>
+                        <pre id="python-code-block" class="text-sm text-[#A6E22E] font-['Fira_Code'] hidden"></pre>
                         <button onclick="copyCode()" class="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full text-blue-400">
                             <i data-lucide="copy" class="w-5 h-5"></i>
                         </button>
@@ -381,7 +409,7 @@ push_to_main_stream(blocks_data)</pre>
                     </div>
                 </div>
 
-                <button id="finish-task-btn" onclick="finalizeTaskProcess()" class="m3-button w-full !bg-purple-500 !text-white shadow-lg">
+                <button id="finish-task-btn" onclick="finalizeTaskProcess()" class="m3-button w-full shadow-lg">
                     <i data-lucide="check-circle" class="w-5 h-5"></i> Завершить выполнение
                 </button>
             </div>
@@ -433,6 +461,12 @@ push_to_main_stream(blocks_data)</pre>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYIThLvfF1N6s2PhzvqvI5Q7YP_XWARDGVF80sjDyjAbUX34WeSazYBooafEBN2--Y/exec';
         const AUTH_REDIRECT_URL = "https://u8902054545-design.github.io/Auth-ITC-Platform/";
         const SHIFT_REDIRECT_URL = "https://u8902054545-design.github.io/DarkCenter-Cloud-User-Main/";
+        
+        // --- SPINNER HTML CONSTANT ---
+        const whiteSpinnerHtml = `
+        <svg class="spinner spinner-btn" viewBox="25 25 50 50">
+            <circle class="path path-white" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10"/>
+        </svg>`;
 
         // --- AUTHENTICATION LOGIC ---
         async function checkUserAuthorization(isBackground = false) {
@@ -672,7 +706,11 @@ push_to_main_stream(blocks_data)</pre>
         function resetTaskState() {
             document.getElementById('final-block-1').value = '';
             document.getElementById('final-block-2').value = '';
-            document.getElementById('python-code-block').innerText = 'Загрузка кода...';
+            
+            // Reset python block to loading state
+            document.getElementById('python-loading-spinner').classList.remove('hidden');
+            document.getElementById('python-code-block').classList.add('hidden');
+            document.getElementById('python-code-block').innerText = '';
             
             const codeEntry = document.getElementById('final-code-entry');
             codeEntry.textContent = 'Waiting for inputs...';
@@ -777,13 +815,25 @@ push_to_main_stream(blocks_data)</pre>
         // Загрузка кода из GAS
         async function loadPythonCode() {
             try {
+                // Показываем спиннер перед загрузкой
+                document.getElementById('python-loading-spinner').classList.remove('hidden');
+                document.getElementById('python-code-block').classList.add('hidden');
+
                 const response = await fetch(`${SCRIPT_URL}?action=getPythonCode`);
                 const data = await response.json();
+                
+                // Скрываем спиннер, показываем код
+                document.getElementById('python-loading-spinner').classList.add('hidden');
+                const codeBlock = document.getElementById('python-code-block');
+                codeBlock.classList.remove('hidden');
+
                 if (data.code) {
-                    document.getElementById('python-code-block').innerText = data.code;
+                    codeBlock.innerText = data.code;
                 }
             } catch (e) {
                 console.error("Code load error:", e);
+                document.getElementById('python-loading-spinner').classList.add('hidden');
+                document.getElementById('python-code-block').classList.remove('hidden');
                 document.getElementById('python-code-block').innerText = "# Ошибка загрузки кода сервера";
             }
         }
@@ -792,11 +842,10 @@ push_to_main_stream(blocks_data)</pre>
             const btn = document.getElementById('btn-start-assembly');
             if(!btn) return;
             const originalContent = btn.innerHTML;
+            
             btn.disabled = true;
-            // Обновленный спинер, без текста, белый
-            btn.innerHTML = `<svg class="spinner-svg w-6 h-6 text-white" viewBox="25 25 50 50">
-                <circle class="spinner-path" cx="50" cy="50" r="20" fill="none" stroke-width="4" stroke="currentColor" stroke-miterlimit="10"/>
-            </svg>`;
+            // Используем только белый спиннер без текста
+            btn.innerHTML = whiteSpinnerHtml;
 
             const email = localStorage.getItem('userEmail');
 
@@ -916,10 +965,8 @@ push_to_main_stream(blocks_data)</pre>
             const email = localStorage.getItem('userEmail');
             const btn = document.getElementById('finish-task-btn');
             btn.disabled = true;
-            // Обновленный спинер, без текста, белый
-            btn.innerHTML = `<svg class="spinner-svg w-6 h-6 text-white" viewBox="25 25 50 50">
-                <circle class="spinner-path" cx="50" cy="50" r="20" fill="none" stroke-width="4" stroke="currentColor" stroke-miterlimit="10"/>
-            </svg>`;
+            // Используем только белый спиннер без текста
+            btn.innerHTML = whiteSpinnerHtml;
 
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=completeTask&email=${encodeURIComponent(email)}&taskId=${encodeURIComponent(activeTaskId)}&block1=${encodeURIComponent(b1)}&block2=${encodeURIComponent(b2)}`);
@@ -958,7 +1005,8 @@ push_to_main_stream(blocks_data)</pre>
             lucide.createIcons();
             performBackgroundUpdates(); 
             setInterval(tickTimers, 1000); 
-            setInterval(performBackgroundUpdates, 3000); // Changed to 3 seconds
+            // Обновление данных каждые 3 секунды
+            setInterval(performBackgroundUpdates, 3000); 
         }
 
         window.onload = function() {
@@ -966,4 +1014,4 @@ push_to_main_stream(blocks_data)</pre>
         };
     </script>
 </body>
-    </html>
+</html>
