@@ -2,832 +2,976 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Главная страница - Управление сменами</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager & Assembly System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "fake-key", authDomain: "domain.com", projectId: "project" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'task-assembly-app';
+
+        async function initApp() {
+            try { await signInAnonymously(auth); } catch (error) { console.warn("Auth mode: local/fallback"); }
+        }
+
+        onAuthStateChanged(auth, (user) => { if (user) window.currentUser = user; });
+        initApp();
+        window.db = db;
+        window.appId = appId;
+    </script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        
         :root {
-            --primary-color: #0000FF; 
-            --md-sys-color-surface: rgba(30, 31, 32, 0.7); /* Сделали прозрачнее */
-            --md-sys-color-on-surface: #E3E3E3;
-            --md-sys-error-container: #93000A;
-            --md-sys-on-error-container: #FFDAD6;
+            --m3-surface: #1C1B1F;
+            --m3-on-surface: #E6E1E5;
+            --m3-surface-container: #2B2930;
+            --m3-primary: #D0BCFF;
+            --m3-on-primary: #381E72;
+            --m3-secondary-container: #4A4458;
+            --m3-on-secondary-container: #E8DEF8;
+            --m3-error: #F2B8B5;
+            --m3-on-error: #601410;
+            --m3-tertiary-container: #004a77; 
+            --m3-on-tertiary-container: #c2e7ff;
+            --m3-warning-container: #633b00;
+            --m3-on-warning-container: #ffdcbe;
+            --md-sys-color-primary: #D0BCFF;
+            --md-sys-color-surface: #1C1B1F;
+            --md-sys-color-outline: #938F99;
+            --google-table-border: #3c4043;
+            --google-table-header: #202124;
+            --active-task-color: #2d2a35;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #050505; /* Очень темная база под стекло */
-            height: 100vh;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--m3-surface);
+            color: var(--m3-on-surface);
             margin: 0;
+            padding: 0;
             overflow: hidden;
-            -webkit-user-select: none; 
-            user-select: none; 
-            color: white;
+            height: 100dvh;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- LIQUID BACKGROUND EFFECTS --- */
-        .liquid-background {
+        /* --- LOADING SCREEN --- */
+        #auth-loader {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
+            inset: 0;
+            background: var(--m3-surface);
+            z-index: 9999;
+            display: flex;
+            flex-col: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
         }
-
-        .liquid-blob {
-            position: absolute;
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--m3-surface-container);
+            border-top-color: var(--m3-primary);
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.6;
-            animation: float-liquid 10s infinite ease-in-out;
+            animation: spin 1s linear infinite;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .blob-1 {
-            background: #0000FF;
-            width: 300px;
-            height: 300px;
-            top: -10%;
-            left: -10%;
-            animation-delay: 0s;
-        }
-
-        .blob-2 {
-            background: #0a0a2e; /* Темно-синий для глубины */
-            width: 400px;
-            height: 400px;
-            bottom: -10%;
-            right: -10%;
-            animation-delay: -2s;
-        }
-
-        .blob-3 {
-            background: #0000AA;
-            width: 250px;
-            height: 250px;
-            top: 40%;
-            left: 40%;
-            animation-delay: -4s;
-            opacity: 0.3;
-        }
-
-        @keyframes float-liquid {
-            0% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
-            100% { transform: translate(0, 0) scale(1); }
-        }
-
-        .screen-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            overflow-y: auto;
-            padding-bottom: 100px;
-            /* Легкий шум поверх всего для текстуры iOS */
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
-        }
-
-        .screen-container::-webkit-scrollbar { display: none; }
-        .screen-container { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .header-style {
-            border-bottom-left-radius: 24px;
-            border-bottom-right-radius: 24px;
-            border-bottom: 1px solid rgba(0, 0, 255, 0.3); /* Тоньше и прозрачнее */
-            background: rgba(20, 20, 20, 0.6); /* Полупрозрачность */
-            backdrop-filter: blur(20px) saturate(180%); /* Эффект стекла iOS */
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        /* --- NAVIGATION --- */
-        .nav-bar {
+        /* Page Transitions */
+        .page {
             position: fixed;
-            bottom: 20px;
+            inset: 0;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s, filter 0.5s;
+            background: var(--m3-surface);
+            z-index: 10;
+            overflow-y: auto;
+        }
+        .page-hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
+        .page-active { transform: translateX(0); opacity: 1; z-index: 20; }
+        
+        .page-back-exit { transform: translateX(100%); opacity: 0; }
+        .page-back-enter { transform: scale(0.92); opacity: 0.5; filter: brightness(0.5); }
+
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            height: 64px;
+            background-color: var(--m3-surface);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 100;
+            border-bottom: 1px solid rgba(230, 225, 229, 0.1);
+        }
+
+        .m3-card {
+            background-color: var(--m3-surface-container);
+            border-radius: 16px;
+            padding: 16px;
+            transition: transform 0.2s ease;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+        .m3-card:active { transform: scale(0.98); }
+        
+        .m3-card-active {
+            background-color: var(--active-task-color);
+            border: 1px solid var(--m3-primary);
+        }
+
+        .m3-chip {
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .timer-default { background-color: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
+        .timer-warning { background-color: var(--m3-warning-container); color: var(--m3-on-warning-container); }
+        .timer-error { background-color: var(--m3-on-error); color: var(--m3-error); }
+
+        .notification {
+            position: fixed;
+            top: -100px;
             left: 50%;
             transform: translateX(-50%);
             width: calc(100% - 32px);
-            max-width: 500px;
-            height: 70px; 
-            background: rgba(30, 31, 32, 0.65); /* Жидкое стекло */
-            backdrop-filter: blur(25px) saturate(180%);
-            -webkit-backdrop-filter: blur(25px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.08); /* Светящийся край */
-            border-radius: 35px;
+            max-width: 400px;
+            padding: 14px 16px;
+            border-radius: 12px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 0 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            z-index: 50;
-            box-sizing: border-box;
+            gap: 12px;
+            z-index: 2000;
+            transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
         }
+        .notification.show { top: 16px; }
+        .notification-error { background-color: #920003; color: white; border: 1px solid #FF897A; }
+        .notification-success { background-color: #002104; color: #B4F0AD; border: 1px solid #00390A; }
+        .notification-complete { background-color: #D0BCFF; color: #381E72; border: 1px solid #D0BCFF; }
 
-        .nav-item {
+        .scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.6); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 1000; }
+        .scrim.active { opacity: 1; visibility: visible; }
+        
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--m3-surface-container);
+            border-radius: 28px 28px 0 0;
+            padding: 24px;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.32, 1, 0.23, 1);
+            z-index: 1001;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .bottom-sheet.open { transform: translateY(0); }
+
+        .m3-button {
+            background-color: var(--md-sys-color-primary);
+            color: var(--m3-on-primary);
+            border-radius: 100px;
+            padding: 14px 28px;
+            font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 50px;
-            height: 50px;
-            border-radius: 25px;
+            gap: 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            color: var(--md-sys-color-on-surface);
-            position: relative;
-            z-index: 2;
+            transition: opacity 0.2s;
         }
-
-        .nav-item.active {
-            background-color: #0000FF;
-            color: #FFFFFF;
-            box-shadow: 0 0 15px rgba(0, 0, 255, 0.4); /* Свечение активной кнопки */
-        }
+        .m3-button:disabled { opacity: 0.4; cursor: not-allowed; }
         
-        .nav-item:active { transform: scale(0.95); }
+        .m3-button-tonal {
+            background-color: var(--m3-secondary-container);
+            color: var(--m3-on-secondary-container);
+            border-radius: 100px;
+            padding: 12px 24px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+        .m3-button-tonal.visible { opacity: 1; transform: translateY(0); }
 
-        /* --- CALENDAR & CARDS --- */
-        .calendar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
-        .calendar-item.selected-border { 
-            border: 1px solid #0000FF; 
-            background: rgba(0, 0, 255, 0.15); 
-            backdrop-filter: blur(4px);
-            box-shadow: 0 0 10px rgba(0, 0, 255, 0.1);
-        }
-        .calendar-item:active { transform: scale(0.95); }
-        
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .google-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #1e1e1e; border: 1px solid var(--google-table-border); }
+        .google-table th { background: var(--google-table-header); border: 1px solid var(--google-table-border); padding: 8px 12px; text-align: left; color: #bdc1c6; }
+        .google-table td { border: 1px solid var(--google-table-border); padding: 8px 12px; color: #e8eaed; }
 
-        .empty-state-icon { color: #0000FF; width: 80px; height: 80px; filter: drop-shadow(0 0 10px rgba(0,0,255,0.3)); }
+        .m3-textfield { position: relative; width: 100%; margin-bottom: 24px; }
+        .m3-textfield input { width: 100%; background: transparent; border: 1px solid var(--md-sys-color-outline); border-radius: 8px; padding: 16px; color: white; outline: none; }
+        .m3-textfield label { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: var(--m3-surface-container); padding: 0 4px; color: #999; pointer-events: none; transition: 0.2s; }
+        .m3-textfield input:focus + label, .m3-textfield input:not(:placeholder-shown) + label { top: 0; font-size: 12px; color: var(--m3-primary); }
 
-        .close-shift-button {
-            height: 50px; width: 50px; 
-            background: rgba(26, 26, 26, 0.6); 
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 0, 255, 0.5); 
-            border-radius: 14px; /* Чуть мягче углы */
-            flex-shrink: 0;
-            position: relative; 
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
+        .fab-recovery {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: var(--m3-secondary-container);
+            color: var(--m3-on-secondary-container);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 50;
+            transform: scale(0);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .close-shift-button:active { transform: scale(0.95); }
-        .close-shift-button::before {
-            content: ''; position: absolute; top: 8px; left: 50%; 
-            transform: translateX(-50%); width: 2px; height: 15px; 
-            background-color: #0000FF; border-radius: 2px; 
-        }
-        .close-shift-button::after {
-            content: ''; position: absolute; width: 30px; height: 30px; 
-            border: 2px solid #0000FF; border-top-color: transparent; 
-            border-radius: 50%; bottom: 8px;
-        }
+        .fab-recovery.visible { transform: scale(1); }
 
-        /* --- NEW CARD STYLES (LIQUID GLASS) --- */
-        .m3-card {
-            background: rgba(255, 255, 255, 0.03);
-            background-image: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1); /* Белая полупрозрачная рамка для стекла */
-            border-top: 1px solid rgba(255, 255, 255, 0.2); /* Блик сверху */
-            border-radius: 24px;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(20px) saturate(150%);
-            -webkit-backdrop-filter: blur(20px) saturate(150%);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.3);
+        #python-code-block, .final-code-block {
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-width: 100%;
         }
-
-        .m3-card:active {
-            transform: scale(0.98);
-            background: rgba(255, 255, 255, 0.06);
+        #final-code-entry {
+            display: inline-block;
+            white-space: pre-wrap;
+            word-break: break-all;
+            vertical-align: middle;
+            max-width: 100%;
         }
-        
-        /* Glass pill for duration */
-        .glass-pill {
-            background: rgba(0, 0, 255, 0.2);
-            border: 1px solid rgba(100, 100, 255, 0.3);
-            color: #fff;
-            box-shadow: inset 0 0 10px rgba(0, 0, 255, 0.2);
-        }
-
-        /* Custom Button in Card */
-        .btn-card-action {
-            background-color: #0000FF;
-            background-image: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 100%); /* Глянцевый блеск */
-            color: white;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 255, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
-            border: none;
-        }
-        .btn-card-action:active {
-            transform: translateY(1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 255, 0.3);
-        }
-
-        /* --- BOTTOM SHEETS --- */
-        .bottom-sheet-overlay {
-            visibility: hidden; opacity: 0;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .bottom-sheet-content { 
-            transform: translateY(100%); 
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            /* Glass style for bottom sheet */
-            background: rgba(30, 30, 30, 0.85) !important;
-            backdrop-filter: blur(30px) saturate(180%);
-            -webkit-backdrop-filter: blur(30px) saturate(180%);
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-        }
-        .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
-        .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
-
-        .auth-blocker {
-            background-color: rgba(0,0,0,0.8);
-            backdrop-filter: blur(15px); /* Сильный блюр фона при ошибке */
-        }
-
-        #notification-area {
-            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 480px; z-index: 60;
-            pointer-events: none; display: flex; flex-direction: column; align-items: center;
-        }
-
-        /* --- LOADERS --- */
-        @keyframes rotate { 100% { transform: rotate(360deg); } }
-        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
-
-        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; filter: drop-shadow(0 0 8px #0000FF); }
-        .path { stroke: #0000FF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
-        
-        .spinner-mini { width: 24px; height: 24px; animation: rotate 2s linear infinite; }
-        .path-mini { stroke: #FFFFFF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
-
-        #loadingOverlay {
-            position: fixed; inset: 0;
-            background-color: rgba(5, 5, 5, 0.7); 
-            backdrop-filter: blur(20px);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; transition: opacity 0.4s ease, visibility 0.4s ease;
-            opacity: 0; visibility: hidden; pointer-events: none; 
-        }
-        #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
-
-        .skeleton-shimmer { position: relative; overflow: hidden; background-color: rgba(255,255,255,0.05); }
-        .skeleton-shimmer::after {
-            content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-            transform: translateX(-100%);
-            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.05) 20%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 80%, rgba(255, 255, 255, 0) 100%);
-            animation: shimmer 2s infinite;
-        }
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
-        .skeleton-block { background-color: rgba(255,255,255,0.08); border-radius: 6px; }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-
     </style>
 </head>
-<body class="text-white">
-
-    <div class="liquid-background">
-        <div class="liquid-blob blob-1"></div>
-        <div class="liquid-blob blob-2"></div>
-        <div class="liquid-blob blob-3"></div>
+<body>
+    
+    <div id="auth-loader">
+        <div class="spinner mb-4"></div>
+        <div class="text-[#E6E1E5] text-sm font-medium tracking-wide">Проверка доступа...</div>
     </div>
 
-    <div id="loadingOverlay">
-        <svg class="spinner" viewBox="0 0 50 50">
-            <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
-        </svg>
+    <div id="notif-error" class="notification notification-error">
+        <div class="bg-[#FFB4AB] text-[#690005] rounded-full p-1"><i data-lucide="x" class="w-4 h-4"></i></div>
+        <span class="text-sm font-bold">Ошибка: Функция «Return» заблокирована</span>
+    </div>
+    <div id="notif-success" class="notification notification-success">
+        <i data-lucide="check" class="w-5 h-5"></i>
+        <span class="text-sm font-medium">Авторизованный код пропущен</span>
+    </div>
+    <div id="notif-complete" class="notification notification-complete">
+        <i data-lucide="party-popper" class="w-5 h-5"></i>
+        <span class="text-sm font-bold uppercase tracking-wide">Выполнение задачи завершено</span>
     </div>
 
-    <div id="notification-area"></div>
+    <div id="page-list" class="page page-active">
+        <header class="sticky-header">
+            <button class="p-2 -ml-2 rounded-full hover:bg-white/10" onclick="window.location.reload()"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+            <h1 class="text-xl font-medium absolute left-1/2 -translate-x-1/2">Разработка</h1>
+        </header>
+        <div class="max-w-md mx-auto p-4">
+            
+            <div id="active-tasks-wrapper" class="hidden mb-6">
+                <h2 id="active-tasks-header" class="text-xs font-bold uppercase tracking-widest text-blue-400 mb-3 opacity-90 pl-1"></h2>
+                <div id="active-tasks-container" class="space-y-3"></div>
+                <div class="h-px bg-white/5 my-6"></div> </div>
 
-    <div class="screen-container">
-        <header class="w-full header-style sticky top-0 z-30">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div class="flex justify-between items-center h-8 mb-4">
-                    <h1 class="text-lg font-bold text-white tracking-wide" id="screen-title" style="text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Главный экран</h1>
-                    <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-solid hover:bg-white/10 transition-colors backdrop-blur-md" style="border-color: rgba(0,0,255,0.5); background: rgba(0,0,0,0.2);">
-                        <i data-lucide="circle-user" class="w-6 h-6" style="color: #0000FF; filter: drop-shadow(0 0 5px rgba(0,0,255,0.5));"></i>
-                    </button>
-                </div>
-                <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
-                <div id="shift-action-container" class="w-full mt-4 flex">
-                    <div id="end-shift-button" class="close-shift-button mr-3" style="display: none;"></div>
-                    <button id="main-action-button" class="w-full flex items-center justify-center text-center text-white font-bold transition-all duration-300 shadow-lg disabled:opacity-50 btn-card-action" style="padding: 14px; border-radius: 14px; height: 50px;">
-                         <span class="btn-text">Загрузка...</span>
-                    </button>
-                </div>
+            <div id="task-counter-container" class="mb-4 hidden">
+                <h2 id="task-counter" class="text-3xl font-bold text-[#E6E1E5]">Ожидают 0</h2>
+            </div>
+            <div id="tasks-container" class="space-y-3 hidden"></div>
+            
+            <div id="empty-state" class="flex flex-col items-center justify-center py-10 hidden">
+                <div class="bg-white/5 p-8 rounded-full mb-6"><i data-lucide="package-search" class="w-16 h-16 text-white/20"></i></div>
+                <p class="text-[#938F99] text-lg">Ждём новые задачи</p>
+                <p class="text-[#938F99]/60 text-sm mt-1">Они появятся автоматически</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-assembly" class="page page-hidden">
+        <header class="sticky-header justify-between">
+            <button onclick="closeAssembly()" class="p-2 -ml-2 rounded-full hover:bg-white/10"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+            <div id="assembly-timer" class="m3-chip timer-default">
+                <i data-lucide="timer" class="w-3.5 h-3.5"></i>
+                <span id="assembly-timer-text">--:--</span>
             </div>
         </header>
-        
-        <main class="flex flex-col items-center justify-start pt-2 px-4 w-full" id="main-content">
-            </main>
-    </div>
 
-    <nav class="nav-bar" id="main-nav">
-        <div class="nav-item active" id="nav-home"><i data-lucide="home"></i></div>
-        <a href="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" class="nav-item" id="nav-schedule"><i data-lucide="calendar-days"></i></a>
-        <a href="https://u8902054545-design.github.io/cloud-center/" class="nav-item" id="nav-cloud"><i data-lucide="map-pin"></i></a>
-        <a href="https://u8902054545-design.github.io/payments-darkcenter" class="nav-item" id="nav-payments"><i data-lucide="credit-card"></i></a>
-        <a href="https://u8902054545-design.github.io/education-darkcenter" class="nav-item" id="nav-education"><i data-lucide="graduation-cap"></i></a>
-        <a href="https://u8902054545-design.github.io/chats-darkcenter" class="nav-item" id="nav-chats"><i data-lucide="message-square-more"></i></a>
-    </nav>
-    
-    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl mb-4 sm:mb-0">
-            <div class="text-center mb-4">
-                <h2 class="text-2xl font-bold mb-2">Завершить смену?</h2>
-                <p class="text-gray-400 text-sm">Убедитесь, что все текущие задачи выполнены.</p>
+        <div class="p-6 flex flex-col items-center max-w-xl mx-auto w-full gap-6">
+            <div class="w-full text-center mb-4">
+                <span id="assembly-label" class="text-[12px] uppercase text-blue-400 font-bold tracking-[0.2em] block mb-1 opacity-70">Текущая задача</span>
+                <h2 id="header-task-id" class="text-3xl font-black text-white tracking-tight break-all leading-tight">----</h2>
             </div>
-            <div class="flex flex-col space-y-3">
-                <button id="confirm-end-shift-btn" class="w-full text-center text-white font-bold py-4 rounded-md shadow-[0_0_15px_rgba(0,0,255,0.4)]" style="background-color: #0000FF; border-radius: 12px;">Завершить</button>
-                <button id="cancel-end-shift-btn" class="w-full text-center font-bold py-4 rounded-md hover:bg-white/5 transition-colors" style="border: 1px solid #0000FF; color: #0000FF; background-color: transparent; border-radius: 12px;">Не завершать</button>
-            </div>
-        </div>
-    </div>
 
-    <div id="auth-error-sheet" class="bottom-sheet-overlay auth-blocker fixed inset-0 z-[999] flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-8 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] border-t border-white/10">
-            <div class="flex flex-col items-center text-center mb-8">
-                <div class="w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(147,0,10,0.4)]" style="background-color: var(--md-sys-error-container);">
-                    <i data-lucide="triangle-alert" class="w-12 h-12" style="color: var(--md-sys-on-error-container);"></i>
+            <div id="start-overlay" class="w-full flex justify-center py-6">
+                <button id="btn-start-assembly" onclick="startAssembly()" class="m3-button text-lg px-10 py-5 shadow-2xl">
+                    <i data-lucide="play" class="w-5 h-5 fill-current"></i> Начать выполнение
+                </button>
+            </div>
+
+            <div id="stage-coding" class="w-full space-y-6">
+                <div id="interactive-area" class="opacity-40 pointer-events-none transition-opacity duration-300 w-full">
+                    <h2 class="text-xs font-bold uppercase tracking-widest mb-3 text-blue-500 opacity-80">Python Source (Initial)</h2>
+                    <div class="bg-[#000] rounded-[24px] p-6 border border-[#333] relative w-full shadow-lg">
+                        <pre id="python-code-block" class="text-sm text-[#A6E22E] font-['Fira_Code']">
+Загрузка исходного кода...
+                        </pre>
+                        <button onclick="copyCode()" class="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full text-blue-400">
+                            <i data-lucide="copy" class="w-5 h-5"></i>
+                        </button>
+                    </div>
                 </div>
-                <h2 class="text-2xl font-bold mb-3 tracking-tight">Ошибка авторизации</h2>
-                <p class="text-gray-300 text-base leading-relaxed">Системе не удалось подтвердить вашу личность. Для продолжения работы и доступа к сменам необходимо войти в аккаунт заново.</p>
+
+                <div id="action-area" class="w-full flex flex-col items-center gap-4 hidden">
+                    <button id="return-code-btn" disabled onclick="handleReturnClick()" class="m3-button w-full">Вернуть входной код</button>
+                    <button id="secondary-btn" onclick="openAuthSheet()" class="m3-button-tonal w-full">Return of block input</button>
+                </div>
             </div>
-            <button id="auth-login-btn" class="w-full text-center text-[#93000A] font-bold py-4 rounded-full shadow-lg hover:brightness-110 active:scale-95 transition-all bg-[#FFDAD6]">
-                Войти в аккаунт
-            </button>
+
+            <div id="stage-final" class="w-full hidden space-y-6">
+                 <h2 class="text-xs font-bold uppercase tracking-widest mb-1 text-purple-400">Integrate Configuration</h2>
+                 <div class="bg-[#0b0a0d] rounded-[24px] p-6 border border-purple-900/30 w-full shadow-xl">
+                    <pre class="final-code-block text-[13px] text-purple-300 font-['Fira_Code'] leading-relaxed">
+# Finalizing task bridge...
+def push_to_main_stream(blocks):
+    for block in blocks:
+        sys.net.stream(block)
+    return True
+
+# Enter block identifiers from table
+blocks_data = [<span id="final-code-entry" class="bg-purple-900/50 px-2 rounded italic text-white/50">Waiting for inputs...</span>]
+push_to_main_stream(blocks_data)</pre>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="m3-textfield !mb-0">
+                        <input type="text" id="final-block-1" placeholder=" " oninput="updateFinalCode()">
+                        <label>Block ID 1</label>
+                    </div>
+                    <div class="m3-textfield !mb-0">
+                        <input type="text" id="final-block-2" placeholder=" " oninput="updateFinalCode()">
+                        <label>Block ID 2</label>
+                    </div>
+                </div>
+
+                <button id="finish-task-btn" onclick="finalizeTaskProcess()" class="m3-button w-full !bg-purple-500 !text-white shadow-lg">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i> Завершить выполнение
+                </button>
+            </div>
         </div>
+        
+        <button id="fab-restore" class="fab-recovery" onclick="reopenConfigTable()">
+            <i data-lucide="table"></i>
+        </button>
+    </div>
+
+    <div id="scrim-main" class="scrim" onclick="closeAllSheets()"></div>
+
+    <div id="sheet-deleted" class="bottom-sheet">
+        <div class="w-8 h-1 bg-gray-600 rounded-full mx-auto mb-6"></div>
+        <div class="flex flex-col items-center text-center px-2">
+            <div class="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                <i data-lucide="alert-circle" class="w-6 h-6 text-red-400"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Задача недоступна</h3>
+            <p class="text-[#938F99] text-sm mb-8">Данная задача была удалена или взята другим пользователем.</p>
+            <button onclick="closeAllSheets()" class="m3-button w-full">Понятно</button>
+        </div>
+    </div>
+
+    <div id="sheet-auth" class="bottom-sheet">
+        <div class="w-8 h-1 bg-gray-600 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-xl font-medium mb-6 text-center">Укажи токен блока Python</h3>
+        <div class="m3-textfield">
+            <input type="text" id="token-input" placeholder=" " autocomplete="off">
+            <label>Аутентификационный токен</label>
+        </div>
+        <button onclick="authorizeCode()" class="m3-button w-full">Авторизовать код</button>
+    </div>
+
+    <div id="sheet-table" class="bottom-sheet !max-w-2xl">
+        <div class="w-8 h-1 bg-gray-600 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-lg font-medium mb-4 text-center">Конфигурация пропускной способности</h3>
+        <div class="overflow-x-auto rounded-lg mb-6">
+            <table class="google-table">
+                <thead><tr><th>Auth Block</th><th>Name Block</th><th>Access code</th></tr></thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+        <button onclick="handleTableClose()" class="m3-button w-full !bg-transparent !text-blue-400 border border-blue-400/30">Подтвердить и продолжить</button>
     </div>
 
     <script>
-        // Ссылки
-        const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
-        const ACCOUNT_URL = 'https://u8902054545-design.github.io/account-darkcenter/';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIFsMCw7PfiQ0fRJYtCP51I5rHJowJzgeW0z7yO5t5zSeO44hAor1ie0CELtVVxEM6sg/exec';
-        const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
-        
-        // Настройки
-        const REFRESH_INTERVAL = 3000;
-        const BUTTON_SPINNER_SVG = `<svg class="spinner-mini" viewBox="0 0 50 50"><circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
-        const HOURLY_RATE = 366; // Для примерного расчета дохода
+        // --- CONFIGURATION ---
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEM71UyOYfB-n4VFjp3Jqbr0HYtZGjkQyyAoFhUt7iOV05LlVfYDDrTFmlGkuhHZ9m/exec';
+        const AUTH_REDIRECT_URL = "https://u8902054545-design.github.io/Auth-ITC-Platform/";
+        const SHIFT_REDIRECT_URL = "https://u8902054545-design.github.io/DarkCenter-Cloud-User-Main/";
 
-        // Состояние
-        let isSlotActive = false;
-        let canStartSlot = false;
-        let selectedDateObj = new Date();
-        let lastRenderedState = null; 
-        let isAuthErrorVisible = false;
-        let isProcessingAction = false; 
-
-        // Элементы
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const mainActionButton = document.getElementById('main-action-button');
-        const endShiftButton = document.getElementById('end-shift-button');
-        const bottomSheet = document.getElementById('bottom-sheet');
-        const authErrorSheet = document.getElementById('auth-error-sheet');
-        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
-        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
-        const authLoginBtn = document.getElementById('auth-login-btn');
-        const calendarContainer = document.getElementById('calendar-strip');
-        const mainContent = document.getElementById('main-content');
-
-        // Навигация
-        document.getElementById('profile-button').addEventListener('click', () => { if(!isAuthErrorVisible) window.location.href = ACCOUNT_URL; });
-        document.getElementById('nav-home').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
-
-        function showLoading() { loadingOverlay.classList.add('visible'); }
-        function hideLoading() { loadingOverlay.classList.remove('visible'); }
-
-        function createNotification(type, message) {
-            const area = document.getElementById('notification-area');
-            const note = document.createElement('div');
-            const isSuccess = type === 'success';
-            // Added glass effect to notifications
-            note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#1a1a1a]/80 ring-1 ring-[#0000FF]/50' : 'bg-red-900/80'} backdrop-blur-md text-white rounded-2xl shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between`;
-            note.innerHTML = `<div class="flex items-center"><div class="${isSuccess ? 'text-[#0000FF]' : 'text-red-300'} mr-3"><i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i></div><div><p class="font-bold text-xs">${isSuccess ? 'Успешно' : 'Внимание'}</p><p class="text-[10px] opacity-80">${message}</p></div></div>`;
-            area.appendChild(note);
-            lucide.createIcons();
-            setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
-            setTimeout(() => { note.classList.add('opacity-0', '-translate-y-10'); setTimeout(() => note.remove(), 500); }, 3500);
-        }
-
-        function formatDateForServer(date) {
-            const d = date.getDate().toString().padStart(2, '0');
-            const m = (date.getMonth() + 1).toString().padStart(2, '0');
-            const y = date.getFullYear();
-            return `${d}.${m}.${y}`;
-        }
-
-        // --- RENDER LOGIC UPDATED FOR NEW CARD ---
-
-        function renderSkeletons() {
-            lastRenderedState = "skeleton";
-            // Скелетон под большую карточку
-            let html = `
-            <div class="w-full flex flex-col space-y-2 fade-in mt-2">
-                <div class="flex justify-between items-end px-1">
-                    <div class="w-32 h-6 skeleton-block skeleton-shimmer"></div>
-                    <div class="w-20 h-6 rounded-full skeleton-block skeleton-shimmer"></div>
-                </div>
-                <div class="w-full m3-card p-6 h-[220px] flex flex-col justify-between skeleton-shimmer border border-[#0000FF]/30">
-                     <div class="flex justify-between">
-                         <div class="w-40 h-8 skeleton-block bg-[#2A2A2A]"></div>
-                         <div class="w-16 h-12 rounded-xl skeleton-block bg-[#2A2A2A]"></div>
-                     </div>
-                     <div class="w-full h-px bg-[#2A2A2A] my-4"></div>
-                     <div class="flex justify-between items-center">
-                         <div class="w-24 h-10 skeleton-block bg-[#2A2A2A]"></div>
-                         <div class="w-20 h-8 skeleton-block bg-[#2A2A2A]"></div>
-                     </div>
-                </div>
-                <div class="w-full h-12 rounded-xl skeleton-block skeleton-shimmer mt-2"></div>
-            </div>`;
-            mainContent.innerHTML = html;
-        }
-
-        function renderEmptyState(message = "Ближайших смен нет") {
-            const stateKey = `empty-${message}`;
-            if (lastRenderedState === stateKey) return;
-            lastRenderedState = stateKey;
-            mainContent.innerHTML = `<div id="status-display" class="text-center mt-32 fade-in"><i data-lucide="calendar-days" class="empty-state-icon mx-auto"></i><p id="status-text" class="text-xl text-gray-400 mt-4 font-medium" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${message}</p></div>`;
-            lucide.createIcons();
-        }
-
-        // Расчет "Через N часов" (приблизительный парсинг)
-        function getTimeDifferenceText(timeStr) {
-            try {
-                // Ожидаем формат "HH:mm - HH:mm"
-                const startTime = timeStr.split('-')[0].trim();
-                const [hours, minutes] = startTime.split(':').map(Number);
-                
-                const now = new Date();
-                const shiftStart = new Date(selectedDateObj);
-                shiftStart.setHours(hours, minutes, 0, 0);
-
-                // Если смена сегодня и время прошло, или дата прошла
-                if (shiftStart < now) {
-                    return "Сейчас идет";
-                }
-
-                const diffMs = shiftStart - now;
-                const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-                
-                if (diffHrs > 24) return ""; // Слишком долго
-                if (diffHrs < 1) return "Скоро";
-                return `Через ${diffHrs} ч.`;
-            } catch (e) {
-                return "";
-            }
-        }
-
-        function parseDuration(durationStr) {
-            // Пытаемся вытащить число из строки "12 ч", "12 hours" и т.д.
-            const match = durationStr.match(/(\d+)/);
-            return match ? parseInt(match[0]) : 0;
-        }
-
-        function renderShiftCard(shiftData) {
-            const stateKey = `card-${shiftData.time}-${shiftData.duration}`;
-            if (lastRenderedState === stateKey) return;
-            lastRenderedState = stateKey;
-
-            const timeDiffText = getTimeDifferenceText(shiftData.time);
-            const hoursDuration = parseDuration(shiftData.duration || "0");
-            const estimatedIncome = hoursDuration * HOURLY_RATE;
-            const incomeFormatted = estimatedIncome > 0 ? `≈ ${estimatedIncome.toLocaleString('ru-RU')} ₽` : "Расчет...";
-
-            mainContent.innerHTML = `
-            <div class="w-full max-w-[400px] fade-in mt-2">
-                <div class="flex justify-between items-end mb-3 px-1">
-                    <h2 class="text-xl font-semibold tracking-tight text-white" style="text-shadow: 0 2px 5px rgba(0,0,0,0.5);">Ближайшая смена</h2>
-                    ${timeDiffText ? `
-                    <div class="flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium animate-pulse backdrop-blur-sm" style="color: #0000FF; background-color: rgba(0,0,255,0.1); border-color: rgba(0,0,255,0.3); box-shadow: 0 0 10px rgba(0,0,255,0.1);">
-                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
-                        <span>${timeDiffText}</span>
-                    </div>` : ''}
-                </div>
-
-                <article class="m3-card p-6 mb-4">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex flex-col">
-                            <div class="text-3xl font-bold text-white tracking-tight flex items-center gap-2" style="text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-                                ${shiftData.time}
-                            </div>
-                            <div class="text-sm text-gray-400 font-medium mt-1">
-                                ${selectedDateObj.toLocaleDateString('ru-RU', {day: 'numeric', month: 'short'})}
-                            </div>
-                        </div>
-
-                        <div class="glass-pill px-3 py-1.5 rounded-xl flex flex-col items-center justify-center min-w-[60px]">
-                            <span class="text-lg font-bold text-gray-200 leading-none">${hoursDuration || '-'}</span>
-                            <span class="text-[10px] uppercase text-gray-300 font-bold tracking-wider">часов</span>
-                        </div>
-                    </div>
-
-                    <div class="h-px w-full bg-gradient-to-r from-transparent via-[#0000FF] to-transparent mb-6 opacity-40"></div>
-
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="p-2.5 rounded-xl border" style="background-color: rgba(0,0,255,0.15); border-color: rgba(0,0,255,0.2);">
-                                    <i data-lucide="wallet" class="w-5 h-5" style="color: #0000FF; filter: drop-shadow(0 0 5px rgba(0,0,255,0.4));"></i>
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">Доход</span>
-                                    <span class="text-2xl font-bold text-white tracking-tight" style="text-shadow: 0 0 10px rgba(255,255,255,0.1);">${incomeFormatted}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="text-right">
-                                <div class="flex items-center justify-end gap-1.5 text-sm font-medium mb-0.5" style="color: #0000FF;">
-                                    <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-                                    <span>Эффективно</span>
-                                </div>
-                                <div class="text-sm text-gray-400">
-                                    ≈ ${HOURLY_RATE} ₽ / час
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-
-                <button class="w-full btn-card-action h-12 rounded-xl flex items-center justify-center gap-2 font-medium text-white group relative overflow-hidden">
-                    <span class="relative z-10">Подробнее о смене</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 relative z-10 transition-transform group-hover:translate-x-1"></i>
-                </button>
-
-                <p class="mt-4 text-center text-xs text-gray-500 font-medium" style="text-shadow: 0 1px 2px rgba(0,0,0,1);">
-                    Расчет является предварительным
-                </p>
-            </div>`;
-            
-            lucide.createIcons();
-        }
-
-        // --- AUTH LOGIC ---
-        function triggerAuthError() {
-            if (isAuthErrorVisible) return;
-            isAuthErrorVisible = true;
-            hideLoading();
-            authErrorSheet.classList.add('open'); 
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('authToken');
-        }
-
-        authLoginBtn.addEventListener('click', () => {
-             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
-             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
-        });
-
-        async function checkUserAuthentication(isSilent = false) {
-            if (!isSilent) showLoading();
+        // --- AUTHENTICATION LOGIC ---
+        async function checkUserAuthorization(isBackground = false) {
             const email = localStorage.getItem('userEmail');
             const token = localStorage.getItem('authToken');
-            
-            if (!email || !token) { 
-                triggerAuthError(); 
-                return false; 
+
+            if (!email || !token) {
+                console.warn('Auth: Credentials missing');
+                window.location.href = AUTH_REDIRECT_URL;
+                return;
             }
 
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'cors', cache: 'no-cache',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ auth: true, email: email, token: token })
-                });
-                const data = await response.json();
-                
-                if (data.status === 'success' && data.auth_ok === false) {
-                    triggerAuthError();
-                    return false;
-                }
-                return true;
-            } catch (error) { 
-                console.warn("Auth check network error", error);
-                return true; 
-            } finally { 
-                if (!isSilent) hideLoading(); 
-            }
-        }
+                const response = await fetch(`${SCRIPT_URL}?action=checkAuth&email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`);
+                const result = await response.json();
 
-        // --- DATA FETCHING ---
-        async function fetchShiftForDate(dateObj, isSilent = false) {
-            if (isAuthErrorVisible) return;
-            if (!isSilent) showLoading();
-            
-            const userEmail = localStorage.getItem('userEmail');
-            const dateStr = formatDateForServer(dateObj);
-            try {
-                const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data.status === 'success' && data.shift && data.shift.found) { 
-                    renderShiftCard(data.shift.data); 
-                } else { 
-                    renderEmptyState("Смен на этот день нет"); 
-                }
-            } catch (e) { 
-                if(!isSilent) renderEmptyState("Ошибка загрузки"); 
-            } finally { 
-                if (!isSilent) hideLoading(); 
-            }
-        }
-
-        async function fetchStatusLogic(isSilent = false) {
-            if (isAuthErrorVisible) return null;
-            const userEmail = localStorage.getItem('userEmail');
-            try {
-                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
-                return await response.json();
-            } catch (error) { return null; }
-        }
-        
-        // --- BUTTON ACTIONS ---
-        async function updateShiftStatus(newStatus) {
-            const userEmail = localStorage.getItem('userEmail');
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'cors', cache: 'no-cache',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
-                });
-                const data = await response.json();
-                return data.status === 'success';
-            } catch (error) { createNotification('error', 'Сбой при отправке данных'); return false; }
-        }
-
-        function updateButtons(data) {
-            if (!data) return;
-            const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
-            if (data.canStart !== undefined) canStartSlot = data.canStart;
-            isSlotActive = (status === 'Open');
-            const statusTextEl = document.getElementById('status-text');
-            
-            if (isSlotActive) {
-                if(statusTextEl && statusTextEl.textContent !== "Смена активна") {
-                    statusTextEl.textContent = "Смена активна";
-                    statusTextEl.classList.remove('text-gray-400');
-                    statusTextEl.classList.add('text-[#0000FF]');
-                }
-                if (mainActionButton.textContent !== 'Перейти к задачам' && !isProcessingAction) {
-                    mainActionButton.innerHTML = 'Перейти к задачам';
-                    mainActionButton.disabled = false;
-                }
-                endShiftButton.style.display = 'flex';
-            } else {
-                if (mainActionButton.textContent !== 'Начать смену' && !isProcessingAction) { 
-                    mainActionButton.innerHTML = 'Начать смену'; 
-                }
-                if (!isProcessingAction) {
-                    mainActionButton.disabled = !canStartSlot;
-                }
-                endShiftButton.style.display = 'none';
-            }
-        }
-
-        // --- CALENDAR INIT ---
-        function initCalendar() {
-            calendarContainer.innerHTML = '';
-            const today = new Date();
-            for (let i = 0; i < 14; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                const item = document.createElement('div');
-                item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-xl cursor-pointer flex-shrink-0 w-14 backdrop-blur-sm`;
-                if (date.toDateString() === selectedDateObj.toDateString()) {
-                    item.classList.add('selected-border');
-                    item.style.color = '#0000FF';
-                } else { item.style.color = '#fff'; }
-                item.innerHTML = `<span class="text-[10px] uppercase font-bold">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span><span class="text-lg font-black">${date.getDate()}</span>`;
-                item.addEventListener('click', () => {
-                    if (selectedDateObj.toDateString() === date.toDateString()) return;
-                    document.querySelectorAll('.calendar-item').forEach(el => { el.classList.remove('selected-border'); el.style.color = '#fff'; });
-                    item.classList.add('selected-border');
-                    item.style.color = '#0000FF';
-                    selectedDateObj = date;
-                    renderSkeletons();
-                    fetchShiftForDate(date, true);
-                });
-                calendarContainer.appendChild(item);
-            }
-        }
-
-        // --- EVENT LISTENERS ---
-        
-        mainActionButton.addEventListener('click', async () => {
-            if (isProcessingAction) return;
-            isProcessingAction = true;
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-            mainActionButton.disabled = true;
-
-            try {
-                const isAuth = await checkUserAuthentication(true);
-                if (!isAuth) {
-                    isProcessingAction = false;
-                    return; 
-                }
-
-                const freshData = await fetchStatusLogic(true);
-                
-                if (isSlotActive) {
-                    if (freshData && freshData.shiftStatus === 'Open') {
-                        window.location.href = TASKS_URL;
-                    } else {
-                        createNotification('error', 'Ошибка: Смена закрыта или не найдена');
-                        updateButtons(freshData); 
-                        isProcessingAction = false;
+                if (result.authorized) {
+                    if (!isBackground) {
+                        const loader = document.getElementById('auth-loader');
+                        if (loader) {
+                            loader.style.opacity = '0';
+                            setTimeout(() => loader.remove(), 500);
+                        }
+                        initAppLogic();
                     }
                 } else {
-                    if (freshData && freshData.canStart) {
-                         const success = await updateShiftStatus('Open');
-                         if (success) {
-                             createNotification('success', 'Смена открыта!');
-                             updateButtons({ shiftStatus: 'Open', canStart: false });
-                         } else {
-                             createNotification('error', 'Не удалось открыть смену');
-                             const retryData = await fetchStatusLogic(true); 
-                             updateButtons(retryData);
-                         }
-                    } else {
-                         createNotification('error', 'Нет доступной смены для начала');
-                         updateButtons(freshData);
+                    localStorage.removeItem('userEmail');
+                    localStorage.removeItem('authToken');
+                    window.location.href = AUTH_REDIRECT_URL;
+                }
+            } catch (error) {
+                console.error('Auth check error', error);
+                if (!isBackground) window.location.href = AUTH_REDIRECT_URL;
+            }
+        }
+
+        async function checkShiftStatus() {
+            const email = localStorage.getItem('userEmail');
+            if (!email) return;
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=checkShift&email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                if (data.status === 'Closed') window.location.href = SHIFT_REDIRECT_URL;
+            } catch (e) { console.error("Shift check error:", e); }
+        }
+
+        async function performBackgroundUpdates() {
+            await Promise.all([
+                fetchTasks(),
+                fetchUserActiveTasks(),
+                checkShiftStatus(),
+                checkUserAuthorization(true)
+            ]);
+        }
+
+        // --- CORE LOGIC ---
+        let poolTasks = [];
+        let userActiveTasks = [];
+        let activeTaskId = null;
+        let returnClickCount = 0;
+        let isFetching = false;
+        
+        // Elements
+        const tasksContainer = document.getElementById('tasks-container');
+        const activeTasksContainer = document.getElementById('active-tasks-container');
+        const activeTasksWrapper = document.getElementById('active-tasks-wrapper');
+        const activeTasksHeader = document.getElementById('active-tasks-header');
+        const taskCounter = document.getElementById('task-counter');
+        const taskCounterContainer = document.getElementById('task-counter-container');
+        const emptyState = document.getElementById('empty-state');
+        const fabRestore = document.getElementById('fab-restore');
+
+        function formatTime(totalSeconds) {
+            const absSeconds = Math.abs(totalSeconds);
+            const minutes = Math.floor(absSeconds / 60);
+            const seconds = absSeconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // 1. Fetch Waiting Tasks (Pool)
+        async function fetchTasks() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getTasks`);
+                const serverTasks = await response.json();
+                const serverIds = serverTasks.map(st => st.id);
+
+                // Если задача пропала из пула, но мы её не взяли и не она у нас в активе - просто удаляем из DOM
+                poolTasks = poolTasks.filter(t => {
+                    if (!serverIds.includes(t.id)) {
+                        t.element.remove();
+                        return false;
                     }
-                    isProcessingAction = false;
+                    return true;
+                });
+
+                serverTasks.forEach(st => {
+                    const existing = poolTasks.find(t => t.id === st.id);
+                    if (existing) {
+                         existing.durationSeconds = st.durationSeconds; // sync time
+                    } else {
+                        const taskObj = createTaskIdObj(st.id, st.durationSeconds, false);
+                        poolTasks.push(taskObj);
+                        tasksContainer.appendChild(taskObj.element);
+                    }
+                });
+
+                updatePoolCounter();
+                sortDomElements(poolTasks, tasksContainer);
+                lucide.createIcons();
+            } catch (error) { console.error('Fetch pool error:', error); }
+        }
+
+        // 2. Fetch User Active Tasks (In Progress)
+        async function fetchUserActiveTasks() {
+            const email = localStorage.getItem('userEmail');
+            if(!email) return;
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getUserActiveTasks&email=${encodeURIComponent(email)}`);
+                const activeData = await response.json();
+                
+                // Diff logic similar to pool
+                const activeIds = activeData.map(t => t.id);
+                
+                // Remove finished or vanished
+                userActiveTasks = userActiveTasks.filter(t => {
+                    if (!activeIds.includes(t.id)) {
+                        t.element.remove();
+                        return false;
+                    }
+                    return true;
+                });
+
+                activeData.forEach(st => {
+                    const existing = userActiveTasks.find(t => t.id === st.id);
+                    if (existing) {
+                        existing.durationSeconds = st.durationSeconds;
+                        existing.stage = st.stage; // Update stage from server
+                    } else {
+                        const taskObj = createTaskIdObj(st.id, st.durationSeconds, true, st.stage);
+                        userActiveTasks.push(taskObj);
+                        activeTasksContainer.appendChild(taskObj.element);
+                    }
+                });
+
+                updateActiveCounter();
+                sortDomElements(userActiveTasks, activeTasksContainer);
+                lucide.createIcons();
+
+            } catch (error) { console.error('Fetch active error:', error); }
+        }
+
+        function createTaskIdObj(id, duration, isActive, stage = 'ASSEMBLY') {
+            const card = document.createElement('div');
+            // Если задача активная, даем ей особый стиль
+            card.className = isActive ? 'm3-card m3-card-active w-full text-left' : 'm3-card w-full text-left';
+            
+            // Onclick behavior:
+            // Pool task -> openAssembly (standard)
+            // Active task -> restoreSession (restore state)
+            card.onclick = isActive ? () => restoreSession(id, stage) : () => openAssembly(id);
+
+            card.innerHTML = `
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[11px] uppercase tracking-wider ${isActive ? 'text-blue-300' : 'text-[#938F99]'} font-bold">
+                            ${isActive ? 'В работе' : 'Задача'}
+                        </span>
+                        <span class="text-sm font-medium text-[#E6E1E5] break-all">${id}</span>
+                    </div>
+                    <div class="timer-display m3-chip timer-default">
+                        <i data-lucide="timer" class="w-3.5 h-3.5"></i>
+                        <span class="time-text">--:--</span>
+                    </div>
+                </div>
+            `;
+            return { id, durationSeconds: duration, element: card, isActive, stage };
+        }
+
+        function updatePoolCounter() {
+            const count = poolTasks.length;
+            taskCounterContainer.classList.toggle('hidden', count === 0);
+            tasksContainer.classList.toggle('hidden', count === 0);
+            // Если активных задач нет, показываем empty state при пустом пуле
+            if(userActiveTasks.length === 0) {
+                 emptyState.classList.toggle('hidden', count > 0);
+            } else {
+                 emptyState.classList.add('hidden');
+            }
+            if(count > 0) taskCounter.textContent = `Ожидают ${count}`;
+        }
+
+        function updateActiveCounter() {
+            const count = userActiveTasks.length;
+            activeTasksWrapper.classList.toggle('hidden', count === 0);
+            if (count > 0) {
+                activeTasksHeader.textContent = `Выполняю разработку ${count}`;
+                emptyState.classList.add('hidden');
+            } else {
+                if(poolTasks.length === 0) emptyState.classList.remove('hidden');
+            }
+        }
+
+        function tickTimers() {
+            const allTasks = [...poolTasks, ...userActiveTasks];
+            allTasks.forEach(task => {
+                task.durationSeconds--;
+                const totalSeconds = task.durationSeconds;
+                const chip = task.element.querySelector('.timer-display');
+                const timeSpan = task.element.querySelector('.time-text');
+                if (!chip || !timeSpan) return;
+                
+                const timeText = formatTime(totalSeconds);
+                chip.classList.remove('timer-default', 'timer-warning', 'timer-error');
+                let currentStyle = '';
+                
+                if (totalSeconds < 0) {
+                    currentStyle = 'timer-error';
+                    timeSpan.textContent = `+${timeText}`;
+                } else if (totalSeconds <= 60) {
+                    currentStyle = 'timer-warning';
+                    timeSpan.textContent = timeText;
+                } else {
+                    currentStyle = 'timer-default';
+                    timeSpan.textContent = timeText;
+                }
+                chip.classList.add(currentStyle);
+
+                if (activeTaskId === task.id) {
+                    const assemblyTimer = document.getElementById('assembly-timer');
+                    const assemblyText = document.getElementById('assembly-timer-text');
+                    assemblyTimer.className = `m3-chip ${currentStyle}`;
+                    assemblyText.textContent = totalSeconds < 0 ? `+${timeText}` : timeText;
+                }
+            });
+        }
+
+        function sortDomElements(arr, container) {
+            arr.sort((a, b) => a.durationSeconds - b.durationSeconds);
+            arr.forEach((task, index) => {
+                if (container.children[index] !== task.element) {
+                    container.insertBefore(task.element, container.children[index]);
+                }
+            });
+        }
+
+        // --- FETCHING PYTHON CODE ---
+        async function loadPythonSource() {
+            const block = document.getElementById('python-code-block');
+            block.textContent = "Загрузка кода из облака...";
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getPythonCode`);
+                const data = await response.json();
+                
+                if (data.status === 'Success') {
+                    block.textContent = data.code;
+                } else {
+                    block.textContent = "# Ошибка загрузки кода: " + (data.code || 'Неизвестная ошибка');
                 }
             } catch (e) {
-                console.error(e);
-                createNotification('error', 'Ошибка соединения');
-                isProcessingAction = false;
-                updateButtons({ shiftStatus: isSlotActive ? 'Open' : 'Closed', canStart: canStartSlot });
+                console.error("Fetch code error:", e);
+                block.textContent = "# Ошибка соединения: " + e.toString();
             }
-        });
+        }
 
-        endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
-        cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
+        // --- NAVIGATION & STAGES ---
 
-        confirmEndShiftBtn.addEventListener('click', async () => {
-            bottomSheet.classList.remove('open');
-            endShiftButton.style.display = 'none';
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-            mainActionButton.disabled = true;
-            isProcessingAction = true;
+        function resetTaskState() {
+            // Очистка полей ввода финального этапа
+            document.getElementById('final-block-1').value = '';
+            document.getElementById('final-block-2').value = '';
             
-            const success = await updateShiftStatus('Closed');
-            isProcessingAction = false;
+            // Сброс визуального отображения кода
+            const codeEntry = document.getElementById('final-code-entry');
+            codeEntry.textContent = 'Waiting for inputs...';
+            codeEntry.className = 'bg-purple-900/50 px-2 rounded italic text-white/50';
+
+            // Полный сброс кнопки "Завершить выполнение"
+            const finishBtn = document.getElementById('finish-task-btn');
+            finishBtn.disabled = false;
+            finishBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> Завершить выполнение';
+            finishBtn.classList.remove('!bg-red-500');
+
+            // Очистка поля токена (если использовалось)
+            document.getElementById('token-input').value = '';
+        }
+
+        // 1. Open New Task from Pool
+        function openAssembly(id) {
+            activeTaskId = id;
+            returnClickCount = 0;
+            fabRestore.classList.remove('visible');
             
-            if (success) { 
-                createNotification('success', 'Смена завершена'); 
-                updateButtons({ shiftStatus: 'Closed', canStart: false }); 
-                const realData = await fetchStatusLogic(true); 
-                updateButtons(realData); 
-            } else { 
-                updateButtons({ shiftStatus: 'Open' }); 
+            resetTaskState(); // Сброс данных предыдущей задачи
+
+            document.getElementById('header-task-id').textContent = id;
+            setupPageTransition();
+
+            // Reset UI for "New Start"
+            document.getElementById('stage-coding').classList.remove('hidden');
+            document.getElementById('stage-final').classList.add('hidden');
+            document.getElementById('start-overlay').style.display = 'flex';
+            
+            document.getElementById('interactive-area').style.opacity = '0.4';
+            document.getElementById('interactive-area').style.pointerEvents = 'none';
+            document.getElementById('action-area').classList.add('hidden');
+            
+            document.getElementById('btn-start-assembly').disabled = false;
+            document.getElementById('btn-start-assembly').innerHTML = '<i data-lucide="play" class="w-5 h-5 fill-current"></i> Начать выполнение';
+            
+            setAssemblyLabel('Текущая задача', 'blue');
+
+            // ЗАГРУЗКА КОДА ПРИ ОТКРЫТИИ
+            loadPythonSource();
+        }
+
+        // 2. Restore Active Task Session
+        function restoreSession(id, stage) {
+            activeTaskId = id;
+            returnClickCount = 0;
+            fabRestore.classList.remove('visible');
+            
+            resetTaskState(); // Сброс данных, чтобы поля были чистыми при переключении
+
+            document.getElementById('header-task-id').textContent = id;
+            setupPageTransition();
+
+            // It's already started, so hide start button
+            document.getElementById('start-overlay').style.display = 'none';
+
+            if (stage === 'FINAL') {
+                // Restore to Final Stage
+                document.getElementById('stage-coding').classList.add('hidden');
+                document.getElementById('stage-final').classList.remove('hidden');
+                fabRestore.classList.add('visible');
+                setAssemblyLabel('Финальный этап', 'purple');
+            } else {
+                // Restore to Coding Stage (Already unlocked)
+                document.getElementById('stage-coding').classList.remove('hidden');
+                document.getElementById('stage-final').classList.add('hidden');
+                
+                document.getElementById('interactive-area').style.opacity = '1';
+                document.getElementById('interactive-area').style.pointerEvents = 'auto';
+                document.getElementById('action-area').classList.remove('hidden');
+                document.getElementById('secondary-btn').classList.remove('visible');
+                document.getElementById('return-code-btn').disabled = true; // User needs to copy again if they left
+                
+                setAssemblyLabel('Текущая задача', 'blue');
+                
+                // ЗАГРУЗКА КОДА ПРИ ВОССТАНОВЛЕНИИ СЕССИИ (если мы на этапе кодинга)
+                loadPythonSource();
             }
-        });
+        }
 
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', async () => {
+        function setupPageTransition() {
+            const listPage = document.getElementById('page-list');
+            const assemblyPage = document.getElementById('page-assembly');
+            listPage.classList.add('page-back-enter');
+            assemblyPage.classList.remove('page-hidden');
+            assemblyPage.classList.add('page-active');
             lucide.createIcons();
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-            renderSkeletons();
-            initCalendar();
-            
-            const authOk = await checkUserAuthentication(false);
-            
-            if (authOk) {
-                const p1 = fetchShiftForDate(selectedDateObj, false); 
-                const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
-                await Promise.all([p1, p2]);
+        }
 
-                setInterval(async () => {
-                    if (isAuthErrorVisible) return;
-                    const stillAuth = await checkUserAuthentication(true); 
-                    if (stillAuth) {
-                        const statusData = await fetchStatusLogic(true);
-                        if (statusData && statusData.shiftStatus === 'Open' && !isSlotActive) {
-                             createNotification('success', 'Смена открыта с другого устройства');
-                        }
-                        if (!isProcessingAction) updateButtons(statusData);
-                        fetchShiftForDate(selectedDateObj, true);
-                    }
-                }, REFRESH_INTERVAL);
+        function setAssemblyLabel(text, color) {
+            const lbl = document.getElementById('assembly-label');
+            lbl.textContent = text;
+            lbl.className = `text-[12px] uppercase text-${color}-400 font-bold tracking-[0.2em] block mb-1 opacity-100`;
+        }
+
+        function closeAssembly() {
+            const listPage = document.getElementById('page-list');
+            const assemblyPage = document.getElementById('page-assembly');
+            assemblyPage.classList.add('page-back-exit');
+            listPage.classList.remove('page-back-enter');
+            setTimeout(() => {
+                activeTaskId = null;
+                assemblyPage.classList.remove('page-active', 'page-back-exit');
+                assemblyPage.classList.add('page-hidden');
+                fabRestore.classList.remove('visible');
+                closeAllSheets();
+                // Refresh lists
+                fetchTasks();
+                fetchUserActiveTasks();
+            }, 500);
+        }
+
+        // --- ACTIONS ---
+
+        async function startAssembly() {
+            const btn = document.getElementById('btn-start-assembly');
+            if(!btn) return;
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Создание листа...`;
+
+            const email = localStorage.getItem('userEmail');
+
+            try {
+                // Action: startTask
+                const response = await fetch(`${SCRIPT_URL}?action=startTask&email=${encodeURIComponent(email)}&taskId=${encodeURIComponent(activeTaskId)}`);
+                const result = await response.json();
+
+                if (result.status === 'Success') {
+                    document.getElementById('start-overlay').style.display = 'none';
+                    document.getElementById('interactive-area').style.opacity = '1';
+                    document.getElementById('interactive-area').style.pointerEvents = 'auto';
+                    document.getElementById('action-area').classList.remove('hidden');
+                    // Refresh background lists so it moves from pool to active
+                    fetchTasks();
+                    fetchUserActiveTasks();
+                } else {
+                    alert("Не удалось взять задачу. Она уже занята.");
+                    closeAssembly();
+                }
+            } catch (e) {
+                console.error("Start error:", e);
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
             }
-        });
+        }
 
-        document.addEventListener('contextmenu', e => e.preventDefault());
+        function copyCode() {
+            const code = document.getElementById('python-code-block').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                document.getElementById('return-code-btn').disabled = false;
+            });
+        }
+
+        function handleReturnClick() {
+            returnClickCount++;
+            if (returnClickCount === 1) {
+                document.getElementById('secondary-btn').classList.add('visible');
+            } else {
+                showNotification('notif-error');
+            }
+        }
+
+        function openAuthSheet() {
+            document.getElementById('scrim-main').classList.add('active');
+            document.getElementById('sheet-auth').classList.add('open');
+        }
+
+        function authorizeCode() {
+            const token = document.getElementById('token-input').value;
+            if(!token) return;
+            document.getElementById('sheet-auth').classList.remove('open');
+            document.getElementById('secondary-btn').classList.remove('visible');
+            showNotification('notif-success');
+            setTimeout(() => {
+                generateTableData();
+                document.getElementById('scrim-main').classList.add('active');
+                document.getElementById('sheet-table').classList.add('open');
+            }, 1000);
+        }
+
+        function generateTableData() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            const pythonSnippets = ["bw_limit = 1024 * 50", "socket.setsockopt(SOL_S...)", "traffic_shaper.apply(par...)"];
+            for (let i = 0; i < 3; i++) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${Math.floor(Math.random() * 900000 + 100000)}</td>
+                    <td>${Math.random().toString(36).substring(2, 8)}</td>
+                    <td class="font-mono text-[10px] text-blue-300">PY_CHUNK_${i}: ${pythonSnippets[i]}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        // UPDATE STAGE TO FINAL
+        function handleTableClose() {
+            closeAllSheets();
+            
+            // UI Transition
+            document.getElementById('stage-coding').classList.add('hidden');
+            document.getElementById('stage-final').classList.remove('hidden');
+            fabRestore.classList.add('visible');
+            setAssemblyLabel('Финальный этап', 'purple');
+            
+            // Server Update
+            const email = localStorage.getItem('userEmail');
+            if (activeTaskId && email) {
+                fetch(`${SCRIPT_URL}?action=updateStage&email=${encodeURIComponent(email)}&taskId=${encodeURIComponent(activeTaskId)}&stage=FINAL`)
+                .catch(e => console.error("Stage update error:", e));
+            }
+        }
+
+        function reopenConfigTable() {
+            document.getElementById('scrim-main').classList.add('active');
+            document.getElementById('sheet-table').classList.add('open');
+        }
+
+        function updateFinalCode() {
+            const b1 = document.getElementById('final-block-1').value || '...';
+            const b2 = document.getElementById('final-block-2').value || '...';
+            const entry = document.getElementById('final-code-entry');
+            entry.textContent = `"${b1}", "${b2}"`;
+            entry.classList.remove('italic', 'text-white/50');
+            entry.classList.add('text-white');
+        }
+
+        async function finalizeTaskProcess() {
+            const b1 = document.getElementById('final-block-1').value;
+            const b2 = document.getElementById('final-block-2').value;
+            
+            if (!b1 || !b2) {
+                const btn = document.getElementById('finish-task-btn');
+                btn.classList.add('!bg-red-500');
+                setTimeout(() => btn.classList.remove('!bg-red-500'), 500);
+                return;
+            }
+
+            const email = localStorage.getItem('userEmail');
+            const btn = document.getElementById('finish-task-btn');
+            btn.disabled = true;
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = `<span class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Сохранение...`;
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=completeTask&email=${encodeURIComponent(email)}&taskId=${encodeURIComponent(activeTaskId)}&block1=${encodeURIComponent(b1)}&block2=${encodeURIComponent(b2)}`);
+                const result = await response.json();
+
+                if (result.status === 'Success') {
+                    showNotification('notif-complete');
+                    fabRestore.classList.remove('visible');
+                    setTimeout(() => { closeAssembly(); }, 1000);
+                } else {
+                    throw new Error(result.reason || 'Unknown error');
+                }
+            } catch (err) {
+                console.error("Completion error:", err);
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="alert-circle" class="w-5 h-5"></i> Ошибка.`;
+                setTimeout(() => { 
+                    btn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> Завершить выполнение'; 
+                    btn.disabled = false;
+                }, 3000);
+            }
+        }
+
+        function closeAllSheets() {
+            document.getElementById('scrim-main').classList.remove('active');
+            document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('open'));
+        }
+
+        function showNotification(id) {
+            const el = document.getElementById(id);
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3500);
+        }
+
+        function initAppLogic() {
+            lucide.createIcons();
+            performBackgroundUpdates(); 
+            setInterval(tickTimers, 1000); 
+            setInterval(performBackgroundUpdates, 4000); 
+        }
+
+        window.onload = function() {
+            checkUserAuthorization(false);
+        };
     </script>
 </body>
 </html>
