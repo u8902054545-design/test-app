@@ -3,462 +3,1036 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Task System</title>
+    <title>Task Manager & Assembly System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        const app = initializeApp(typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "fake", projectId: "p" });
-        signInAnonymously(getAuth(app)).catch(()=>console.warn("Auth: Local"));
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "fake-key", authDomain: "domain.com", projectId: "project" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'task-assembly-app';
+
+        async function initApp() {
+            try { await signInAnonymously(auth); } catch (error) { console.warn("Auth mode: local/fallback"); }
+        }
+
+        onAuthStateChanged(auth, (user) => { if (user) window.currentUser = user; });
+        initApp();
+        window.db = db;
+        window.appId = appId;
     </script>
 
     <style>
         :root {
-            --bg: #0b1219; --surface: #161c24; --primary: #0000FF; --text: #E6E1E5;
+            /* Обновленная цветовая палитра */
+            --m3-surface: #0b1219;
+            --m3-on-surface: #E6E1E5;
+            --m3-surface-container: #161c24;
+            --m3-primary: #a8c7fa;
+            --m3-on-primary: #ffffff;
+            --m3-secondary-container: #232a3b;
+            --m3-on-secondary-container: #dce4f0;
+            --m3-error: #F2B8B5;
+            --m3-on-error: #601410;
+            --m3-tertiary-container: #0f2e45; 
+            --m3-on-tertiary-container: #c2e7ff;
+            --m3-warning-container: #633b00;
+            --m3-on-warning-container: #ffdcbe;
+            
+            /* Главный цвет кнопок */
+            --md-sys-color-primary: #0000FF; 
+            
+            --md-sys-color-outline: #4f5b68;
+            --google-table-border: #3c4043;
+            --google-table-header: #202124;
+            --active-task-color: #1a2230;
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100dvh; overflow: hidden; }
-        
-        /* Анимации и спиннер */
-        .spinner { animation: rot 2s linear infinite; width: 24px; height: 24px; }
-        .path { stroke: #fff; stroke-width: 4; stroke-dasharray: 1,150; animation: dash 1.5s ease-in-out infinite; }
-        @keyframes rot { 100% { transform: rotate(360deg); } }
-        @keyframes dash { 0% { stroke-dasharray: 1,150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90,150; stroke-dashoffset: -35; } 100% { stroke-dasharray: 90,150; stroke-dashoffset: -124; } }
 
-        /* Страницы */
-        .page { position: fixed; inset: 0; background: var(--bg); transition: transform 0.4s ease, opacity 0.4s; z-index: 10; overflow-y: auto; padding-bottom: 90px; }
+        body {
+            font-family: 'Inter', 'Roboto', sans-serif;
+            background-color: var(--m3-surface);
+            color: var(--m3-on-surface);
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100dvh;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- SPINNER STYLES --- */
+        .spinner {
+            width: 48px; 
+            height: 48px;
+            animation: rotate 2s linear infinite; 
+            transform-origin: center center;
+            display: block;
+        }
+
+        .spinner-btn {
+            width: 24px;
+            height: 24px;
+        }
+
+        .path {
+            stroke: #0000FF;
+            stroke-linecap: round;
+            stroke-width: 4; 
+            stroke-dasharray: 1, 150; 
+            animation: dash 1.5s ease-in-out infinite; 
+        }
+
+        .path-white {
+            stroke: #FFFFFF !important;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes dash {
+            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 70, 150; stroke-dashoffset: -25px; }
+            100% { stroke-dasharray: 70, 150; stroke-dashoffset: -125px; }
+        }
+
+        /* --- LOADING SCREEN --- */
+        #auth-loader {
+            position: fixed; inset: 0; background: var(--m3-surface); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .page {
+            position: fixed; inset: 0;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s, filter 0.5s;
+            background: var(--m3-surface); z-index: 10; overflow-y: auto;
+            padding-bottom: 100px; /* Space for bottom fixed buttons */
+        }
         .page-hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
-        .page-active { transform: translateX(0); opacity: 1; }
-        
-        /* Элементы UI */
-        .card { background: var(--surface); border-radius: 16px; padding: 16px; transition: 0.2s; border: 1px solid transparent; }
-        .card:active { transform: scale(0.98); }
-        .card.active { background: #1a2230; border-color: var(--primary); }
-        
-        /* Кнопка действия (внизу) */
-        .action-btn {
-            background: var(--primary); color: white; border-radius: 12px; padding: 14px;
-            font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;
-            width: 100%; box-shadow: 0 4px 15px rgba(0,0,255,0.3); transition: 0.2s;
-        }
-        .action-btn:disabled { opacity: 0.7; filter: grayscale(1); }
-        .action-btn:active { transform: scale(0.98); }
+        .page-active { transform: translateX(0); opacity: 1; z-index: 20; }
+        .page-back-exit { transform: translateX(100%); opacity: 0; }
+        .page-back-enter { transform: scale(0.92); opacity: 0.5; filter: brightness(0.5); }
 
-        /* Окно кода */
-        .code-frame {
-            background: #000; border: 2px solid #0000FF; border-radius: 16px;
-            padding: 16px; position: relative; min-height: 180px; font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.5;
-            white-space: pre-wrap; word-break: break-all;
+        .sticky-header {
+            position: sticky; top: 0; height: 64px;
+            background-color: var(--m3-surface);
+            display: flex; align-items: center;
+            padding: 0 16px; z-index: 100;
+            border-bottom: 1px solid rgba(230, 225, 229, 0.1);
         }
-        /* Подсветка синтаксиса */
-        .s-kw { color: #ff7b72; font-weight: bold; } /* def, return */
-        .s-fn { color: #79c0ff; } /* func names */
-        .s-str { color: #a5d6ff; } /* strings */
-        .s-com { color: #8b949e; font-style: italic; } /* comments */
-        .s-num { color: #d2a8ff; } /* numbers */
 
-        /* Всплывашки */
-        .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-radius: 24px 24px 0 0; transform: translateY(100%); transition: 0.3s; z-index: 50; padding: 24px; border-top: 1px solid #333; }
-        .sheet.open { transform: translateY(0); }
-        .scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; pointer-events: none; transition: 0.3s; z-index: 40; }
-        .scrim.active { opacity: 1; pointer-events: auto; }
+        .m3-card {
+            background-color: var(--m3-surface-container);
+            border-radius: 16px; padding: 16px;
+            transition: transform 0.2s ease;
+            border: 1px solid transparent; cursor: pointer;
+        }
+        .m3-card:active { transform: scale(0.98); }
         
-        /* Таймер чип */
-        .chip { border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; gap: 6px; align-items: center; }
-        .t-norm { background: #0f2e45; color: #c2e7ff; }
-        .t-warn { background: #633b00; color: #ffdcbe; }
-        .t-err { background: #601410; color: #f2b8b5; }
-        
-        .notification { position: fixed; top: -80px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: 12px; z-index: 100; transition: 0.4s; background: #333; display: flex; gap: 10px; align-items: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .m3-card-active {
+            background-color: var(--active-task-color);
+            border: 1px solid var(--md-sys-color-primary);
+        }
+
+        .m3-chip {
+            border-radius: 8px; padding: 6px 12px; font-weight: 500; font-size: 0.85rem;
+            display: inline-flex; align-items: center; gap: 6px; justify-content: center;
+        }
+
+        .timer-default { background-color: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
+        .timer-warning { background-color: var(--m3-warning-container); color: var(--m3-on-warning-container); }
+        .timer-error { background-color: var(--m3-on-error); color: var(--m3-error); }
+
+        .notification {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            width: calc(100% - 32px); max-width: 400px; padding: 14px 16px;
+            border-radius: 12px; display: flex; align-items: center; gap: 12px; z-index: 2000;
+            transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        }
         .notification.show { top: 16px; }
+        .notification-error { background-color: #920003; color: white; border: 1px solid #FF897A; }
+        .notification-success { background-color: #002104; color: #B4F0AD; border: 1px solid #00390A; }
+        .notification-complete { background-color: #D0BCFF; color: #381E72; border: 1px solid #D0BCFF; }
+
+        .scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.6); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 1000; }
+        .scrim.active { opacity: 1; visibility: visible; }
+        
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--m3-surface-container); border-radius: 28px 28px 0 0;
+            padding: 24px; transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.32, 1, 0.23, 1);
+            z-index: 1001; max-width: 600px; margin: 0 auto;
+        }
+        .bottom-sheet.open { transform: translateY(0); }
+
+        /* ОБНОВЛЕННЫЕ СТИЛИ КНОПОК */
+        .m3-button {
+            background-color: var(--md-sys-color-primary);
+            color: var(--m3-on-primary);
+            border-radius: 12px;
+            padding: 14px 28px;
+            font-weight: 500;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            cursor: pointer; transition: opacity 0.2s;
+            width: 100%;
+        }
+        .m3-button:disabled { opacity: 0.8; cursor: not-allowed; }
+        
+        .m3-button-tonal {
+            background-color: var(--m3-secondary-container);
+            color: var(--m3-on-secondary-container);
+            border-radius: 12px;
+            padding: 12px 24px;
+            opacity: 0; transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+        .m3-button-tonal.visible { opacity: 1; transform: translateY(0); }
+
+        /* FIX BOTTOM ACTION AREA */
+        .bottom-action-container {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            z-index: 900;
+            max-width: 600px;
+            margin: 0 auto;
+            transition: opacity 0.2s, transform 0.2s; /* Анимация скрытия */
+        }
+        
+        /* Класс для скрытия при активной клавиатуре */
+        .keyboard-active-hide {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+        }
+
+        .google-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #1e1e1e; border: 1px solid var(--google-table-border); }
+        .google-table th { background: var(--google-table-header); border: 1px solid var(--google-table-border); padding: 8px 12px; text-align: left; color: #bdc1c6; }
+        .google-table td { border: 1px solid var(--google-table-border); padding: 8px 12px; color: #e8eaed; }
+
+        .m3-textfield { position: relative; width: 100%; margin-bottom: 24px; }
+        .m3-textfield input { width: 100%; background: transparent; border: 1px solid var(--md-sys-color-outline); border-radius: 8px; padding: 16px; color: white; outline: none; }
+        .m3-textfield label { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: var(--m3-surface-container); padding: 0 4px; color: #999; pointer-events: none; transition: 0.2s; }
+        .m3-textfield input:focus + label, .m3-textfield input:not(:placeholder-shown) + label { top: 0; font-size: 12px; color: var(--m3-primary); }
+
+        .fab-recovery {
+            position: fixed; bottom: 84px;
+            right: 24px; width: 56px; height: 56px;
+            border-radius: 16px; background: var(--m3-secondary-container);
+            color: var(--m3-on-secondary-container);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 50;
+            transform: scale(0); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s;
+        }
+        .fab-recovery.visible { transform: scale(1); }
+        
+        /* Дополнительная защита: если экран становится слишком низким (клавиатура), скрываем */
+        @media (max-height: 450px) {
+            .bottom-action-container, .fab-recovery {
+                display: none !important;
+            }
+        }
+
+        #python-code-block, .final-code-block {
+            white-space: pre-wrap; word-break: break-all; max-width: 100%;
+        }
+        #final-code-entry {
+            display: inline-block; white-space: pre-wrap; word-break: break-all;
+            vertical-align: middle; max-width: 100%;
+        }
+        
+        .code-container {
+            display: flex; justify-content: center; align-items: center; min-height: 100px;
+        }
+
+        /* PYTHON WINDOW STYLE UPDATE */
+        .python-window {
+            background: #000;
+            border-radius: 24px;
+            padding: 24px;
+            border: 2px solid #0000FF;
+            position: relative;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            min-height: 150px;
+        }
+
+        /* SYNTAX HIGHLIGHTING CLASSES */
+        .token-keyword { color: #C792EA; font-weight: bold; }
+        .token-string { color: #C3E88D; }
+        .token-comment { color: #546E7A; font-style: italic; }
+        .token-function { color: #82AAFF; }
+        .token-number { color: #F78C6C; }
+        .token-operator { color: #89DDFF; }
     </style>
 </head>
 <body>
-
-    <div id="auth-loader" class="fixed inset-0 bg-[#0b1219] z-50 flex flex-col items-center justify-center transition-opacity duration-500">
-        <svg class="spinner mb-4" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg>
-        <span class="text-xs font-medium tracking-widest uppercase text-gray-400">Loading Config</span>
+    
+    <div id="auth-loader">
+        <svg class="spinner mb-4" viewBox="25 25 50 50">
+            <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10"/>
+        </svg>
+        <div class="text-[#E6E1E5] text-sm font-medium tracking-wide">Обновление конфигурации...</div>
     </div>
 
-    <div id="notif-box" class="notification border border-white/10">
-        <i id="notif-icon" data-lucide="info" class="w-5 h-5 text-blue-400"></i>
-        <span id="notif-text" class="text-sm font-medium">Message</span>
+    <div id="notif-error" class="notification notification-error">
+        <div class="bg-[#FFB4AB] text-[#690005] rounded-full p-1"><i data-lucide="x" class="w-4 h-4"></i></div>
+        <span class="text-sm font-bold">Ошибка: Функция «Return» заблокирована</span>
+    </div>
+    <div id="notif-success" class="notification notification-success">
+        <i data-lucide="check" class="w-5 h-5"></i>
+        <span class="text-sm font-medium">Авторизованный код пропущен</span>
+    </div>
+    <div id="notif-complete" class="notification notification-complete">
+        <i data-lucide="party-popper" class="w-5 h-5"></i>
+        <span class="text-sm font-bold uppercase tracking-wide">Выполнение задачи завершено</span>
     </div>
 
     <div id="page-list" class="page page-active">
-        <header class="sticky top-0 bg-[#0b1219]/95 backdrop-blur z-20 px-4 h-16 flex items-center justify-center border-b border-white/5">
-            <h1 class="text-[16px] font-bold text-white">Разработка</h1>
+        <header class="sticky-header">
+            <button class="p-2 -ml-2 rounded-full hover:bg-white/10" onclick="window.location.href='https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/'">
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+            </button>
+            <h1 class="text-[16px] font-bold absolute left-1/2 -translate-x-1/2">Разработка</h1>
         </header>
-        
-        <div class="p-4 max-w-md mx-auto space-y-4">
-            <div id="active-tasks-wrapper" class="hidden">
+        <div class="max-w-md mx-auto p-4">
+            
+            <div id="active-tasks-wrapper" class="hidden mb-6">
+                <h2 id="active-tasks-header" class="text-xs font-bold uppercase tracking-widest text-blue-400 mb-3 opacity-90 pl-1"></h2>
                 <div id="active-tasks-container" class="space-y-3"></div>
-                <div class="h-px bg-white/10 my-6"></div>
+                <div class="h-px bg-white/5 my-6"></div> </div>
+
+            <div id="task-counter-container" class="mb-4 hidden">
+                <h2 id="task-counter" class="text-3xl font-bold text-[#E6E1E5]">Ожидают 0</h2>
             </div>
-
-            <h2 id="task-counter" class="text-2xl font-bold text-gray-200 hidden">Ожидают 0</h2>
-            <div id="tasks-container" class="space-y-3 pb-20"></div>
-
-            <div id="empty-state" class="flex flex-col items-center py-12 hidden">
-                <i data-lucide="package-search" class="w-12 h-12 text-gray-700 mb-4"></i>
-                <p class="text-gray-500 text-sm">Нет новых задач</p>
+            <div id="tasks-container" class="space-y-3 hidden"></div>
+            
+            <div id="empty-state" class="flex flex-col items-center justify-center py-10 hidden">
+                <div class="bg-white/5 p-8 rounded-full mb-6"><i data-lucide="package-search" class="w-16 h-16 text-white/20"></i></div>
+                <p class="text-[#938F99] text-lg">Ждём новые задачи</p>
+                <p class="text-[#938F99]/60 text-sm mt-1">Они появятся автоматически</p>
             </div>
         </div>
     </div>
 
-    <div id="page-assembly" class="page page-hidden flex flex-col">
-        <header class="sticky top-0 bg-[#0b1219] z-20 px-4 h-16 flex items-center gap-4 border-b border-white/5">
-            <button onclick="closeAssembly()" class="p-2 -ml-2 rounded-full hover:bg-white/5"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
-            <h1 class="text-[16px] font-bold text-white">Выполнение разработки</h1>
+    <div id="page-assembly" class="page page-hidden">
+        <header class="sticky-header justify-between">
+            <button onclick="closeAssembly()" class="p-2 -ml-2 rounded-full hover:bg-white/10"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+            <h1 class="text-[16px] font-bold absolute left-1/2 -translate-x-1/2 w-full text-center pointer-events-none">Выполнение разработки</h1>
         </header>
 
-        <div class="flex-1 p-5 max-w-xl mx-auto w-full flex flex-col">
-            <div class="flex justify-between items-end mb-2 w-full">
-                <div class="bg-blue-600 rounded px-2 py-1 shadow-lg shadow-blue-900/20">
-                    <span id="header-task-id" class="text-xs font-mono font-bold text-white tracking-wide">ID: ---</span>
+        <div class="p-6 flex flex-col items-center max-w-xl mx-auto w-full gap-6">
+            
+            <div class="w-full flex items-center gap-3 mb-2">
+                <div class="bg-blue-700/80 backdrop-blur-sm px-3 py-1.5 rounded-md border border-blue-500/30">
+                    <span id="header-task-id" class="text-white font-mono font-bold text-sm tracking-wide">ID: ---</span>
                 </div>
-                <div id="assembly-timer" class="chip t-norm">
-                    <i data-lucide="timer" class="w-3 h-3"></i><span id="assembly-timer-text">--:--</span>
+                <div id="assembly-timer" class="m3-chip timer-default">
+                    <i data-lucide="timer" class="w-3.5 h-3.5"></i>
+                    <span id="assembly-timer-text">--:--</span>
                 </div>
             </div>
 
-            <div id="stage-coding" class="w-full flex-1 flex flex-col gap-4">
-                <div id="interactive-area" class="opacity-50 pointer-events-none transition-opacity duration-300 w-full relative">
-                    <div class="code-frame shadow-lg">
-                        <div id="code-spinner" class="absolute inset-0 flex items-center justify-center bg-black/50 z-10"><svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg></div>
-                        <div id="python-code-content" class="relative z-0"></div>
-                        <button onclick="copyCode()" class="absolute top-2 right-2 p-1.5 bg-white/10 rounded hover:bg-white/20 text-blue-300 transition"><i data-lucide="copy" class="w-4 h-4"></i></button>
+            <div id="stage-coding" class="w-full space-y-6 pb-20">
+                <div id="interactive-area" class="opacity-40 pointer-events-none transition-opacity duration-300 w-full">
+                    
+                    <div class="python-window">
+                        <div id="python-loading-spinner" class="code-container absolute inset-0 flex items-center justify-center">
+                            <svg class="spinner" viewBox="25 25 50 50">
+                                <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10"/>
+                            </svg>
+                        </div>
+                        <pre id="python-code-block" class="text-sm font-['Fira_Code'] hidden"></pre>
+                        <button onclick="copyCode()" class="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full text-blue-400 z-10">
+                            <i data-lucide="copy" class="w-5 h-5"></i>
+                        </button>
                     </div>
                 </div>
-                
-                <div id="coding-actions" class="hidden space-y-3 mt-2">
-                    <button onclick="openAuthSheet()" class="w-full py-3 text-xs text-blue-300 uppercase font-bold tracking-wider hover:bg-white/5 rounded-lg border border-blue-900/30">Return Input Block</button>
+
+                <div id="action-area" class="w-full flex flex-col items-center gap-4 hidden">
+                    <button id="return-code-btn" disabled onclick="handleReturnClick()" class="m3-button w-full">Вернуть входной код</button>
+                    <button id="secondary-btn" onclick="openAuthSheet()" class="m3-button-tonal w-full">Return of block input</button>
                 </div>
             </div>
 
-            <div id="stage-final" class="hidden w-full flex-1 flex flex-col gap-4">
-                 <div class="code-frame border-purple-500/50 bg-[#0f0e11]">
-                    <span class="text-purple-300"># System Integration</span><br>
-                    def push_stream(data):<br>
-                    &nbsp;&nbsp;sys.pipe(data)<br><br>
-                    blocks = [<span id="final-code-entry" class="text-yellow-300">waiting...</span>]<br>
-                    push_stream(blocks)
+            <div id="stage-final" class="w-full hidden space-y-6 pb-20">
+                 <h2 class="text-xs font-bold uppercase tracking-widest mb-1 text-purple-400">Integrate Configuration</h2>
+                 <div class="bg-[#0b0a0d] rounded-[24px] p-6 border border-purple-900/30 w-full shadow-xl">
+                    <pre class="final-code-block text-[13px] text-purple-300 font-['Fira_Code'] leading-relaxed">
+# Finalizing task bridge...
+def push_to_main_stream(blocks):
+    for block in blocks:
+        sys.net.stream(block)
+    return True
+
+# Enter block identifiers from table
+blocks_data = [<span id="final-code-entry" class="bg-purple-900/50 px-2 rounded italic text-white/50">Waiting for inputs...</span>]
+push_to_main_stream(blocks_data)</pre>
                 </div>
-                <div class="grid grid-cols-2 gap-3 mt-2">
-                    <input type="text" id="final-block-1" placeholder="Block ID 1" oninput="updateFinalCode()" class="bg-[#161c24] border border-gray-700 rounded-lg p-3 text-white text-sm outline-none focus:border-blue-500">
-                    <input type="text" id="final-block-2" placeholder="Block ID 2" oninput="updateFinalCode()" class="bg-[#161c24] border border-gray-700 rounded-lg p-3 text-white text-sm outline-none focus:border-blue-500">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="m3-textfield !mb-0">
+                        <input type="text" id="final-block-1" placeholder=" " oninput="updateFinalCode()">
+                        <label>Block ID 1</label>
+                    </div>
+                    <div class="m3-textfield !mb-0">
+                        <input type="text" id="final-block-2" placeholder=" " oninput="updateFinalCode()">
+                        <label>Block ID 2</label>
+                    </div>
                 </div>
-                <button onclick="reopenConfigTable()" class="text-xs text-gray-400 underline text-center py-2">Открыть таблицу кодов</button>
             </div>
         </div>
 
-        <div class="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0b1219] via-[#0b1219] to-transparent z-30">
-            <div class="max-w-xl mx-auto">
-                <button id="main-action-btn" class="action-btn" onclick="handleMainAction()">
-                    Начать выполнение
-                </button>
-            </div>
+        <div class="bottom-action-container">
+            <button id="btn-start-assembly" onclick="startAssembly()" class="m3-button text-lg shadow-2xl hidden">
+                <i data-lucide="play" class="w-5 h-5 fill-current"></i> Начать выполнение
+            </button>
+            
+            <button id="finish-task-btn" onclick="finalizeTaskProcess()" class="m3-button shadow-lg hidden">
+                <i data-lucide="check-circle" class="w-5 h-5"></i> Завершить выполнение
+            </button>
         </div>
+        
+        <button id="fab-restore" class="fab-recovery" onclick="reopenConfigTable()">
+            <i data-lucide="table"></i>
+        </button>
     </div>
 
     <div id="scrim-main" class="scrim" onclick="closeAllSheets()"></div>
-    
-    <div id="sheet-auth" class="sheet">
-        <h3 class="text-lg font-bold mb-4">Токен доступа</h3>
-        <input type="text" id="token-input" class="w-full bg-[#0b1219] border border-gray-600 rounded-lg p-3 text-white mb-4" placeholder="Введите токен">
-        <button onclick="authorizeCode()" class="action-btn">Авторизовать</button>
+
+    <div id="sheet-deleted" class="bottom-sheet">
+        <div class="w-8 h-1 bg-gray-600 rounded-full mx-auto mb-6"></div>
+        <div class="flex flex-col items-center text-center px-2">
+            <div class="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                <i data-lucide="alert-circle" class="w-6 h-6 text-red-400"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Задача недоступна</h3>
+            <p class="text-[#938F99] text-sm mb-8">Данная задача была удалена или взята другим пользователем.</p>
+            <button onclick="closeAllSheets()" class="m3-button w-full">Понятно</button>
+        </div>
     </div>
 
-    <div id="sheet-table" class="sheet !h-[70vh] flex flex-col">
-        <h3 class="text-lg font-bold mb-4">Конфигурация</h3>
-        <div class="flex-1 overflow-auto bg-[#1e1e1e] rounded border border-gray-700 p-1 mb-4">
-            <table class="w-full text-xs text-left text-gray-300">
-                <thead class="bg-[#2d2d2d] text-gray-400"><tr><th class="p-2">Auth</th><th class="p-2">Name</th><th class="p-2">Code</th></tr></thead>
-                <tbody id="table-body" class="divide-y divide-gray-700"></tbody>
+    <div id="sheet-auth" class="bottom-sheet">
+        <div class="w-8 h-1 bg-gray-600 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-xl font-medium mb-6 text-center">Укажи токен блока Python</h3>
+        <div class="m3-textfield">
+            <input type="text" id="token-input" placeholder=" " autocomplete="off">
+            <label>Аутентификационный токен</label>
+        </div>
+        <button onclick="authorizeCode()" class="m3-button w-full">Авторизовать код</button>
+    </div>
+
+    <div id="sheet-table" class="bottom-sheet !max-w-2xl">
+        <div class="w-8 h-1 bg-gray-600 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-lg font-medium mb-4 text-center">Конфигурация пропускной способности</h3>
+        <div class="overflow-x-auto rounded-lg mb-6">
+            <table class="google-table">
+                <thead><tr><th>Auth Block</th><th>Name Block</th><th>Access code</th></tr></thead>
+                <tbody id="table-body"></tbody>
             </table>
         </div>
-        <button onclick="handleTableClose()" class="action-btn !bg-[#161c24] border border-blue-500 text-blue-400">Подтвердить</button>
+        <button onclick="handleTableClose()" class="m3-button w-full !bg-transparent !text-blue-400 border border-blue-400/30">Подтвердить и продолжить</button>
     </div>
 
     <script>
-        // Config & Utils
+        // --- CONFIGURATION ---
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYIThLvfF1N6s2PhzvqvI5Q7YP_XWARDGVF80sjDyjAbUX34WeSazYBooafEBN2--Y/exec';
-        const AUTH_URL = "https://u8902054545-design.github.io/Auth-ITC-Platform/";
+        const AUTH_REDIRECT_URL = "https://u8902054545-design.github.io/Auth-ITC-Platform/";
+        const SHIFT_REDIRECT_URL = "https://u8902054545-design.github.io/DarkCenter-Cloud-User-Main/";
         
-        let poolTasks = [], userTasks = [], activeTaskId = null, currentStage = 'START'; // START, ASSEMBLY, FINAL
+        // --- SPINNER HTML CONSTANT ---
+        const whiteSpinnerHtml = `
+        <svg class="spinner spinner-btn" viewBox="25 25 50 50">
+            <circle class="path path-white" cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10"/>
+        </svg>`;
 
-        const $ = id => document.getElementById(id);
-        const formatTime = s => {
-            const m = Math.floor(Math.abs(s)/60), sc = Math.abs(s)%60;
-            return (s<0?'+':'') + `${m}`.padStart(2,'0') + ':' + `${sc}`.padStart(2,'0');
-        };
+        // --- AUTHENTICATION LOGIC ---
+        async function checkUserAuthorization(isBackground = false) {
+            const email = localStorage.getItem('userEmail');
+            const token = localStorage.getItem('authToken');
 
-        // Syntax Highlighter (GAS Style)
-        function colorizePython(code) {
-            if(!code) return '';
-            return code
-                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-                .replace(/#.*/g, '<span class="s-com">$&</span>')
-                .replace(/"(.*?)"/g, '<span class="s-str">"$1"</span>')
-                .replace(/\b(def|return|if|else|elif|for|while|import|from|class|try|except)\b/g, '<span class="s-kw">$1</span>')
-                .replace(/\b(print|len|range|str|int|float|list)\b/g, '<span class="s-fn">$1</span>')
-                .replace(/\b\d+\b/g, '<span class="s-num">$&</span>');
+            if (!email || !token) {
+                console.warn('Auth: Credentials missing');
+                window.location.href = AUTH_REDIRECT_URL;
+                return;
+            }
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=checkAuth&email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`);
+                const result = await response.json();
+
+                if (result.authorized) {
+                    if (!isBackground) {
+                        const loader = document.getElementById('auth-loader');
+                        if (loader) {
+                            loader.style.opacity = '0';
+                            setTimeout(() => loader.remove(), 500);
+                        }
+                        initAppLogic();
+                    }
+                } else {
+                    localStorage.removeItem('userEmail');
+                    localStorage.removeItem('authToken');
+                    window.location.href = AUTH_REDIRECT_URL;
+                }
+            } catch (error) {
+                console.error('Auth check error', error);
+                if (!isBackground) window.location.href = AUTH_REDIRECT_URL;
+            }
         }
 
-        // Logic
-        async function checkAuth() {
-            const email = localStorage.getItem('userEmail'), token = localStorage.getItem('authToken');
-            if (!email || !token) return window.location.href = AUTH_URL;
+        async function checkShiftStatus() {
+            const email = localStorage.getItem('userEmail');
+            if (!email) return;
             try {
-                const r = await fetch(`${SCRIPT_URL}?action=checkAuth&email=${email}&token=${token}`);
-                const d = await r.json();
-                if (!d.authorized) throw new Error();
-                $('auth-loader').classList.add('opacity-0');
-                setTimeout(()=>$('auth-loader').remove(),500);
-                initLoop();
-            } catch { window.location.href = AUTH_URL; }
+                const response = await fetch(`${SCRIPT_URL}?action=checkShift&email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                if (data.status === 'Closed') window.location.href = SHIFT_REDIRECT_URL;
+            } catch (e) { console.error("Shift check error:", e); }
         }
 
-        async function updateData() {
-            try {
-                const [r1, r2] = await Promise.all([
-                    fetch(`${SCRIPT_URL}?action=getTasks`).then(r=>r.json()),
-                    fetch(`${SCRIPT_URL}?action=getUserActiveTasks&email=${localStorage.getItem('userEmail')}`).then(r=>r.json())
-                ]);
-                
-                // Update Pool
-                poolTasks = r1;
-                const poolHTML = poolTasks.map(t => makeCardHTML(t, false)).join('');
-                $('tasks-container').innerHTML = poolHTML;
-                $('task-counter').textContent = `Ожидают ${poolTasks.length}`;
-                $('task-counter').classList.toggle('hidden', poolTasks.length===0);
-                $('empty-state').classList.toggle('hidden', poolTasks.length > 0 || r2.length > 0);
+        async function performBackgroundUpdates() {
+            await Promise.all([
+                fetchTasks(),
+                fetchUserActiveTasks(),
+                checkShiftStatus(),
+                checkUserAuthorization(true)
+            ]);
+        }
 
-                // Update Active
-                userTasks = r2;
-                $('active-tasks-container').innerHTML = userTasks.map(t => makeCardHTML(t, true)).join('');
-                $('active-tasks-wrapper').classList.toggle('hidden', userTasks.length===0);
-                
+        // --- CORE LOGIC ---
+        let poolTasks = [];
+        let userActiveTasks = [];
+        let activeTaskId = null;
+        let returnClickCount = 0;
+        
+        // Elements
+        const tasksContainer = document.getElementById('tasks-container');
+        const activeTasksContainer = document.getElementById('active-tasks-container');
+        const activeTasksWrapper = document.getElementById('active-tasks-wrapper');
+        const activeTasksHeader = document.getElementById('active-tasks-header');
+        const taskCounter = document.getElementById('task-counter');
+        const taskCounterContainer = document.getElementById('task-counter-container');
+        const emptyState = document.getElementById('empty-state');
+        const fabRestore = document.getElementById('fab-restore');
+
+        function formatTime(totalSeconds) {
+            const absSeconds = Math.abs(totalSeconds);
+            const minutes = Math.floor(absSeconds / 60);
+            const seconds = absSeconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        async function fetchTasks() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getTasks`);
+                const serverTasks = await response.json();
+                const serverIds = serverTasks.map(st => st.id);
+
+                poolTasks = poolTasks.filter(t => {
+                    if (!serverIds.includes(t.id)) {
+                        t.element.remove();
+                        return false;
+                    }
+                    return true;
+                });
+
+                serverTasks.forEach(st => {
+                    const existing = poolTasks.find(t => t.id === st.id);
+                    if (existing) {
+                         existing.durationSeconds = st.durationSeconds;
+                    } else {
+                        const taskObj = createTaskIdObj(st.id, st.durationSeconds, false);
+                        poolTasks.push(taskObj);
+                        tasksContainer.appendChild(taskObj.element);
+                    }
+                });
+
+                updatePoolCounter();
+                sortDomElements(poolTasks, tasksContainer);
                 lucide.createIcons();
-            } catch(e) { console.error(e); }
+            } catch (error) { console.error('Fetch pool error:', error); }
         }
 
-        function makeCardHTML(t, active) {
-            return `
-            <div class="card ${active?'active':''}" onclick="${active ? `restore('${t.id}', '${t.stage}')` : `openTask('${t.id}')`}">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <div class="text-[10px] font-bold uppercase tracking-wider ${active?'text-blue-400':'text-gray-500'}">${active?'В работе':'Задача'}</div>
-                        <div class="text-sm font-medium text-white break-all">${t.id}</div>
-                    </div>
-                    <div class="chip t-norm timer-ref" data-time="${t.durationSeconds}"><i data-lucide="timer" class="w-3 h-3"></i><span>${formatTime(t.durationSeconds)}</span></div>
-                </div>
-            </div>`;
-        }
+        async function fetchUserActiveTasks() {
+            const email = localStorage.getItem('userEmail');
+            if(!email) return;
 
-        // Timers
-        setInterval(() => {
-            document.querySelectorAll('.timer-ref').forEach(el => {
-                let s = parseInt(el.dataset.time) - 1;
-                el.dataset.time = s;
-                const sp = el.querySelector('span');
-                if(sp) sp.textContent = formatTime(s);
-                el.className = `chip timer-ref ${s<0 ? 't-err' : (s<60 ? 't-warn' : 't-norm')}`;
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getUserActiveTasks&email=${encodeURIComponent(email)}`);
+                const activeData = await response.json();
                 
-                // Update active header timer
-                if(activeTaskId && el.closest('.card') && el.closest('.card').onclick.toString().includes(activeTaskId)) {
-                   $('assembly-timer').className = el.className.replace('timer-ref','');
-                   $('assembly-timer-text').textContent = formatTime(s);
+                const activeIds = activeData.map(t => t.id);
+                
+                userActiveTasks = userActiveTasks.filter(t => {
+                    if (!activeIds.includes(t.id)) {
+                        t.element.remove();
+                        return false;
+                    }
+                    return true;
+                });
+
+                activeData.forEach(st => {
+                    const existing = userActiveTasks.find(t => t.id === st.id);
+                    if (existing) {
+                        existing.durationSeconds = st.durationSeconds;
+                        existing.stage = st.stage;
+                    } else {
+                        const taskObj = createTaskIdObj(st.id, st.durationSeconds, true, st.stage);
+                        userActiveTasks.push(taskObj);
+                        activeTasksContainer.appendChild(taskObj.element);
+                    }
+                });
+
+                updateActiveCounter();
+                sortDomElements(userActiveTasks, activeTasksContainer);
+                lucide.createIcons();
+
+            } catch (error) { console.error('Fetch active error:', error); }
+        }
+
+        function createTaskIdObj(id, duration, isActive, stage = 'ASSEMBLY') {
+            const card = document.createElement('div');
+            card.className = isActive ? 'm3-card m3-card-active w-full text-left' : 'm3-card w-full text-left';
+            card.onclick = isActive ? () => restoreSession(id, stage) : () => openAssembly(id);
+
+            card.innerHTML = `
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[11px] uppercase tracking-wider ${isActive ? 'text-blue-300' : 'text-[#938F99]'} font-bold">
+                            ${isActive ? 'В работе' : 'Задача'}
+                        </span>
+                        <span class="text-sm font-medium text-[#E6E1E5] break-all">${id}</span>
+                    </div>
+                    <div class="timer-display m3-chip timer-default">
+                        <i data-lucide="timer" class="w-3.5 h-3.5"></i>
+                        <span class="time-text">--:--</span>
+                    </div>
+                </div>
+            `;
+            return { id, durationSeconds: duration, element: card, isActive, stage };
+        }
+
+        function updatePoolCounter() {
+            const count = poolTasks.length;
+            taskCounterContainer.classList.toggle('hidden', count === 0);
+            tasksContainer.classList.toggle('hidden', count === 0);
+            if(userActiveTasks.length === 0) {
+                 emptyState.classList.toggle('hidden', count > 0);
+            } else {
+                 emptyState.classList.add('hidden');
+            }
+            if(count > 0) taskCounter.textContent = `Ожидают ${count}`;
+        }
+
+        function updateActiveCounter() {
+            const count = userActiveTasks.length;
+            activeTasksWrapper.classList.toggle('hidden', count === 0);
+            if (count > 0) {
+                activeTasksHeader.textContent = `Выполняю разработку ${count}`;
+                emptyState.classList.add('hidden');
+            } else {
+                if(poolTasks.length === 0) emptyState.classList.remove('hidden');
+            }
+        }
+
+        function tickTimers() {
+            const allTasks = [...poolTasks, ...userActiveTasks];
+            allTasks.forEach(task => {
+                task.durationSeconds--;
+                const totalSeconds = task.durationSeconds;
+                const chip = task.element.querySelector('.timer-display');
+                const timeSpan = task.element.querySelector('.time-text');
+                if (!chip || !timeSpan) return;
+                
+                const timeText = formatTime(totalSeconds);
+                chip.classList.remove('timer-default', 'timer-warning', 'timer-error');
+                let currentStyle = '';
+                
+                if (totalSeconds < 0) {
+                    currentStyle = 'timer-error';
+                    timeSpan.textContent = `+${timeText}`;
+                } else if (totalSeconds <= 60) {
+                    currentStyle = 'timer-warning';
+                    timeSpan.textContent = timeText;
+                } else {
+                    currentStyle = 'timer-default';
+                    timeSpan.textContent = timeText;
+                }
+                chip.classList.add(currentStyle);
+
+                if (activeTaskId === task.id) {
+                    const assemblyTimer = document.getElementById('assembly-timer');
+                    const assemblyText = document.getElementById('assembly-timer-text');
+                    assemblyTimer.className = `m3-chip ${currentStyle}`;
+                    assemblyText.textContent = totalSeconds < 0 ? `+${timeText}` : timeText;
                 }
             });
-        }, 1000);
-
-        // Navigation & State
-        function openTask(id) {
-            setupStage(id, 'START');
         }
 
-        function restore(id, stage) {
-            setupStage(id, stage || 'ASSEMBLY');
-            loadCode();
+        function sortDomElements(arr, container) {
+            arr.sort((a, b) => a.durationSeconds - b.durationSeconds);
+            arr.forEach((task, index) => {
+                if (container.children[index] !== task.element) {
+                    container.insertBefore(task.element, container.children[index]);
+                }
+            });
         }
 
-        function setupStage(id, stage) {
+        // --- SYNTAX HIGHLIGHTING ---
+        function highlightPythonCode(code) {
+            if (!code) return '';
+            code = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+            let result = code;
+            result = result.replace(/(#.*)|(['"])(.*?)\2|\b(def|class|import|from|return|if|else|elif|for|while|try|except|pass|break|continue|True|False|None)\b|\b([a-zA-Z_]\w*)(?=\()|\b(\d+)\b/g, function(match, comment, quote, stringContent, keyword, func, number) {
+                if (comment) return `<span class="token-comment">${comment}</span>`;
+                if (quote) return `<span class="token-string">${quote}${stringContent}${quote}</span>`;
+                if (keyword) return `<span class="token-keyword">${keyword}</span>`;
+                if (func) return `<span class="token-function">${func}</span>`;
+                if (number) return `<span class="token-number">${number}</span>`;
+                return match;
+            });
+            return result;
+        }
+
+        // --- NAVIGATION & STAGES ---
+
+        function resetTaskState() {
+            document.getElementById('final-block-1').value = '';
+            document.getElementById('final-block-2').value = '';
+            
+            document.getElementById('python-loading-spinner').classList.remove('hidden');
+            const codeBlock = document.getElementById('python-code-block');
+            codeBlock.classList.add('hidden');
+            codeBlock.innerHTML = ''; 
+            
+            const codeEntry = document.getElementById('final-code-entry');
+            codeEntry.textContent = 'Waiting for inputs...';
+            codeEntry.className = 'bg-purple-900/50 px-2 rounded italic text-white/50';
+
+            const finishBtn = document.getElementById('finish-task-btn');
+            finishBtn.disabled = false;
+            finishBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> Завершить выполнение';
+            finishBtn.classList.remove('!bg-red-500');
+
+            document.getElementById('token-input').value = '';
+        }
+
+        function openAssembly(id) {
             activeTaskId = id;
-            currentStage = stage;
-            $('header-task-id').textContent = `ID: ${id}`;
-            $('page-list').classList.add('page-hidden');
-            $('page-list').classList.remove('page-active');
-            $('page-assembly').classList.remove('page-hidden');
-            $('page-assembly').classList.add('page-active');
+            returnClickCount = 0;
+            fabRestore.classList.remove('visible');
+            
+            resetTaskState();
 
-            const btn = $('main-action-btn');
-            const overlay = $('interactive-area');
+            document.getElementById('header-task-id').textContent = `ID: ${id}`;
+            setupPageTransition();
+
+            document.getElementById('stage-coding').classList.remove('hidden');
+            document.getElementById('stage-final').classList.add('hidden');
             
-            // Reset UI
-            $('python-code-content').innerHTML = '';
-            $('code-spinner').classList.remove('hidden');
-            $('final-block-1').value = ''; $('final-block-2').value = '';
+            // Кнопки действий
+            document.getElementById('btn-start-assembly').classList.remove('hidden');
+            document.getElementById('finish-task-btn').classList.add('hidden');
             
-            if (stage === 'START') {
-                $('stage-coding').classList.remove('hidden');
-                $('stage-final').classList.add('hidden');
-                $('coding-actions').classList.add('hidden');
-                overlay.classList.add('opacity-50', 'pointer-events-none');
-                btn.textContent = "Начать выполнение";
-                btn.onclick = startAssembly;
-                btn.classList.remove('hidden');
-            } else if (stage === 'ASSEMBLY') {
-                $('stage-coding').classList.remove('hidden');
-                $('stage-final').classList.add('hidden');
-                $('coding-actions').classList.remove('hidden');
-                overlay.classList.remove('opacity-50', 'pointer-events-none');
-                btn.classList.add('hidden'); // Кнопка скрыта во время работы, нужна логика возврата? В ТЗ кнопка внизу.
-                // В коде оригинала кнопка "Start" исчезала. Тут оставим, но переназначим если нужно.
-                // Для упрощения: кнопка внизу будет "Завершить", но она активна только на финальном этапе?
-                // По ТЗ: "Завершить выполнение, на том же месте". Значит меняем текст.
-                btn.classList.remove('hidden');
-                btn.textContent = "В процессе...";
-                btn.disabled = true;
-            } else if (stage === 'FINAL') {
-                $('stage-coding').classList.add('hidden');
-                $('stage-final').classList.remove('hidden');
-                btn.classList.remove('hidden');
-                btn.disabled = false;
-                btn.textContent = "Завершить выполнение";
-                btn.onclick = finishTask;
+            document.getElementById('interactive-area').style.opacity = '0.4';
+            document.getElementById('interactive-area').style.pointerEvents = 'none';
+            document.getElementById('action-area').classList.add('hidden');
+            
+            const startBtn = document.getElementById('btn-start-assembly');
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5 fill-current"></i> Начать выполнение';
+        }
+
+        async function restoreSession(id, stage) {
+            activeTaskId = id;
+            returnClickCount = 0;
+            fabRestore.classList.remove('visible');
+            
+            resetTaskState();
+
+            document.getElementById('header-task-id').textContent = `ID: ${id}`;
+            setupPageTransition();
+
+            loadPythonCode();
+
+            if (stage === 'FINAL') {
+                document.getElementById('stage-coding').classList.add('hidden');
+                document.getElementById('stage-final').classList.remove('hidden');
+                fabRestore.classList.add('visible');
+                
+                document.getElementById('btn-start-assembly').classList.add('hidden');
+                document.getElementById('finish-task-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('stage-coding').classList.remove('hidden');
+                document.getElementById('stage-final').classList.add('hidden');
+                
+                document.getElementById('btn-start-assembly').classList.add('hidden'); 
+                document.getElementById('finish-task-btn').classList.add('hidden');
+                
+                document.getElementById('interactive-area').style.opacity = '1';
+                document.getElementById('interactive-area').style.pointerEvents = 'auto';
+                document.getElementById('action-area').classList.remove('hidden');
+                document.getElementById('secondary-btn').classList.remove('visible');
+                document.getElementById('return-code-btn').disabled = true;
             }
+        }
+
+        function setupPageTransition() {
+            const listPage = document.getElementById('page-list');
+            const assemblyPage = document.getElementById('page-assembly');
+            listPage.classList.add('page-back-enter');
+            assemblyPage.classList.remove('page-hidden');
+            assemblyPage.classList.add('page-active');
             lucide.createIcons();
         }
 
-        async function loadCode() {
+        function closeAssembly() {
+            const listPage = document.getElementById('page-list');
+            const assemblyPage = document.getElementById('page-assembly');
+            assemblyPage.classList.add('page-back-exit');
+            listPage.classList.remove('page-back-enter');
+            setTimeout(() => {
+                activeTaskId = null;
+                assemblyPage.classList.remove('page-active', 'page-back-exit');
+                assemblyPage.classList.add('page-hidden');
+                fabRestore.classList.remove('visible');
+                closeAllSheets();
+                fetchTasks();
+                fetchUserActiveTasks();
+            }, 500);
+        }
+
+        // --- ACTIONS ---
+
+        async function loadPythonCode() {
             try {
-                const r = await fetch(`${SCRIPT_URL}?action=getPythonCode`);
-                const d = await r.json();
-                $('code-spinner').classList.add('hidden');
-                $('python-code-content').innerHTML = colorizePython(d.code || "# No code");
-            } catch {
-                $('python-code-content').innerHTML = "# Error loading code";
+                document.getElementById('python-loading-spinner').classList.remove('hidden');
+                document.getElementById('python-code-block').classList.add('hidden');
+
+                const response = await fetch(`${SCRIPT_URL}?action=getPythonCode`);
+                const data = await response.json();
+                
+                document.getElementById('python-loading-spinner').classList.add('hidden');
+                const codeBlock = document.getElementById('python-code-block');
+                codeBlock.classList.remove('hidden');
+
+                if (data.code) {
+                    codeBlock.innerHTML = highlightPythonCode(data.code);
+                }
+            } catch (e) {
+                console.error("Code load error:", e);
+                document.getElementById('python-loading-spinner').classList.add('hidden');
+                document.getElementById('python-code-block').classList.remove('hidden');
+                document.getElementById('python-code-block').innerText = "# Ошибка загрузки кода сервера";
             }
         }
 
-        // Actions
         async function startAssembly() {
-            const btn = $('main-action-btn');
-            btn.innerHTML = '<svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"/></svg>';
+            const btn = document.getElementById('btn-start-assembly');
+            if(!btn) return;
+            const originalContent = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = whiteSpinnerHtml;
+
+            const email = localStorage.getItem('userEmail');
+
             try {
-                await loadCode();
-                await fetch(`${SCRIPT_URL}?action=startTask&email=${localStorage.getItem('userEmail')}&taskId=${activeTaskId}`);
-                currentStage = 'ASSEMBLY';
-                $('interactive-area').classList.remove('opacity-50', 'pointer-events-none');
-                $('coding-actions').classList.remove('hidden');
-                btn.textContent = "В процессе...";
-                btn.disabled = true;
-                updateData();
-            } catch { alert('Ошибка старта'); closeAssembly(); }
+                await loadPythonCode();
+
+                const response = await fetch(`${SCRIPT_URL}?action=startTask&email=${encodeURIComponent(email)}&taskId=${encodeURIComponent(activeTaskId)}`);
+                const result = await response.json();
+
+                if (result.status === 'Success') {
+                    btn.classList.add('hidden'); 
+                    document.getElementById('interactive-area').style.opacity = '1';
+                    document.getElementById('interactive-area').style.pointerEvents = 'auto';
+                    document.getElementById('action-area').classList.remove('hidden');
+                    fetchTasks();
+                    fetchUserActiveTasks();
+                } else {
+                    alert("Не удалось взять задачу. Она уже занята.");
+                    closeAssembly();
+                }
+            } catch (e) {
+                console.error("Start error:", e);
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
         }
 
-        function handleMainAction() {
-            if(currentStage === 'START') startAssembly();
-            else if(currentStage === 'FINAL') finishTask();
+        function copyCode() {
+            const codeBlock = document.getElementById('python-code-block');
+            const code = codeBlock.innerText; 
+            navigator.clipboard.writeText(code).then(() => {
+                document.getElementById('return-code-btn').disabled = false;
+            });
         }
 
-        function openAuthSheet() { 
-            $('scrim-main').classList.add('active'); 
-            $('sheet-auth').classList.add('open'); 
+        function handleReturnClick() {
+            returnClickCount++;
+            if (returnClickCount === 1) {
+                document.getElementById('secondary-btn').classList.add('visible');
+            } else {
+                showNotification('notif-error');
+            }
+        }
+
+        function openAuthSheet() {
+            document.getElementById('scrim-main').classList.add('active');
+            document.getElementById('sheet-auth').classList.add('open');
         }
 
         function authorizeCode() {
-            if(!$('token-input').value) return;
-            $('sheet-auth').classList.remove('open');
-            notify('Код авторизован', 'success');
-            setTimeout(()=>{
-                fillTable();
-                $('sheet-table').classList.add('open');
-            }, 800);
+            const token = document.getElementById('token-input').value;
+            if(!token) return;
+            document.getElementById('sheet-auth').classList.remove('open');
+            document.getElementById('secondary-btn').classList.remove('visible');
+            showNotification('notif-success');
+            setTimeout(() => {
+                generateTableData();
+                document.getElementById('scrim-main').classList.add('active');
+                document.getElementById('sheet-table').classList.add('open');
+            }, 1000);
         }
 
-        function fillTable() {
-            const b = $('table-body'); b.innerHTML = '';
-            for(let i=0; i<3; i++) {
-                b.innerHTML += `<tr><td class="p-2">${Math.floor(Math.random()*9000)}</td><td class="p-2">${Math.random().toString(36).substr(2,5)}</td><td class="p-2 font-mono text-blue-300">sys.block(${i})</td></tr>`;
+        function generateTableData() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            const pythonSnippets = ["bw_limit = 1024 * 50", "socket.setsockopt(SOL_S...)", "traffic_shaper.apply(par...)"];
+            for (let i = 0; i < 3; i++) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${Math.floor(Math.random() * 900000 + 100000)}</td>
+                    <td>${Math.random().toString(36).substring(2, 8)}</td>
+                    <td class="font-mono text-[10px] text-blue-300">PY_CHUNK_${i}: ${pythonSnippets[i]}</td>
+                `;
+                tbody.appendChild(tr);
             }
         }
 
         function handleTableClose() {
             closeAllSheets();
-            currentStage = 'FINAL';
-            $('stage-coding').classList.add('hidden');
-            $('stage-final').classList.remove('hidden');
+            document.getElementById('stage-coding').classList.add('hidden');
+            document.getElementById('stage-final').classList.remove('hidden');
             
-            const btn = $('main-action-btn');
-            btn.classList.remove('hidden');
-            btn.disabled = false;
-            btn.textContent = "Завершить выполнение";
-            btn.onclick = finishTask;
+            document.getElementById('finish-task-btn').classList.remove('hidden'); 
+            fabRestore.classList.add('visible');
             
-            fetch(`${SCRIPT_URL}?action=updateStage&email=${localStorage.getItem('userEmail')}&taskId=${activeTaskId}&stage=FINAL`);
-        }
-
-        function updateFinalCode() {
-            $('final-code-entry').textContent = `"${$('final-block-1').value}", "${$('final-block-2').value}"`;
-        }
-
-        async function finishTask() {
-            if(!$('final-block-1').value || !$('final-block-2').value) return notify('Заполните блоки ID', 'error');
-            
-            const btn = $('main-action-btn');
-            btn.innerHTML = '<svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"/></svg>';
-            
-            try {
-                const r = await fetch(`${SCRIPT_URL}?action=completeTask&email=${localStorage.getItem('userEmail')}&taskId=${activeTaskId}&block1=${$('final-block-1').value}&block2=${$('final-block-2').value}`);
-                const d = await r.json();
-                if(d.status === 'Success') {
-                    notify('Задача выполнена!', 'success');
-                    closeAssembly();
-                } else throw new Error();
-            } catch {
-                btn.textContent = "Ошибка";
-                setTimeout(()=> btn.textContent = "Завершить выполнение", 2000);
+            const email = localStorage.getItem('userEmail');
+            if (activeTaskId && email) {
+                fetch(`${SCRIPT_URL}?action=updateStage&email=${encodeURIComponent(email)}&taskId=${encodeURIComponent(activeTaskId)}&stage=FINAL`)
+                .catch(e => console.error("Stage update error:", e));
             }
         }
 
-        // Utils UI
-        function closeAssembly() {
-            $('page-assembly').classList.add('page-hidden');
-            $('page-assembly').classList.remove('page-active');
-            $('page-list').classList.remove('page-hidden');
-            $('page-list').classList.add('page-active');
-            activeTaskId = null;
-            closeAllSheets();
-            updateData();
+        function reopenConfigTable() {
+            document.getElementById('scrim-main').classList.add('active');
+            document.getElementById('sheet-table').classList.add('open');
         }
-        
+
+        function updateFinalCode() {
+            const b1 = document.getElementById('final-block-1').value || '...';
+            const b2 = document.getElementById('final-block-2').value || '...';
+            const entry = document.getElementById('final-code-entry');
+            entry.textContent = `"${b1}", "${b2}"`;
+            entry.classList.remove('italic', 'text-white/50');
+            entry.classList.add('text-white');
+        }
+
+        async function finalizeTaskProcess() {
+            const b1 = document.getElementById('final-block-1').value;
+            const b2 = document.getElementById('final-block-2').value;
+            
+            if (!b1 || !b2) {
+                const btn = document.getElementById('finish-task-btn');
+                btn.classList.add('!bg-red-500');
+                setTimeout(() => btn.classList.remove('!bg-red-500'), 500);
+                return;
+            }
+
+            const email = localStorage.getItem('userEmail');
+            const btn = document.getElementById('finish-task-btn');
+            btn.disabled = true;
+            btn.innerHTML = whiteSpinnerHtml;
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=completeTask&email=${encodeURIComponent(email)}&taskId=${encodeURIComponent(activeTaskId)}&block1=${encodeURIComponent(b1)}&block2=${encodeURIComponent(b2)}`);
+                const result = await response.json();
+
+                if (result.status === 'Success') {
+                    showNotification('notif-complete');
+                    fabRestore.classList.remove('visible');
+                    setTimeout(() => { closeAssembly(); }, 1000);
+                } else {
+                    throw new Error(result.reason || 'Unknown error');
+                }
+            } catch (err) {
+                console.error("Completion error:", err);
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="alert-circle" class="w-5 h-5"></i> Ошибка.`;
+                setTimeout(() => { 
+                    btn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> Завершить выполнение'; 
+                    btn.disabled = false;
+                }, 3000);
+            }
+        }
+
         function closeAllSheets() {
-            $('scrim-main').classList.remove('active');
-            document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
+            document.getElementById('scrim-main').classList.remove('active');
+            document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('open'));
+        }
+
+        function showNotification(id) {
+            const el = document.getElementById(id);
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3500);
         }
         
-        function copyCode() {
-             const txt = $('python-code-content').innerText;
-             navigator.clipboard.writeText(txt);
-             notify('Код скопирован');
+        // --- KEYBOARD HANDLING ---
+        function attachKeyboardListeners() {
+            const inputs = document.querySelectorAll('input, textarea');
+            const bottomAction = document.querySelector('.bottom-action-container');
+            const fab = document.querySelector('.fab-recovery');
+
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    if(bottomAction) bottomAction.classList.add('keyboard-active-hide');
+                    if(fab) fab.classList.add('keyboard-active-hide');
+                });
+                input.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        if(bottomAction) bottomAction.classList.remove('keyboard-active-hide');
+                        if(fab) fab.classList.remove('keyboard-active-hide');
+                    }, 100);
+                });
+            });
         }
 
-        function notify(msg, type) {
-            $('notif-text').textContent = msg;
-            const box = $('notif-box');
-            box.style.background = type==='error'?'#601410' : (type==='success'?'#0f2e45':'#333');
-            box.classList.add('show');
-            setTimeout(()=>box.classList.remove('show'), 3000);
+        function initAppLogic() {
+            lucide.createIcons();
+            performBackgroundUpdates(); 
+            attachKeyboardListeners(); // Подключаем слушатели для скрытия кнопок
+            setInterval(tickTimers, 1000); 
+            setInterval(performBackgroundUpdates, 3000); 
         }
 
-        function reopenConfigTable() { $('scrim-main').classList.add('active'); $('sheet-table').classList.add('open'); }
-        function initLoop() { updateData(); setInterval(updateData, 4000); }
-
-        window.onload = checkAuth;
+        window.onload = function() {
+            checkUserAuthorization(false);
+        };
     </script>
 </body>
-    </html>
+</html>
