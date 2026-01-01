@@ -3,306 +3,351 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stranger Things 5 - Shift Management</title>
+    <title>Stranger Things 5 - Finale Schedule</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
     <style>
-        /* STRANGER THINGS FONTS & VIBE */
-        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Roboto+Slab:wght@100..900&family=Share+Tech+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Roboto+Mono:wght@400;700&family=Merriweather:wght@900&display=swap');
         
         :root {
-            --primary-color: #E50914; /* Netflix/ST Red */
-            --glow-color: #ff3d3d;
-            --upside-down-bg: #0a0a0c; 
-            --surface-color: #141414;
-            --text-color: #E3E3E3;
-            --error-color: #8B0000;
+            /* Фирменный красный Stranger Things */
+            --primary-color: #ff1e1e; 
+            --primary-glow: #ff0000;
+            --surface-dark: #0a0a0a;
+            --surface-card: rgba(20, 20, 20, 0.85);
+            --md-sys-error-container: #520002;
+            --md-sys-on-error-container: #ffdad6;
         }
 
         body {
-            font-family: 'Roboto Slab', serif;
-            background-color: var(--upside-down-bg);
-            background-image: 
-                radial-gradient(circle at 50% 0%, #2a0000 0%, transparent 60%),
-                linear-gradient(0deg, #000000 0%, #111 100%);
-            color: var(--text-color);
+            font-family: 'Roboto Mono', monospace; /* Ретро-компьютерный стиль */
+            background-color: #000000;
             height: 100vh;
             margin: 0;
             overflow: hidden;
             -webkit-user-select: none; 
             user-select: none; 
+            color: #e0e0e0;
         }
 
-        /* ATMOSPHERE PARTICLES (SPORES) */
+        /* Анимированный фон "Изнанка" */
+        .upside-down-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)),
+                url('https://images.unsplash.com/photo-1626262846944-d6215886d34e?q=80&w=2000&auto=format&fit=crop'); /* Абстрактный дым/облака */
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+        }
+        
+        /* Эффект парящих частиц (спор) */
         .spores {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;
-            background: url('https://grainy-gradients.vercel.app/noise.svg');
-            opacity: 0.15;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/dream-ball.png'); /* placeholder for particle texture style, using noise via CSS below instead usually */
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 0;
+            animation: float 20s infinite linear;
+        }
+
+        /* Заголовки в стиле Stranger Things */
+        .st-title {
+            font-family: 'Merriweather', serif;
+            color: transparent;
+            -webkit-text-stroke: 1px var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-color);
+            letter-spacing: -1px;
+        }
+        
+        .st-header-glow {
+            font-family: 'Merriweather', serif;
+            color: var(--primary-color);
+            text-shadow: 0 0 15px var(--primary-glow);
         }
 
         .screen-container {
-            width: 100%; height: 100%; position: relative; overflow-y: auto; padding-bottom: 110px; z-index: 10;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow-y: auto;
+            padding-bottom: 110px;
+            z-index: 10;
         }
+
         .screen-container::-webkit-scrollbar { display: none; }
 
-        /* HEADER ST */
-        .header-style {
-            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(20,0,0,0.6) 100%);
-            border-bottom: 1px solid var(--primary-color);
-            box-shadow: 0 4px 30px rgba(229, 9, 20, 0.3);
-            backdrop-filter: blur(5px);
-            position: sticky; top: 0; z-index: 40;
-        }
-
-        .st-title {
-            font-family: 'Creepster', cursive; /* Стиль логотипа */
-            color: var(--primary-color);
-            text-shadow: 0 0 10px rgba(229, 9, 20, 0.8), 2px 2px 0px #000;
-            letter-spacing: 2px;
-            font-size: 1.5rem;
-            line-height: 1.2;
-        }
-
-        /* NAVIGATION BAR */
+        /* --- NAVIGATION --- */
         .nav-bar {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: calc(100% - 32px); max-width: 500px; height: 70px; 
-            background-color: rgba(20, 20, 20, 0.95);
-            border: 1px solid #333;
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 500px;
+            height: 75px; 
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid var(--primary-color);
+            box-shadow: 0 0 20px rgba(255, 30, 30, 0.3);
             border-radius: 20px;
-            display: flex; justify-content: space-between; align-items: center; padding: 0 16px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(229, 9, 20, 0.2);
-            z-index: 50; box-sizing: border-box; backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 50;
+            backdrop-filter: blur(10px);
         }
 
         .nav-item {
-            color: #666; transition: all 0.3s ease;
-        }
-        .nav-item.active {
-            color: var(--primary-color);
-            filter: drop-shadow(0 0 8px var(--primary-color));
-            transform: scale(1.1);
+            display: flex; align-items: center; justify-content: center;
+            width: 50px; height: 50px; border-radius: 12px;
+            cursor: pointer; transition: all 0.3s ease;
+            color: #666;
         }
 
-        /* CALENDAR */
-        .calendar-item { transition: all 0.2s; border: 1px solid transparent; font-family: 'Share Tech Mono', monospace; }
+        .nav-item.active {
+            color: var(--primary-color);
+            text-shadow: 0 0 8px var(--primary-color);
+            transform: translateY(-5px);
+        }
+
+        /* --- CALENDAR --- */
+        .calendar-item { 
+            transition: all 0.3s ease; 
+            border: 1px solid transparent; 
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
         .calendar-item.selected-border { 
             border: 1px solid var(--primary-color); 
-            background-color: rgba(229, 9, 20, 0.15); 
-            box-shadow: 0 0 15px rgba(229, 9, 20, 0.2) inset;
+            background-color: rgba(255, 30, 30, 0.2); 
+            box-shadow: 0 0 10px rgba(255, 30, 30, 0.4);
         }
         
         .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-        /* BUTTONS */
-        .btn-card-action {
-            background: linear-gradient(135deg, #8B0000 0%, #E50914 100%);
-            color: white; border: none;
-            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
-            font-family: 'Roboto Slab', serif; letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-        .btn-card-action:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(229, 9, 20, 0.6); }
-        .btn-card-action:disabled { background: #333; box-shadow: none; color: #666; }
-
-        .close-shift-button {
-            height: 50px; width: 50px; background-color: #000; 
-            border: 1px solid var(--primary-color); border-radius: 8px; 
-            display: flex; justify-content: center; align-items: center; cursor: pointer;
-            box-shadow: 0 0 10px rgba(229, 9, 20, 0.2);
-        }
-        .close-shift-button::before { content: ''; width: 2px; height: 15px; background-color: var(--primary-color); position: absolute; }
-        .close-shift-button::after { content: ''; width: 20px; height: 20px; border: 2px solid var(--primary-color); border-radius: 50%; position: absolute; }
-
-        /* CARDS (THE UPSIDE DOWN STYLE) */
+        /* --- CARDS & UI --- */
         .m3-card {
-            background: rgba(10, 10, 10, 0.8);
-            border: 1px solid rgba(229, 9, 20, 0.4); 
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #444; 
             border-radius: 16px;
-            position: relative; overflow: hidden;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.8);
         }
+        
+        /* Красная полоса сверху карточки */
         .m3-card::before {
-            content: "HAWKINS LAB // TOP SECRET";
-            position: absolute; top: 10px; left: 10px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 10px; color: rgba(229, 9, 20, 0.6); letter-spacing: 1px;
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
         }
 
-        .glass-pill {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1);
-            font-family: 'Share Tech Mono', monospace;
+        .st-btn {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Merriweather', serif;
+            font-weight: 900;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 5px var(--primary-color);
+            position: relative;
+            overflow: hidden;
         }
+        
+        .st-btn::after {
+            content: ''; position: absolute; inset: 0;
+            background: var(--primary-color); opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .st-btn:active { transform: scale(0.98); }
+        .st-btn:active::after { opacity: 0.2; }
+        .st-btn:disabled { border-color: #555; color: #555; box-shadow: none; }
 
-        /* IMAGES SCROLL */
-        .st-gallery {
-            display: flex; overflow-x: auto; gap: 12px; padding: 10px 0; margin-bottom: 20px;
-            scroll-behavior: smooth;
+        .st-btn-filled {
+            background-color: var(--primary-color);
+            color: black;
+            border: 1px solid var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(255, 30, 30, 0.5);
         }
-        .st-gallery::-webkit-scrollbar { display: none; }
-        .st-shot {
-            width: 120px; height: 70px; border-radius: 8px; flex-shrink: 0;
-            object-fit: cover; border: 1px solid #333;
-            transition: transform 0.3s;
-            filter: sepia(30%) contrast(110%);
-        }
-        .st-shot:hover { transform: scale(1.05); border-color: var(--primary-color); }
+        .st-btn-filled:hover { background-color: #ff4444; }
 
-        /* BOTTOM SHEETS */
+        /* --- BOTTOM SHEETS --- */
         .bottom-sheet-overlay {
-            visibility: hidden; opacity: 0; transition: all 0.4s ease;
-            backdrop-filter: blur(8px); background-color: rgba(0,0,0,0.8);
+            visibility: hidden; opacity: 0;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
         }
         .bottom-sheet-content { 
-            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); 
-            background: linear-gradient(0deg, #1a0505 0%, #000000 100%);
+            transform: translateY(100%); 
+            transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); 
             border-top: 2px solid var(--primary-color);
+            box-shadow: 0 -10px 40px rgba(255, 30, 30, 0.2);
         }
         .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
         .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
 
-        /* INTRO OVERLAY SPECIFIC */
-        #intro-sheet .bottom-sheet-content {
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 -10px 50px rgba(229, 9, 20, 0.3);
-        }
-        .intro-text { font-family: 'Roboto Slab', serif; line-height: 1.6; color: #ccc; }
-        .intro-highlight { color: var(--primary-color); font-weight: bold; text-shadow: 0 0 8px rgba(229, 9, 20, 0.5); }
-
-        /* LOADERS */
+        /* Loader */
+        @keyframes pulse-red { 0% { opacity: 0.5; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0.5; transform: scale(0.95); } }
+        .spinner-red { width: 50px; height: 50px; border: 4px solid rgba(255,30,30,0.3); border-top-color: var(--primary-color); border-radius: 50%; animation: rotate 1s linear infinite; }
         @keyframes rotate { 100% { transform: rotate(360deg); } }
-        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
-        .spinner { animation: rotate 2s linear infinite; width: 50px; height: 50px; }
-        .path { stroke: var(--primary-color); stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
-        
-        #loadingOverlay {
-            position: fixed; inset: 0; background-color: #000; z-index: 100;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transition: opacity 0.3s;
-        }
-        #loadingOverlay.visible { opacity: 1; visibility: visible; }
 
-        /* SKELETONS */
-        .skeleton-shimmer { background: #1a1a1a; position: relative; overflow: hidden; }
-        .skeleton-shimmer::after {
-            content: ""; position: absolute; inset: 0; transform: translateX(-100%);
-            background: linear-gradient(90deg, transparent, rgba(229, 9, 20, 0.1), transparent);
-            animation: shimmer 1.5s infinite;
+        #loadingOverlay {
+            background-color: #000000;
+            z-index: 100;
         }
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+        /* Glitch text effect utility */
+        .glitch-text { animation: glitch 3s infinite; }
+        @keyframes glitch {
+            0% { text-shadow: 2px 0 0px red, -2px 0 0px blue; }
+            95% { text-shadow: 2px 0 0px red, -2px 0 0px blue; }
+            96% { text-shadow: -2px 0 red, 2px 0 blue; transform: translateX(-2px); }
+            98% { text-shadow: 2px 0 red, -2px 0 blue; transform: translateX(2px); }
+            100% { text-shadow: 2px 0 0px red, -2px 0 0px blue; }
+        }
+        
+        /* Series Gallery Scroll */
+        .gallery-strip {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;
+        }
+        .gallery-img {
+            width: 120px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #333; flex-shrink: 0;
+            filter: grayscale(0.6); transition: all 0.3s;
+        }
+        .gallery-img:hover { filter: grayscale(0); border-color: var(--primary-color); transform: scale(1.05); }
 
     </style>
 </head>
-<body class="text-white">
+<body class="text-gray-200">
 
+    <div class="upside-down-bg"></div>
     <div class="spores"></div>
 
-    <div id="loadingOverlay">
-        <svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none"></circle></svg>
-        <p class="mt-4 text-red-600 font-mono text-sm tracking-widest animate-pulse">CONNECTING TO HAWKINS...</p>
+    <div id="loadingOverlay" class="fixed inset-0 flex flex-col items-center justify-center transition-all duration-500 opacity-0 invisible visible">
+        <div class="spinner-red mb-4"></div>
+        <div class="st-title text-3xl font-bold tracking-widest animate-pulse">LOADING...</div>
     </div>
 
-    <div id="notification-area" class="fixed top-0 left-0 w-full z-[60] flex flex-col items-center pointer-events-none"></div>
+    <div id="notification-area"></div>
 
     <div class="screen-container">
-        <header class="w-full header-style sticky top-0">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex flex-col">
-                        <h1 class="st-title" id="screen-title">С финалом<br>Stranger Things 5!</h1>
+        <header class="w-full sticky top-0 z-30 bg-gradient-to-b from-black via-black/90 to-transparent pb-6 pt-4 px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <p class="text-[10px] text-red-500 uppercase tracking-[0.2em] mb-1">Chapter 5: The End</p>
+                        <h1 class="text-2xl st-header-glow leading-tight" id="screen-title">С финалом <br>Stranger Things 5!</h1>
                     </div>
-                    <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border border-solid hover:bg-red-900/30 transition-colors" style="border-color: var(--primary-color);">
-                        <i data-lucide="circle-user" class="w-7 h-7" style="color: var(--primary-color);"></i>
+                    <button id="profile-button" class="group relative flex items-center justify-center p-2 rounded-full border border-red-900 bg-black hover:border-red-500 transition-colors">
+                        <i data-lucide="circle-user" class="w-6 h-6 text-red-600 group-hover:text-red-500 group-hover:drop-shadow-[0_0_8px_rgba(255,0,0,0.8)]"></i>
                     </button>
                 </div>
-
-                <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide"></div>
                 
-                <div id="shift-action-container" class="w-full mt-4 flex relative z-20">
-                    <div id="end-shift-button" class="close-shift-button mr-3 shrink-0" style="display: none;"></div>
-                    <button id="main-action-button" class="w-full btn-card-action h-[50px] rounded-lg font-bold shadow-lg disabled:opacity-50 text-white flex items-center justify-center">
-                         <span class="btn-text">INITIALIZING...</span>
+                <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide select-none"></div>
+                
+                <div id="shift-action-container" class="w-full mt-6 flex gap-3">
+                    <button id="end-shift-button" class="w-[50px] h-[50px] flex items-center justify-center rounded-lg border border-red-600 bg-black text-red-600 hover:bg-red-900/30 transition-all" style="display: none;">
+                        <i data-lucide="power" class="w-6 h-6"></i>
+                    </button>
+                    <button id="main-action-button" class="st-btn st-btn-filled w-full py-3 rounded-lg text-lg uppercase tracking-wider flex items-center justify-center disabled:opacity-50 disabled:grayscale">
+                         <span class="btn-text">Загрузка...</span>
                     </button>
                 </div>
             </div>
         </header>
         
-        <main class="flex flex-col items-center justify-start pt-4 px-4 w-full" id="main-content">
-             </main>
+        <main class="flex flex-col items-center justify-start px-4 w-full max-w-7xl mx-auto" id="main-content">
+            </main>
+
+        <div class="px-4 mt-8 mb-4">
+            <h3 class="text-red-600 text-xs font-bold uppercase tracking-widest mb-3 border-b border-red-900/50 pb-1">Memories</h3>
+            <div class="gallery-strip scrollbar-hide">
+                <img src="https://images.unsplash.com/photo-1533240332313-0db49b459ad6?q=80&w=300&auto=format&fit=crop" class="gallery-img" alt="Arcade">
+                <img src="https://images.unsplash.com/photo-1509347528160-9a9e33742cd4?q=80&w=300&auto=format&fit=crop" class="gallery-img" alt="Dark Forest">
+                <img src="https://images.unsplash.com/photo-1542259681-d4cd7193bc86?q=80&w=300&auto=format&fit=crop" class="gallery-img" alt="Neon">
+                <img src="https://images.unsplash.com/photo-1627850604058-52e40de1b847?q=80&w=300&auto=format&fit=crop" class="gallery-img" alt="Red Mist">
+            </div>
+        </div>
     </div>
 
     <nav class="nav-bar" id="main-nav">
         <div class="nav-item active" id="nav-home"><i data-lucide="home"></i></div>
-        <a href="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" class="nav-item"><i data-lucide="calendar-days"></i></a>
-        <a href="https://u8902054545-design.github.io/cloud-center/" class="nav-item"><i data-lucide="map-pin"></i></a>
-        <a href="https://u8902054545-design.github.io/payments-darkcenter" class="nav-item"><i data-lucide="credit-card"></i></a>
-        <a href="https://u8902054545-design.github.io/education-darkcenter" class="nav-item"><i data-lucide="graduation-cap"></i></a>
-        <a href="https://u8902054545-design.github.io/chats-darkcenter" class="nav-item"><i data-lucide="message-square-more"></i></a>
+        <a href="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" class="nav-item" id="nav-schedule"><i data-lucide="calendar-days"></i></a>
+        <a href="https://u8902054545-design.github.io/cloud-center/" class="nav-item" id="nav-cloud"><i data-lucide="map-pin"></i></a>
+        <a href="https://u8902054545-design.github.io/payments-darkcenter" class="nav-item" id="nav-payments"><i data-lucide="credit-card"></i></a>
+        <a href="https://u8902054545-design.github.io/education-darkcenter" class="nav-item" id="nav-education"><i data-lucide="graduation-cap"></i></a>
+        <a href="https://u8902054545-design.github.io/chats-darkcenter" class="nav-item" id="nav-chats"><i data-lucide="message-square-more"></i></a>
     </nav>
     
-    <div id="intro-sheet" class="bottom-sheet-overlay fixed inset-0 z-[100] flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md p-8 pb-10 text-center relative">
-            <div class="absolute -top-12 left-1/2 transform -translate-x-1/2 w-24 h-24 rounded-full border-4 border-[#E50914] bg-black overflow-hidden shadow-[0_0_30px_#E50914]">
-                <img src="https://wallpapers.com/images/hd/stranger-things-logo-background-5s2c5567554q956l.jpg" class="w-full h-full object-cover opacity-80">
-            </div>
+    <div id="intro-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/80 z-[60] flex justify-center items-end">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#101010] text-gray-200 p-8 rounded-t-3xl border-t-2 border-red-600 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, #ff0000 3px); background-size: 100% 4px;"></div>
             
-            <h2 class="text-3xl font-bold mt-8 mb-4 st-title tracking-widest text-[#E50914]">THE END IS NEAR</h2>
-            
-            <p class="intro-text mb-6 text-sm">
-                Мы прошли долгий путь от подвала Майка до эпической битвы за Хокинс. <br><br>
-                <span class="intro-highlight">Это финал.</span><br>
-                История завершается, но легенда останется в наших сердцах навсегда. Приготовься к последней главе. Включи полную готовность.
-            </p>
+            <div class="relative z-10 text-center">
+                <h2 class="text-3xl font-black text-red-600 mb-2 st-title" style="font-family: 'Merriweather', serif;">THE END IS HERE</h2>
+                <div class="w-16 h-1 bg-red-600 mx-auto mb-6 shadow-[0_0_10px_red]"></div>
+                
+                <p class="text-sm text-gray-300 leading-relaxed mb-6 font-mono">
+                    "Друзья не лгут." <br><br>
+                    Мы прошли долгий путь от подземелий D&D до эпической битвы за Хокинс. Это последнее лето. Последняя битва с Изнанкой. <br><br>
+                    Твоя смена сегодня — это часть сопротивления. Будь готов.
+                </p>
 
-            <button id="close-intro-btn" class="w-full py-4 bg-[#E50914] hover:bg-red-700 text-white font-bold rounded-lg uppercase tracking-widest shadow-[0_0_20px_rgba(229,9,20,0.5)] transition-all">
-                Я готов(а)
-            </button>
-            
-            <p class="mt-4 text-[10px] text-gray-600 font-mono">HAWKINS POWER & LIGHT © 1986</p>
+                <button id="close-intro-btn" class="st-btn w-full py-4 rounded text-red-500 border border-red-500 hover:bg-red-900/20 font-bold uppercase tracking-widest text-sm">
+                    Я готов
+                </button>
+            </div>
         </div>
     </div>
 
     <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/80 z-50 flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl mb-4 sm:mb-0 border-t border-red-800">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#111] text-white p-6 rounded-t-2xl shadow-xl">
             <div class="text-center mb-6">
-                <i data-lucide="radio-tower" class="w-12 h-12 mx-auto text-red-600 mb-2"></i>
-                <h2 class="text-2xl font-bold mb-2 font-mono">ПРЕРВАТЬ СВЯЗЬ?</h2>
-                <p class="text-gray-400 text-xs font-mono">ПОДТВЕРДИТЕ ЗАВЕРШЕНИЕ СМЕНЫ В ЛАБОРАТОРИИ.</p>
+                <i data-lucide="radio-tower" class="w-10 h-10 text-red-600 mx-auto mb-3 animate-pulse"></i>
+                <h2 class="text-xl font-bold font-serif tracking-wide">Покинуть пост?</h2>
+                <p class="text-gray-500 text-xs font-mono mt-2">Связь с центром будет прервана.</p>
             </div>
             <div class="flex flex-col space-y-3">
-                <button id="confirm-end-shift-btn" class="w-full text-center text-white font-bold py-4 rounded-md uppercase tracking-wider bg-red-700 hover:bg-red-800 shadow-lg">Отбой</button>
-                <button id="cancel-end-shift-btn" class="w-full text-center font-bold py-4 rounded-md border border-red-900 text-red-500 uppercase">Остаться на связи</button>
+                <button id="confirm-end-shift-btn" class="st-btn-filled w-full py-3 rounded uppercase tracking-wider text-sm">Подтвердить</button>
+                <button id="cancel-end-shift-btn" class="w-full text-center py-3 text-gray-500 text-xs uppercase hover:text-white transition-colors">Остаться на связи</button>
             </div>
         </div>
     </div>
 
-    <div id="auth-error-sheet" class="bottom-sheet-overlay fixed inset-0 z-[999] flex justify-center items-end bg-black/95 backdrop-blur-sm">
-        <div class="bottom-sheet-content w-full max-w-md p-8 rounded-t-3xl border-t border-red-600">
+    <div id="auth-error-sheet" class="bottom-sheet-overlay auth-blocker fixed inset-0 z-[999] flex justify-center items-end">
+        <div class="bottom-sheet-content w-full max-w-md bg-black border-t border-red-800 text-white p-8 rounded-t-3xl">
             <div class="flex flex-col items-center text-center mb-8">
-                <div class="w-20 h-20 rounded-full flex items-center justify-center mb-6 border-2 border-red-600 animate-pulse bg-red-900/20">
+                <div class="w-20 h-20 rounded-full flex items-center justify-center mb-4 border border-red-600 bg-red-900/20 animate-pulse">
                     <i data-lucide="skull" class="w-10 h-10 text-red-500"></i>
                 </div>
-                <h2 class="text-2xl font-bold mb-3 tracking-widest font-mono text-red-500">ACCESS DENIED</h2>
-                <p class="text-gray-400 font-mono text-xs">СИГНАЛ ПОТЕРЯН. ТРЕБУЕТСЯ ПОВТОРНАЯ АВТОРИЗАЦИЯ ПРОТОКОЛА.</p>
+                <h2 class="text-xl font-bold mb-3 tracking-widest text-red-500 font-serif">ДОСТУП ЗАПРЕЩЕН</h2>
+                <p class="text-gray-400 text-xs font-mono">Сигнатура не опознана. Требуется повторная авторизация в системе Хокинса.</p>
             </div>
-            <button id="auth-login-btn" class="w-full text-center text-black font-bold py-4 rounded-none shadow-[0_0_15px_#E50914] bg-[#E50914] font-mono uppercase hover:bg-white transition-colors">
-                RE-CONNECT
+            <button id="auth-login-btn" class="st-btn w-full py-3 rounded text-red-500 border-red-500 hover:bg-red-500 hover:text-black">
+                ВОЙТИ В СИСТЕМУ
             </button>
         </div>
     </div>
 
     <script>
-        // --- LOGIC PRESERVED FROM ORIGINAL ---
+        // --- CONSTANTS ---
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const ACCOUNT_URL = 'https://u8902054545-design.github.io/account-darkcenter/';
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIFsMCw7PfiQ0fRJYtCP51I5rHJowJzgeW0z7yO5t5zSeO44hAor1ie0CELtVVxEM6sg/exec';
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
         
         const REFRESH_INTERVAL = 3000;
-        const BUTTON_SPINNER_SVG = `<svg class="spinner" style="width:24px;height:24px;" viewBox="0 0 50 50"><circle class="path" style="stroke: white;" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
         const HOURLY_RATE = 366; 
 
+        // --- STATE ---
         let isSlotActive = false;
         let canStartSlot = false;
         let selectedDateObj = new Date();
@@ -310,45 +355,36 @@
         let isAuthErrorVisible = false;
         let isProcessingAction = false; 
 
-        // UI Elements
+        // --- ELEMENTS ---
         const loadingOverlay = document.getElementById('loadingOverlay');
         const mainActionButton = document.getElementById('main-action-button');
         const endShiftButton = document.getElementById('end-shift-button');
         const bottomSheet = document.getElementById('bottom-sheet');
-        const introSheet = document.getElementById('intro-sheet');
-        const closeIntroBtn = document.getElementById('close-intro-btn');
         const authErrorSheet = document.getElementById('auth-error-sheet');
+        const introSheet = document.getElementById('intro-sheet');
         const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
         const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
         const authLoginBtn = document.getElementById('auth-login-btn');
         const calendarContainer = document.getElementById('calendar-strip');
         const mainContent = document.getElementById('main-content');
 
-        // --- NEW: STRANGER THINGS INTRO LOGIC ---
-        // Показываем приветствие при каждом "запуске" (перезагрузке страницы) как просили
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                introSheet.classList.add('open');
-            }, 500);
-        });
-
-        closeIntroBtn.addEventListener('click', () => {
-            introSheet.classList.remove('open');
-        });
-
-        // Navigation & Basic UI
-        document.getElementById('profile-button').addEventListener('click', () => { if(!isAuthErrorVisible) window.location.href = ACCOUNT_URL; });
-        document.getElementById('nav-home').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
-
-        function showLoading() { loadingOverlay.classList.add('visible'); }
-        function hideLoading() { loadingOverlay.classList.remove('visible'); }
+        // --- UI UTILS ---
+        function showLoading() { loadingOverlay.classList.add('visible'); loadingOverlay.classList.remove('invisible'); }
+        function hideLoading() { loadingOverlay.classList.remove('visible'); loadingOverlay.classList.add('invisible'); }
 
         function createNotification(type, message) {
             const area = document.getElementById('notification-area');
             const note = document.createElement('div');
             const isSuccess = type === 'success';
-            note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-black border border-red-600' : 'bg-red-900 border border-black'} text-white rounded shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between font-mono`;
-            note.innerHTML = `<div class="flex items-center"><div class="${isSuccess ? 'text-red-500' : 'text-white'} mr-3"><i data-lucide="${isSuccess ? 'radio' : 'triangle-alert'}" class="w-5 h-5"></i></div><div><p class="font-bold text-xs uppercase tracking-wider">${isSuccess ? 'SIGNAL RECEIVED' : 'ERROR'}</p><p class="text-[10px] opacity-80">${message}</p></div></div>`;
+            // ST Style Notification
+            note.className = `max-w-xs w-full mx-auto mt-4 p-4 border-l-4 ${isSuccess ? 'border-green-500 bg-green-900/80' : 'border-red-600 bg-red-900/80'} text-white rounded shadow-2xl backdrop-blur-md transition-all duration-500 opacity-0 -translate-y-10 flex items-center gap-3 z-[70] fixed top-0 left-0 right-0`;
+            note.innerHTML = `
+                <i data-lucide="${isSuccess ? 'check' : 'alert-triangle'}" class="w-5 h-5 ${isSuccess ? 'text-green-400' : 'text-red-400'}"></i>
+                <div>
+                    <p class="font-bold text-xs uppercase tracking-wider font-mono">${isSuccess ? 'SYSTEM OK' : 'SYSTEM ERROR'}</p>
+                    <p class="text-[10px] opacity-80 font-mono">${message}</p>
+                </div>
+            `;
             area.appendChild(note);
             lucide.createIcons();
             setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
@@ -362,38 +398,16 @@
             return `${d}.${m}.${y}`;
         }
 
-        // --- RENDER FUNCTIONS (THEMED) ---
-
-        function renderGallery() {
-            // Компактная галерея скриншотов
-            return `
-            <div class="w-full mb-4">
-                <p class="text-[10px] text-gray-500 font-mono mb-2 uppercase tracking-widest pl-1">Архив Воспоминаний</p>
-                <div class="st-gallery">
-                    <img src="https://wallpapers.com/images/high/stranger-things-desktop-background-3v64k44520l1v66k.webp" class="st-shot" alt="ST Scene">
-                    <img src="https://images.ctfassets.net/usf1vwtuqyxm/6y6N8J9RjMv8Xk7q4z3j5/5e9c9c8c8c8c8c8c8c8c8c8c8c8c8c8/Stranger_Things_Season_4_Still_1.jpg" class="st-shot" alt="ST Scene">
-                    <img src="https://images.bauerhosting.com/legacy/empire-images/features/59ee027e6eb5126838848c77/stranger-things-2-eleven.jpg" class="st-shot" alt="ST Scene">
-                    <img src="https://pyxis.nymag.com/v1/imgs/587/40e/462719543888390885c8f5f0a37072f87c-stranger-things-kids.rhorizontal.w700.jpg" class="st-shot" alt="ST Scene">
-                </div>
-            </div>`;
-        }
+        // --- RENDER LOGIC (STRANGER THINGS THEMED) ---
 
         function renderSkeletons() {
             lastRenderedState = "skeleton";
-            let html = `
-            ${renderGallery()}
-            <div class="w-full flex flex-col space-y-2 mt-0 animate-pulse">
-                <div class="flex justify-between items-end px-1">
-                    <div class="w-32 h-4 skeleton-shimmer rounded bg-gray-800"></div>
-                </div>
-                <div class="w-full m3-card p-6 h-[220px] flex flex-col justify-between skeleton-shimmer border border-red-900/30">
-                     <div class="w-full h-full flex items-center justify-center">
-                        <i data-lucide="loader-2" class="w-8 h-8 text-red-800 animate-spin"></i>
-                     </div>
+            mainContent.innerHTML = `
+            <div class="w-full flex flex-col space-y-4 fade-in mt-4 animate-pulse">
+                <div class="w-full m3-card h-[200px] border-red-900/50 flex items-center justify-center">
+                    <div class="text-red-900 font-mono text-sm blinking-cursor">SEARCHING SIGNAL...</div>
                 </div>
             </div>`;
-            mainContent.innerHTML = html;
-            lucide.createIcons();
         }
 
         function renderEmptyState(message = "NO DATA FOUND") {
@@ -401,35 +415,15 @@
             if (lastRenderedState === stateKey) return;
             lastRenderedState = stateKey;
             mainContent.innerHTML = `
-                ${renderGallery()}
-                <div id="status-display" class="text-center mt-12 opacity-80">
-                    <div class="w-20 h-20 mx-auto border border-dashed border-red-900 rounded-full flex items-center justify-center mb-4">
-                        <i data-lucide="ghost" class="text-red-700 w-10 h-10"></i>
+                <div class="text-center mt-20 opacity-70">
+                    <div class="relative inline-block">
+                        <i data-lucide="ghost" class="w-16 h-16 text-gray-600 mb-4 mx-auto"></i>
+                        <div class="absolute inset-0 blur-xl bg-red-900/20 rounded-full"></div>
                     </div>
-                    <p id="status-text" class="text-xl text-red-600 font-mono tracking-widest">${message}</p>
+                    <p class="text-xl text-red-500 font-serif tracking-widest uppercase">${message}</p>
+                    <p class="text-xs text-gray-500 font-mono mt-2">Попробуйте другую дату или проверьте рацию</p>
                 </div>`;
             lucide.createIcons();
-        }
-
-        function getTimeDifferenceText(timeStr) {
-            try {
-                const startTime = timeStr.split('-')[0].trim();
-                const [hours, minutes] = startTime.split(':').map(Number);
-                const now = new Date();
-                const shiftStart = new Date(selectedDateObj);
-                shiftStart.setHours(hours, minutes, 0, 0);
-                if (shiftStart < now) return "ONLINE NOW";
-                const diffMs = shiftStart - now;
-                const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-                if (diffHrs > 24) return "";
-                if (diffHrs < 1) return "SOON";
-                return `T-MINUS ${diffHrs}H`;
-            } catch (e) { return ""; }
-        }
-
-        function parseDuration(durationStr) {
-            const match = durationStr.match(/(\d+)/);
-            return match ? parseInt(match[0]) : 0;
         }
 
         function renderShiftCard(shiftData) {
@@ -437,67 +431,91 @@
             if (lastRenderedState === stateKey) return;
             lastRenderedState = stateKey;
 
-            const timeDiffText = getTimeDifferenceText(shiftData.time);
-            const hoursDuration = parseDuration(shiftData.duration || "0");
-            const estimatedIncome = hoursDuration * HOURLY_RATE;
-            const incomeFormatted = estimatedIncome > 0 ? `${estimatedIncome.toLocaleString('ru-RU')} ₽` : "CALCULATING...";
+            // Simple parsing
+            let incomeFormatted = "---";
+            let duration = "0";
+            try {
+               duration = shiftData.duration.match(/\d+/)[0];
+               const income = parseInt(duration) * HOURLY_RATE;
+               incomeFormatted = `${income} ₽`;
+            } catch(e) {}
 
             mainContent.innerHTML = `
-            ${renderGallery()}
-            <div class="w-full max-w-[400px]">
-                <div class="flex justify-between items-end mb-2 px-1">
-                    <h2 class="text-lg font-mono tracking-wider text-red-500 uppercase">Mission Details</h2>
-                    ${timeDiffText ? `
-                    <div class="flex items-center gap-1.5 px-2 py-0.5 rounded border border-red-600 text-[10px] font-bold text-red-500 bg-red-900/20 animate-pulse">
-                        <span>${timeDiffText}</span>
-                    </div>` : ''}
-                </div>
-
-                <article class="m3-card p-6 mb-4">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex flex-col">
-                            <div class="text-4xl font-bold text-white font-mono tracking-tighter flex items-center gap-2" style="text-shadow: 0 0 10px rgba(229,9,20,0.5);">
-                                ${shiftData.time}
-                            </div>
-                            <div class="text-xs text-red-400 font-mono mt-1 uppercase">
-                                DATE: ${selectedDateObj.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
-                            </div>
-                        </div>
-
-                        <div class="glass-pill px-3 py-2 rounded flex flex-col items-center justify-center min-w-[60px] border-red-900">
-                            <span class="text-xl font-bold text-white leading-none">${hoursDuration || '-'}</span>
-                            <span class="text-[9px] uppercase text-red-500 font-bold tracking-widest">HRS</span>
-                        </div>
+            <div class="w-full fade-in mt-2 relative">
+                <article class="m3-card p-0 overflow-hidden group">
+                    <div class="absolute inset-0 z-0">
+                        <img src="https://images.unsplash.com/photo-1605806616949-1e87b487bc2a?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-700" alt="bg">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
                     </div>
 
-                    <div class="h-px w-full bg-gradient-to-r from-transparent via-red-700 to-transparent mb-6 opacity-50"></div>
+                    <div class="relative z-10 p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h2 class="text-xs font-bold text-red-500 uppercase tracking-widest mb-1 border-l-2 border-red-500 pl-2">Next Mission</h2>
+                                <div class="text-3xl font-black text-white font-mono glitch-text" style="text-shadow: 0 0 10px rgba(255,0,0,0.5);">${shiftData.time}</div>
+                                <div class="text-sm text-gray-400 font-mono mt-1">${selectedDateObj.toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'})}</div>
+                            </div>
+                            <div class="bg-red-900/30 border border-red-600/50 px-3 py-2 rounded text-center backdrop-blur-sm">
+                                <span class="block text-xl font-bold text-white leading-none">${duration}</span>
+                                <span class="text-[9px] uppercase text-red-400 font-bold">Часов</span>
+                            </div>
+                        </div>
 
-                    <div class="space-y-4">
+                        <div class="h-px w-full bg-red-900/50 my-4"></div>
+
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <div class="p-2 rounded border border-red-900 bg-black">
-                                    <i data-lucide="banknote" class="w-5 h-5 text-red-600"></i>
+                                <div class="p-2 bg-gray-800/50 rounded-lg border border-gray-700">
+                                    <i data-lucide="banknote" class="w-5 h-5 text-green-400"></i>
                                 </div>
-                                <div class="flex flex-col">
-                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-mono">Reward</span>
-                                    <span class="text-xl font-bold text-white font-mono">${incomeFormatted}</span>
+                                <div>
+                                    <div class="text-[10px] text-gray-500 uppercase">Расчетный доход</div>
+                                    <div class="text-xl font-bold text-green-400 font-mono">≈ ${incomeFormatted}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </article>
 
-                <button class="w-full btn-card-action h-12 rounded flex items-center justify-center gap-2 text-sm group relative overflow-hidden border border-red-500">
-                    <span class="relative z-10 tracking-widest">OPEN FILE</span>
-                    <i data-lucide="file-search" class="w-4 h-4 relative z-10 transition-transform group-hover:translate-x-1"></i>
-                </button>
+                <div class="mt-4 flex gap-2 items-center justify-center opacity-60">
+                    <i data-lucide="radio" class="w-4 h-4 text-red-600 animate-pulse"></i>
+                    <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Канал зашифрован</span>
+                </div>
             </div>`;
             
             lucide.createIcons();
         }
 
-        // --- AUTH & API LOGIC (UNCHANGED) ---
+        // --- CALENDAR LOGIC ---
+        function initCalendar() {
+            calendarContainer.innerHTML = '';
+            const today = new Date();
+            for (let i = 0; i < 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const item = document.createElement('div');
+                
+                const isSelected = date.toDateString() === selectedDateObj.toDateString();
+                
+                item.className = `calendar-item flex flex-col items-center justify-center p-2 cursor-pointer flex-shrink-0 w-14 h-16 ${isSelected ? 'selected-border' : ''}`;
+                
+                item.innerHTML = `
+                    <span class="text-[10px] font-mono uppercase ${isSelected ? 'text-red-400' : 'text-gray-500'}">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span>
+                    <span class="text-xl font-bold font-serif ${isSelected ? 'text-white drop-shadow-[0_0_5px_red]' : 'text-gray-400'}">${date.getDate()}</span>
+                `;
+                
+                item.addEventListener('click', () => {
+                    if (selectedDateObj.toDateString() === date.toDateString()) return;
+                    selectedDateObj = date;
+                    initCalendar(); // Re-render to update classes
+                    renderSkeletons();
+                    fetchShiftForDate(date, true);
+                });
+                calendarContainer.appendChild(item);
+            }
+        }
 
+        // --- AUTH & NETWORK ---
         function triggerAuthError() {
             if (isAuthErrorVisible) return;
             isAuthErrorVisible = true;
@@ -506,11 +524,6 @@
             localStorage.removeItem('userEmail');
             localStorage.removeItem('authToken');
         }
-
-        authLoginBtn.addEventListener('click', () => {
-             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
-             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
-        });
 
         async function checkUserAuthentication(isSilent = false) {
             if (!isSilent) showLoading();
@@ -526,7 +539,9 @@
                     body: JSON.stringify({ auth: true, email: email, token: token })
                 });
                 const data = await response.json();
-                if (data.status === 'success' && data.auth_ok === false) { triggerAuthError(); return false; }
+                if (data.status === 'success' && data.auth_ok === false) {
+                    triggerAuthError(); return false;
+                }
                 return true;
             } catch (error) { return true; } 
             finally { if (!isSilent) hideLoading(); }
@@ -535,16 +550,24 @@
         async function fetchShiftForDate(dateObj, isSilent = false) {
             if (isAuthErrorVisible) return;
             if (!isSilent) showLoading();
+            
             const userEmail = localStorage.getItem('userEmail');
             const dateStr = formatDateForServer(dateObj);
             try {
                 const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
                 const response = await fetch(url);
                 const data = await response.json();
-                if (data.status === 'success' && data.shift && data.shift.found) { renderShiftCard(data.shift.data); } 
-                else { renderEmptyState("NO MISSIONS"); }
-            } catch (e) { if(!isSilent) renderEmptyState("CONNECTION ERROR"); } 
-            finally { if (!isSilent) hideLoading(); }
+                
+                if (data.status === 'success' && data.shift && data.shift.found) { 
+                    renderShiftCard(data.shift.data); 
+                } else { 
+                    renderEmptyState("NO SHIFTS DETECTED"); 
+                }
+            } catch (e) { 
+                if(!isSilent) renderEmptyState("CONNECTION LOST"); 
+            } finally { 
+                if (!isSilent) hideLoading(); 
+            }
         }
 
         async function fetchStatusLogic(isSilent = false) {
@@ -555,7 +578,7 @@
                 return await response.json();
             } catch (error) { return null; }
         }
-        
+
         async function updateShiftStatus(newStatus) {
             const userEmail = localStorage.getItem('userEmail');
             try {
@@ -566,7 +589,7 @@
                 });
                 const data = await response.json();
                 return data.status === 'success';
-            } catch (error) { createNotification('error', 'Signal Lost'); return false; }
+            } catch (error) { createNotification('error', 'Ошибка сигнала'); return false; }
         }
 
         function updateButtons(data) {
@@ -574,64 +597,41 @@
             const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
             if (data.canStart !== undefined) canStartSlot = data.canStart;
             isSlotActive = (status === 'Open');
-            const statusTextEl = document.getElementById('status-text');
             
             if (isSlotActive) {
-                if(statusTextEl) {
-                    statusTextEl.textContent = "SHIFT ACTIVE // RECORDING";
-                    statusTextEl.classList.add('text-red-500', 'animate-pulse');
-                }
-                if (mainActionButton.textContent.trim() !== 'TASKS' && !isProcessingAction) {
+                if (mainActionButton.textContent !== 'ПЕРЕЙТИ К ЗАДАЧАМ' && !isProcessingAction) {
                     mainActionButton.innerHTML = 'ПЕРЕЙТИ К ЗАДАЧАМ';
+                    mainActionButton.classList.remove('opacity-50');
                     mainActionButton.disabled = false;
                 }
                 endShiftButton.style.display = 'flex';
             } else {
-                if (mainActionButton.textContent.trim() !== 'START SHIFT' && !isProcessingAction) { 
+                if (mainActionButton.textContent !== 'НАЧАТЬ СМЕНУ' && !isProcessingAction) { 
                     mainActionButton.innerHTML = 'НАЧАТЬ СМЕНУ'; 
                 }
-                if (!isProcessingAction) {
-                    mainActionButton.disabled = !canStartSlot;
-                    if(!canStartSlot) mainActionButton.classList.add('opacity-50', 'grayscale');
-                    else mainActionButton.classList.remove('opacity-50', 'grayscale');
-                }
+                if (!isProcessingAction) mainActionButton.disabled = !canStartSlot;
                 endShiftButton.style.display = 'none';
             }
         }
 
-        function initCalendar() {
-            calendarContainer.innerHTML = '';
-            const today = new Date();
-            for (let i = 0; i < 14; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                const item = document.createElement('div');
-                item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded-lg cursor-pointer flex-shrink-0 w-14`;
-                if (date.toDateString() === selectedDateObj.toDateString()) {
-                    item.classList.add('selected-border');
-                    item.style.color = '#E50914';
-                } else { item.style.color = '#666'; }
-                
-                const dayName = ['SUN','MON','TUE','WED','THU','FRI','SAT'][date.getDay()];
-                item.innerHTML = `<span class="text-[10px] uppercase font-bold tracking-widest">${dayName}</span><span class="text-lg font-black">${date.getDate()}</span>`;
-                
-                item.addEventListener('click', () => {
-                    if (selectedDateObj.toDateString() === date.toDateString()) return;
-                    document.querySelectorAll('.calendar-item').forEach(el => { el.classList.remove('selected-border'); el.style.color = '#666'; });
-                    item.classList.add('selected-border');
-                    item.style.color = '#E50914';
-                    selectedDateObj = date;
-                    renderSkeletons();
-                    fetchShiftForDate(date, true);
-                });
-                calendarContainer.appendChild(item);
-            }
-        }
+        // --- LISTENERS ---
+        document.getElementById('profile-button').addEventListener('click', () => { if(!isAuthErrorVisible) window.location.href = ACCOUNT_URL; });
+        document.getElementById('nav-home').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        
+        // Intro Sheet Logic
+        document.getElementById('close-intro-btn').addEventListener('click', () => {
+             introSheet.classList.remove('open');
+        });
+
+        authLoginBtn.addEventListener('click', () => {
+             authLoginBtn.textContent = 'CONNECTING...';
+             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
+        });
 
         mainActionButton.addEventListener('click', async () => {
             if (isProcessingAction) return;
             isProcessingAction = true;
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+            mainActionButton.innerHTML = '<div class="spinner-red w-6 h-6 border-2"></div>';
             mainActionButton.disabled = true;
 
             try {
@@ -644,7 +644,7 @@
                     if (freshData && freshData.shiftStatus === 'Open') {
                         window.location.href = TASKS_URL;
                     } else {
-                        createNotification('error', 'SHIFT CLOSED');
+                        createNotification('error', 'Смена закрыта на сервере');
                         updateButtons(freshData); 
                         isProcessingAction = false;
                     }
@@ -652,20 +652,21 @@
                     if (freshData && freshData.canStart) {
                          const success = await updateShiftStatus('Open');
                          if (success) {
-                             createNotification('success', 'WELCOME TO THE VOID');
+                             createNotification('success', 'Смена начата');
                              updateButtons({ shiftStatus: 'Open', canStart: false });
                          } else {
-                             createNotification('error', 'FAILED TO OPEN PORTAL');
-                             updateButtons(await fetchStatusLogic(true)); 
+                             createNotification('error', 'Сбой активации');
+                             const retryData = await fetchStatusLogic(true); 
+                             updateButtons(retryData);
                          }
                     } else {
-                         createNotification('error', 'NO SLOT AVAILABLE');
+                         createNotification('error', 'Рано начинать смену');
                          updateButtons(freshData);
                     }
                     isProcessingAction = false;
                 }
             } catch (e) {
-                createNotification('error', 'NETWORK ERROR');
+                createNotification('error', 'Нет связи');
                 isProcessingAction = false;
                 updateButtons({ shiftStatus: isSlotActive ? 'Open' : 'Closed', canStart: canStartSlot });
             }
@@ -677,7 +678,7 @@
         confirmEndShiftBtn.addEventListener('click', async () => {
             bottomSheet.classList.remove('open');
             endShiftButton.style.display = 'none';
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
+            mainActionButton.innerHTML = '<div class="spinner-red w-6 h-6 border-2"></div>';
             mainActionButton.disabled = true;
             isProcessingAction = true;
             
@@ -685,24 +686,37 @@
             isProcessingAction = false;
             
             if (success) { 
-                createNotification('success', 'CONNECTION CLOSED'); 
+                createNotification('success', 'Конец связи'); 
                 updateButtons({ shiftStatus: 'Closed', canStart: false }); 
-                updateButtons(await fetchStatusLogic(true)); 
-            } else { updateButtons({ shiftStatus: 'Open' }); }
+                const realData = await fetchStatusLogic(true); 
+                updateButtons(realData); 
+            } else { 
+                updateButtons({ shiftStatus: 'Open' }); 
+            }
         });
 
+        // --- INIT ---
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-            renderSkeletons();
             initCalendar();
+            renderSkeletons();
             
+            // Show intro sheet with delay
+            setTimeout(() => {
+                if(!isAuthErrorVisible) introSheet.classList.add('open');
+            }, 1000);
+
             const authOk = await checkUserAuthentication(false);
+            
             if (authOk) {
-                await Promise.all([fetchShiftForDate(selectedDateObj, false), fetchStatusLogic(true).then(updateButtons)]);
+                const p1 = fetchShiftForDate(selectedDateObj, false); 
+                const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
+                await Promise.all([p1, p2]);
+
                 setInterval(async () => {
                     if (isAuthErrorVisible) return;
-                    if (await checkUserAuthentication(true)) {
+                    const stillAuth = await checkUserAuthentication(true); 
+                    if (stillAuth) {
                         const statusData = await fetchStatusLogic(true);
                         if (!isProcessingAction) updateButtons(statusData);
                         fetchShiftForDate(selectedDateObj, true);
@@ -710,7 +724,6 @@
                 }, REFRESH_INTERVAL);
             }
         });
-        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
 </html>
