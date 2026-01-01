@@ -8,64 +8,56 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Roboto+Mono:wght@400;700&family=Merriweather:wght@900&display=swap');
+        /* Подключаем шрифты: Benguiat-like (Merriweather) и Monospace (Courier Prime) */
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Merriweather:wght@300;700;900&display=swap');
         
         :root {
-            /* Фирменный красный Stranger Things */
-            --primary-color: #ff1e1e; 
-            --primary-glow: #ff0000;
-            --surface-dark: #0a0a0a;
-            --surface-card: rgba(20, 20, 20, 0.85);
-            --md-sys-error-container: #520002;
-            --md-sys-on-error-container: #ffdad6;
+            /* ST5 Palette */
+            --primary-color: #ff0909; /* Neon Red */
+            --primary-glow: #ff090980;
+            --bg-color: #050505;
+            --surface-color: #141414;
+            --text-color: #e3e3e3;
+            --accent-dark: #3a0000;
         }
 
         body {
-            font-family: 'Roboto Mono', monospace; /* Ретро-компьютерный стиль */
-            background-color: #000000;
+            font-family: 'Courier Prime', monospace; /* Retro terminal style */
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 50% 0%, #220000 0%, transparent 60%),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, #ff000005 3px); /* Scanlines */
+            color: var(--text-color);
             height: 100vh;
             margin: 0;
             overflow: hidden;
             -webkit-user-select: none; 
             user-select: none; 
-            color: #e0e0e0;
         }
 
-        /* Анимированный фон "Изнанка" */
-        .upside-down-bg {
+        /* Эффект виньетки (затемнение по краям) */
+        body::after {
+            content: "";
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: 
-                linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)),
-                url('https://images.unsplash.com/photo-1626262846944-d6215886d34e?q=80&w=2000&auto=format&fit=crop'); /* Абстрактный дым/облака */
-            background-size: cover;
-            background-position: center;
-            z-index: -1;
-        }
-        
-        /* Эффект парящих частиц (спор) */
-        .spores {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/dream-ball.png'); /* placeholder for particle texture style, using noise via CSS below instead usually */
-            opacity: 0.1;
+            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
             pointer-events: none;
-            z-index: 0;
-            animation: float 20s infinite linear;
+            z-index: 1;
         }
 
         /* Заголовки в стиле Stranger Things */
-        .st-title {
+        h1, h2, .st-font {
             font-family: 'Merriweather', serif;
-            color: transparent;
-            -webkit-text-stroke: 1px var(--primary-color);
-            text-shadow: 0 0 10px var(--primary-color);
+            font-weight: 900;
+            text-transform: uppercase;
             letter-spacing: -1px;
         }
         
-        .st-header-glow {
-            font-family: 'Merriweather', serif;
-            color: var(--primary-color);
-            text-shadow: 0 0 15px var(--primary-glow);
+        .st-glow-text {
+            color: #fff;
+            text-shadow: 
+                0 0 5px var(--primary-color),
+                0 0 10px var(--primary-color);
         }
 
         .screen-container {
@@ -78,6 +70,16 @@
         }
 
         .screen-container::-webkit-scrollbar { display: none; }
+        .screen-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .header-style {
+            border-bottom: 1px solid var(--primary-color);
+            background: linear-gradient(180deg, rgba(20,0,0,0.9) 0%, rgba(5,5,5,0.8) 100%);
+            box-shadow: 0 4px 30px rgba(255, 9, 9, 0.15);
+            backdrop-filter: blur(5px);
+            position: relative;
+            z-index: 30;
+        }
 
         /* --- NAVIGATION --- */
         .nav-bar {
@@ -87,193 +89,240 @@
             transform: translateX(-50%);
             width: calc(100% - 32px);
             max-width: 500px;
-            height: 75px; 
-            background: rgba(10, 10, 10, 0.9);
-            border: 1px solid var(--primary-color);
-            box-shadow: 0 0 20px rgba(255, 30, 30, 0.3);
-            border-radius: 20px;
+            height: 70px; 
+            background-color: rgba(20, 20, 20, 0.95);
+            border: 1px solid #333;
+            border-bottom: 2px solid var(--primary-color);
+            border-radius: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
             z-index: 50;
-            backdrop-filter: blur(10px);
+            box-sizing: border-box;
         }
 
         .nav-item {
-            display: flex; align-items: center; justify-content: center;
-            width: 50px; height: 50px; border-radius: 12px;
-            cursor: pointer; transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             color: #666;
         }
 
         .nav-item.active {
+            background-color: rgba(255, 9, 9, 0.15);
             color: var(--primary-color);
-            text-shadow: 0 0 8px var(--primary-color);
-            transform: translateY(-5px);
+            box-shadow: 0 0 15px rgba(255, 9, 9, 0.2);
+            border: 1px solid rgba(255, 9, 9, 0.3);
         }
+        
+        .nav-item:active { transform: scale(0.95); }
 
         /* --- CALENDAR --- */
         .calendar-item { 
-            transition: all 0.3s ease; 
-            border: 1px solid transparent; 
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            border: 1px solid #333; 
+            background: #111;
+            margin-right: 8px;
         }
         .calendar-item.selected-border { 
             border: 1px solid var(--primary-color); 
-            background-color: rgba(255, 30, 30, 0.2); 
-            box-shadow: 0 0 10px rgba(255, 30, 30, 0.4);
+            background-color: rgba(255, 9, 9, 0.1);
+            box-shadow: 0 0 10px rgba(255, 9, 9, 0.2);
         }
+        .calendar-item:active { transform: scale(0.95); }
         
         .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* --- CARDS & UI --- */
+        /* --- IMAGES GALLERY --- */
+        .st-gallery {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+        .st-img-card {
+            min-width: 140px;
+            height: 90px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #333;
+            position: relative;
+            flex-shrink: 0;
+            transition: transform 0.3s;
+        }
+        .st-img-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+            filter: sepia(30%) contrast(1.2);
+        }
+        .st-img-card:hover { transform: scale(1.05); z-index: 20; border-color: var(--primary-color); }
+        
+        /* --- CARDS --- */
         .m3-card {
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(20, 20, 20, 0.8);
             border: 1px solid #444; 
-            border-radius: 16px;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 4px; /* Более угловатый ретро стиль */
             position: relative;
             overflow: hidden;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(12px);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.8);
         }
-        
-        /* Красная полоса сверху карточки */
+
         .m3-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-            background: var(--primary-color);
-            box-shadow: 0 0 10px var(--primary-color);
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at top right, rgba(255, 9, 9, 0.1), transparent 40%);
+            pointer-events: none;
+        }
+        
+        /* Glass pill for duration */
+        .glass-pill {
+            background: rgba(255, 9, 9, 0.1);
+            border: 1px solid rgba(255, 9, 9, 0.4);
+            color: #fff;
+            font-family: 'Courier Prime', monospace;
         }
 
-        .st-btn {
-            background-color: transparent;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
+        /* RED BUTTONS */
+        #main-action-button, .btn-card-action {
+            background-color: #aa0000; /* Darker red base */
+            background-image: linear-gradient(180deg, #d40000 0%, #8a0000 100%);
+            color: white;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            font-family: 'Merriweather', serif;
-            font-weight: 900;
+            letter-spacing: 1px;
+            border: 1px solid #ff4444;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
             transition: all 0.3s ease;
-            box-shadow: 0 0 5px var(--primary-color);
-            position: relative;
-            overflow: hidden;
+            text-shadow: 1px 1px 2px black;
         }
-        
-        .st-btn::after {
-            content: ''; position: absolute; inset: 0;
-            background: var(--primary-color); opacity: 0;
-            transition: opacity 0.2s;
+        #main-action-button:active, .btn-card-action:active {
+            transform: scale(0.98);
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.6);
         }
-        
-        .st-btn:active { transform: scale(0.98); }
-        .st-btn:active::after { opacity: 0.2; }
-        .st-btn:disabled { border-color: #555; color: #555; box-shadow: none; }
+        #main-action-button:disabled {
+            background: #333;
+            border-color: #555;
+            color: #888;
+            box-shadow: none;
+        }
 
-        .st-btn-filled {
-            background-color: var(--primary-color);
-            color: black;
-            border: 1px solid var(--primary-color);
-            font-weight: bold;
-            box-shadow: 0 0 15px rgba(255, 30, 30, 0.5);
+        .close-shift-button {
+            background-color: #1a1a1a; 
+            border: 1px solid var(--primary-color); 
+            border-radius: 6px; 
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 9, 9, 0.2);
         }
-        .st-btn-filled:hover { background-color: #ff4444; }
+        .close-shift-button::before { background-color: var(--primary-color); }
+        .close-shift-button::after { border: 2px solid var(--primary-color); border-top-color: transparent; }
 
         /* --- BOTTOM SHEETS --- */
         .bottom-sheet-overlay {
             visibility: hidden; opacity: 0;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            z-index: 100;
         }
         .bottom-sheet-content { 
             transform: translateY(100%); 
-            transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); 
-            border-top: 2px solid var(--primary-color);
-            box-shadow: 0 -10px 40px rgba(255, 30, 30, 0.2);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-top: 3px solid var(--primary-color);
+            background: #111;
         }
         .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
         .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
 
-        /* Loader */
-        @keyframes pulse-red { 0% { opacity: 0.5; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0.5; transform: scale(0.95); } }
-        .spinner-red { width: 50px; height: 50px; border: 4px solid rgba(255,30,30,0.3); border-top-color: var(--primary-color); border-radius: 50%; animation: rotate 1s linear infinite; }
+        /* Intro Sheet Specifics */
+        .intro-text {
+            font-family: 'Merriweather', serif;
+            line-height: 1.6;
+            text-shadow: 0 0 2px black;
+        }
+
+        .auth-blocker { background-color: rgba(0,0,0,0.98); }
+
+        /* --- LOADERS --- */
         @keyframes rotate { 100% { transform: rotate(360deg); } }
+        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
+
+        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; filter: drop-shadow(0 0 8px var(--primary-color)); }
+        .path { stroke: var(--primary-color); stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
+        
+        .spinner-mini { width: 24px; height: 24px; animation: rotate 2s linear infinite; }
+        .path-mini { stroke: #FFFFFF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
 
         #loadingOverlay {
-            background-color: #000000;
-            z-index: 100;
+            background-color: #000; 
+            opacity: 0; visibility: hidden; pointer-events: none; 
+            transition: opacity 0.4s;
         }
+        #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
 
-        /* Glitch text effect utility */
-        .glitch-text { animation: glitch 3s infinite; }
-        @keyframes glitch {
-            0% { text-shadow: 2px 0 0px red, -2px 0 0px blue; }
-            95% { text-shadow: 2px 0 0px red, -2px 0 0px blue; }
-            96% { text-shadow: -2px 0 red, 2px 0 blue; transform: translateX(-2px); }
-            98% { text-shadow: 2px 0 red, -2px 0 blue; transform: translateX(2px); }
-            100% { text-shadow: 2px 0 0px red, -2px 0 0px blue; }
+        .skeleton-shimmer { background-color: #1A1A1A; border: 1px solid #333; }
+        .skeleton-shimmer::after {
+            background-image: linear-gradient(90deg, rgba(255, 9, 9, 0) 0, rgba(255, 9, 9, 0.05) 50%, rgba(255, 9, 9, 0) 100%);
         }
-        
-        /* Series Gallery Scroll */
-        .gallery-strip {
-            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;
-        }
-        .gallery-img {
-            width: 120px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #333; flex-shrink: 0;
-            filter: grayscale(0.6); transition: all 0.3s;
-        }
-        .gallery-img:hover { filter: grayscale(0); border-color: var(--primary-color); transform: scale(1.05); }
 
     </style>
 </head>
-<body class="text-gray-200">
+<body class="text-white">
 
-    <div class="upside-down-bg"></div>
-    <div class="spores"></div>
-
-    <div id="loadingOverlay" class="fixed inset-0 flex flex-col items-center justify-center transition-all duration-500 opacity-0 invisible visible">
-        <div class="spinner-red mb-4"></div>
-        <div class="st-title text-3xl font-bold tracking-widest animate-pulse">LOADING...</div>
+    <div id="loadingOverlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center">
+        <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
+        </svg>
+        <p class="mt-4 font-mono text-red-500 text-sm animate-pulse tracking-widest">CONNECTING TO HAWKINS...</p>
     </div>
 
     <div id="notification-area"></div>
 
     <div class="screen-container">
-        <header class="w-full sticky top-0 z-30 bg-gradient-to-b from-black via-black/90 to-transparent pb-6 pt-4 px-4">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <p class="text-[10px] text-red-500 uppercase tracking-[0.2em] mb-1">Chapter 5: The End</p>
-                        <h1 class="text-2xl st-header-glow leading-tight" id="screen-title">С финалом <br>Stranger Things 5!</h1>
-                    </div>
-                    <button id="profile-button" class="group relative flex items-center justify-center p-2 rounded-full border border-red-900 bg-black hover:border-red-500 transition-colors">
-                        <i data-lucide="circle-user" class="w-6 h-6 text-red-600 group-hover:text-red-500 group-hover:drop-shadow-[0_0_8px_rgba(255,0,0,0.8)]"></i>
+        <header class="w-full header-style sticky top-0">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex justify-between items-center h-10 mb-4">
+                    <h1 class="text-xl st-glow-text leading-tight" id="screen-title" style="max-width: 70%;">
+                        С финалом Stranger Things 5!
+                    </h1>
+                    <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border hover:bg-red-900/30 transition-colors" style="border-color: var(--primary-color); box-shadow: 0 0 8px var(--primary-color);">
+                        <i data-lucide="circle-user" class="w-6 h-6" style="color: var(--primary-color);"></i>
                     </button>
                 </div>
                 
-                <div id="calendar-strip" class="flex overflow-x-scroll space-x-3 pb-2 -mx-4 px-4 scrollbar-hide select-none"></div>
+                <div id="calendar-strip" class="flex overflow-x-scroll space-x-2 pb-2 -mx-4 px-4 scrollbar-hide"></div>
                 
-                <div id="shift-action-container" class="w-full mt-6 flex gap-3">
-                    <button id="end-shift-button" class="w-[50px] h-[50px] flex items-center justify-center rounded-lg border border-red-600 bg-black text-red-600 hover:bg-red-900/30 transition-all" style="display: none;">
-                        <i data-lucide="power" class="w-6 h-6"></i>
-                    </button>
-                    <button id="main-action-button" class="st-btn st-btn-filled w-full py-3 rounded-lg text-lg uppercase tracking-wider flex items-center justify-center disabled:opacity-50 disabled:grayscale">
+                <div id="shift-action-container" class="w-full mt-4 flex">
+                    <div id="end-shift-button" class="close-shift-button w-[50px] mr-3 flex-shrink-0" style="display: none;"></div>
+                    <button id="main-action-button" class="w-full h-[50px] rounded-md font-bold text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
                          <span class="btn-text">Загрузка...</span>
                     </button>
                 </div>
             </div>
         </header>
         
-        <main class="flex flex-col items-center justify-start px-4 w-full max-w-7xl mx-auto" id="main-content">
+        <main class="flex flex-col items-center justify-start pt-4 px-4 w-full" id="main-content">
             </main>
-
-        <div class="px-4 mt-8 mb-4">
-            <h3 class="text-red-600 text-xs font-bold uppercase tracking-widest mb-3 border-b border-red-900/50 pb-1">Memories</h3>
-            <div class="gallery-strip scrollbar-hide">
-                <img src="https://images.unsplash.com/photo-1533240332313-0db49b459ad6?q=80&w=300&auto=format&fit=crop" class="gallery-img" alt="Arcade">
-                <img src="https://images.unsplash.com/photo-1509347528160-9a9e33742cd4?q=80&w=300&auto=format&fit=crop" class="gallery-img" alt="Dark Forest">
-                <img src="https://images.unsplash.com/photo-1542259681-d4cd7193bc86?q=80&w=300&auto=format&fit=crop" class="gallery-img" alt="Neon">
-                <img src="https://images.unsplash.com/photo-1627850604058-52e40de1b847?q=80&w=300&auto=format&fit=crop" class="gallery-img" alt="Red Mist">
+        
+        <div class="px-4 mt-6 w-full max-w-[400px] mx-auto">
+            <h3 class="text-red-600 text-xs font-bold uppercase tracking-widest mb-2 border-b border-red-900/50 pb-1">Archive Footage</h3>
+            <div class="st-gallery scrollbar-hide">
+                <div class="st-img-card"><img src="https://drive.google.com/uc?export=view&id=1p25703Ko2w66nwIfLyK4UZfJlRYzQRKW" alt="ST Scene 1"></div>
+                <div class="st-img-card"><img src="https://drive.google.com/uc?export=view&id=1dc43sZJAnb8_PN2fLR2POGLbikREv89m" alt="ST Scene 2"></div>
+                <div class="st-img-card"><img src="https://drive.google.com/uc?export=view&id=1P9PQqblMkXbiRxxxr8DNJnjbXakydF_0" alt="ST Scene 3"></div>
+                <div class="st-img-card"><img src="https://drive.google.com/uc?export=view&id=12dt1v3HOHEGDgKIrLrVgYtkK1hodHHUw" alt="ST Scene 4"></div>
             </div>
         </div>
     </div>
@@ -287,67 +336,65 @@
         <a href="https://u8902054545-design.github.io/chats-darkcenter" class="nav-item" id="nav-chats"><i data-lucide="message-square-more"></i></a>
     </nav>
     
-    <div id="intro-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/80 z-[60] flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#101010] text-gray-200 p-8 rounded-t-3xl border-t-2 border-red-600 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, #ff0000 3px); background-size: 100% 4px;"></div>
+    <div id="intro-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/80 z-[80] flex justify-center items-end">
+        <div class="bottom-sheet-content w-full max-w-md p-6 rounded-t-2xl shadow-2xl mb-4 sm:mb-0 relative overflow-hidden" style="background: #100505; border-color: #ff0000;">
+            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-red-900/20 to-transparent pointer-events-none"></div>
             
             <div class="relative z-10 text-center">
-                <h2 class="text-3xl font-black text-red-600 mb-2 st-title" style="font-family: 'Merriweather', serif;">THE END IS HERE</h2>
-                <div class="w-16 h-1 bg-red-600 mx-auto mb-6 shadow-[0_0_10px_red]"></div>
-                
-                <p class="text-sm text-gray-300 leading-relaxed mb-6 font-mono">
-                    "Друзья не лгут." <br><br>
-                    Мы прошли долгий путь от подземелий D&D до эпической битвы за Хокинс. Это последнее лето. Последняя битва с Изнанкой. <br><br>
-                    Твоя смена сегодня — это часть сопротивления. Будь готов.
-                </p>
-
-                <button id="close-intro-btn" class="st-btn w-full py-4 rounded text-red-500 border border-red-500 hover:bg-red-900/20 font-bold uppercase tracking-widest text-sm">
-                    Я готов
+                <h2 class="text-3xl st-font text-red-600 mb-4 st-glow-text">Конец Истории</h2>
+                <div class="intro-text text-gray-300 text-sm mb-6 space-y-3">
+                    <p>Мы прошли долгий путь от подвала Майка до эпицентра Изнанки.</p>
+                    <p>Слезы наворачиваются на глаза, когда мы понимаем: это действительно финал. Легенда, изменившая наши жизни, прощается с нами.</p>
+                    <p class="font-bold text-white italic">"Друзья не лгут."</p>
+                </div>
+                <button id="close-intro-btn" class="w-full text-center text-white font-bold py-3 rounded-md uppercase tracking-wider transition-all" style="background-color: var(--primary-color); box-shadow: 0 0 15px var(--primary-color);">
+                    Продолжить работу
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/80 z-50 flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#111] text-white p-6 rounded-t-2xl shadow-xl">
-            <div class="text-center mb-6">
-                <i data-lucide="radio-tower" class="w-10 h-10 text-red-600 mx-auto mb-3 animate-pulse"></i>
-                <h2 class="text-xl font-bold font-serif tracking-wide">Покинуть пост?</h2>
-                <p class="text-gray-500 text-xs font-mono mt-2">Связь с центром будет прервана.</p>
+    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/80 z-[90] flex justify-center items-end">
+        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl mb-4 sm:mb-0">
+            <div class="text-center mb-4">
+                <h2 class="text-2xl st-font text-white mb-2">Завершить смену?</h2>
+                <p class="text-gray-400 text-sm font-mono">Внимание: Убедитесь, что все порталы закрыты и задачи выполнены.</p>
             </div>
             <div class="flex flex-col space-y-3">
-                <button id="confirm-end-shift-btn" class="st-btn-filled w-full py-3 rounded uppercase tracking-wider text-sm">Подтвердить</button>
-                <button id="cancel-end-shift-btn" class="w-full text-center py-3 text-gray-500 text-xs uppercase hover:text-white transition-colors">Остаться на связи</button>
+                <button id="confirm-end-shift-btn" class="w-full text-center text-white font-bold py-4 rounded-md uppercase" style="background-color: var(--primary-color);">Завершить</button>
+                <button id="cancel-end-shift-btn" class="w-full text-center font-bold py-4 rounded-md uppercase" style="border: 1px solid var(--primary-color); color: var(--primary-color); background-color: transparent;">Не завершать</button>
             </div>
         </div>
     </div>
 
     <div id="auth-error-sheet" class="bottom-sheet-overlay auth-blocker fixed inset-0 z-[999] flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-black border-t border-red-800 text-white p-8 rounded-t-3xl">
+        <div class="bottom-sheet-content w-full max-w-md text-white p-8 rounded-t-3xl border-t border-red-600 shadow-[0_-10px_50px_rgba(255,0,0,0.2)] bg-[#0a0a0a]">
             <div class="flex flex-col items-center text-center mb-8">
-                <div class="w-20 h-20 rounded-full flex items-center justify-center mb-4 border border-red-600 bg-red-900/20 animate-pulse">
-                    <i data-lucide="skull" class="w-10 h-10 text-red-500"></i>
+                <div class="w-24 h-24 rounded-full flex items-center justify-center mb-6 animate-pulse" style="background-color: rgba(147, 0, 10, 0.3); border: 2px solid #ff0000;">
+                    <i data-lucide="triangle-alert" class="w-12 h-12 text-red-500"></i>
                 </div>
-                <h2 class="text-xl font-bold mb-3 tracking-widest text-red-500 font-serif">ДОСТУП ЗАПРЕЩЕН</h2>
-                <p class="text-gray-400 text-xs font-mono">Сигнатура не опознана. Требуется повторная авторизация в системе Хокинса.</p>
+                <h2 class="text-2xl st-font text-red-500 mb-3 tracking-tight st-glow-text">ДОСТУП ЗАПРЕЩЕН</h2>
+                <p class="text-gray-400 text-base leading-relaxed font-mono">Системе не удалось подтвердить вашу личность. Вход в Изнанку заблокирован.</p>
             </div>
-            <button id="auth-login-btn" class="st-btn w-full py-3 rounded text-red-500 border-red-500 hover:bg-red-500 hover:text-black">
-                ВОЙТИ В СИСТЕМУ
+            <button id="auth-login-btn" class="w-full text-center font-bold py-4 rounded-full shadow-lg hover:brightness-110 active:scale-95 transition-all bg-red-900 text-white border border-red-500 uppercase tracking-widest">
+                Войти в аккаунт
             </button>
         </div>
     </div>
 
     <script>
-        // --- CONSTANTS ---
+        // Ссылки (БЕЗ ИЗМЕНЕНИЙ)
         const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
         const ACCOUNT_URL = 'https://u8902054545-design.github.io/account-darkcenter/';
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIFsMCw7PfiQ0fRJYtCP51I5rHJowJzgeW0z7yO5t5zSeO44hAor1ie0CELtVVxEM6sg/exec';
         const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
         
+        // Настройки
         const REFRESH_INTERVAL = 3000;
+        const BUTTON_SPINNER_SVG = `<svg class="spinner-mini" viewBox="0 0 50 50"><circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
         const HOURLY_RATE = 366; 
 
-        // --- STATE ---
+        // Состояние
         let isSlotActive = false;
         let canStartSlot = false;
         let selectedDateObj = new Date();
@@ -355,36 +402,41 @@
         let isAuthErrorVisible = false;
         let isProcessingAction = false; 
 
-        // --- ELEMENTS ---
+        // Элементы
         const loadingOverlay = document.getElementById('loadingOverlay');
         const mainActionButton = document.getElementById('main-action-button');
         const endShiftButton = document.getElementById('end-shift-button');
         const bottomSheet = document.getElementById('bottom-sheet');
         const authErrorSheet = document.getElementById('auth-error-sheet');
-        const introSheet = document.getElementById('intro-sheet');
         const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
         const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
         const authLoginBtn = document.getElementById('auth-login-btn');
         const calendarContainer = document.getElementById('calendar-strip');
         const mainContent = document.getElementById('main-content');
+        
+        // NEW: Intro Elements
+        const introSheet = document.getElementById('intro-sheet');
+        const closeIntroBtn = document.getElementById('close-intro-btn');
 
-        // --- UI UTILS ---
-        function showLoading() { loadingOverlay.classList.add('visible'); loadingOverlay.classList.remove('invisible'); }
-        function hideLoading() { loadingOverlay.classList.remove('visible'); loadingOverlay.classList.add('invisible'); }
+        // Навигация
+        document.getElementById('profile-button').addEventListener('click', () => { if(!isAuthErrorVisible) window.location.href = ACCOUNT_URL; });
+        document.getElementById('nav-home').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+        // Intro Logic
+        closeIntroBtn.addEventListener('click', () => {
+            introSheet.classList.remove('open');
+        });
+
+        function showLoading() { loadingOverlay.classList.add('visible'); }
+        function hideLoading() { loadingOverlay.classList.remove('visible'); }
 
         function createNotification(type, message) {
             const area = document.getElementById('notification-area');
             const note = document.createElement('div');
             const isSuccess = type === 'success';
-            // ST Style Notification
-            note.className = `max-w-xs w-full mx-auto mt-4 p-4 border-l-4 ${isSuccess ? 'border-green-500 bg-green-900/80' : 'border-red-600 bg-red-900/80'} text-white rounded shadow-2xl backdrop-blur-md transition-all duration-500 opacity-0 -translate-y-10 flex items-center gap-3 z-[70] fixed top-0 left-0 right-0`;
-            note.innerHTML = `
-                <i data-lucide="${isSuccess ? 'check' : 'alert-triangle'}" class="w-5 h-5 ${isSuccess ? 'text-green-400' : 'text-red-400'}"></i>
-                <div>
-                    <p class="font-bold text-xs uppercase tracking-wider font-mono">${isSuccess ? 'SYSTEM OK' : 'SYSTEM ERROR'}</p>
-                    <p class="text-[10px] opacity-80 font-mono">${message}</p>
-                </div>
-            `;
+            // Styled notifications for ST theme
+            note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#111] ring-1 ring-red-600' : 'bg-[#300] ring-1 ring-red-800'} text-white rounded-md shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between z-[110]`;
+            note.innerHTML = `<div class="flex items-center"><div class="${isSuccess ? 'text-red-500' : 'text-red-300'} mr-3"><i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i></div><div><p class="font-bold text-xs font-mono uppercase">${isSuccess ? 'УСПЕХ' : 'ОШИБКА'}</p><p class="text-[10px] opacity-80 font-mono">${message}</p></div></div>`;
             area.appendChild(note);
             lucide.createIcons();
             setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
@@ -398,32 +450,61 @@
             return `${d}.${m}.${y}`;
         }
 
-        // --- RENDER LOGIC (STRANGER THINGS THEMED) ---
+        // --- RENDER LOGIC (UPDATED STYLES) ---
 
         function renderSkeletons() {
             lastRenderedState = "skeleton";
-            mainContent.innerHTML = `
-            <div class="w-full flex flex-col space-y-4 fade-in mt-4 animate-pulse">
-                <div class="w-full m3-card h-[200px] border-red-900/50 flex items-center justify-center">
-                    <div class="text-red-900 font-mono text-sm blinking-cursor">SEARCHING SIGNAL...</div>
+            let html = `
+            <div class="w-full flex flex-col space-y-2 fade-in mt-2 max-w-[400px]">
+                <div class="flex justify-between items-end px-1">
+                    <div class="w-32 h-6 skeleton-block skeleton-shimmer"></div>
+                    <div class="w-20 h-6 rounded-full skeleton-block skeleton-shimmer"></div>
                 </div>
+                <div class="w-full m3-card p-6 h-[220px] flex flex-col justify-between skeleton-shimmer border border-red-900/30">
+                     <div class="flex justify-between">
+                         <div class="w-40 h-8 skeleton-block bg-[#2A2A2A]"></div>
+                         <div class="w-16 h-12 rounded-xl skeleton-block bg-[#2A2A2A]"></div>
+                     </div>
+                     <div class="w-full h-px bg-[#2A2A2A] my-4"></div>
+                     <div class="flex justify-between items-center">
+                         <div class="w-24 h-10 skeleton-block bg-[#2A2A2A]"></div>
+                         <div class="w-20 h-8 skeleton-block bg-[#2A2A2A]"></div>
+                     </div>
+                </div>
+                <div class="w-full h-12 rounded-xl skeleton-block skeleton-shimmer mt-2"></div>
             </div>`;
+            mainContent.innerHTML = html;
         }
 
-        function renderEmptyState(message = "NO DATA FOUND") {
+        function renderEmptyState(message = "Смены не обнаружены") {
             const stateKey = `empty-${message}`;
             if (lastRenderedState === stateKey) return;
             lastRenderedState = stateKey;
-            mainContent.innerHTML = `
-                <div class="text-center mt-20 opacity-70">
-                    <div class="relative inline-block">
-                        <i data-lucide="ghost" class="w-16 h-16 text-gray-600 mb-4 mx-auto"></i>
-                        <div class="absolute inset-0 blur-xl bg-red-900/20 rounded-full"></div>
-                    </div>
-                    <p class="text-xl text-red-500 font-serif tracking-widest uppercase">${message}</p>
-                    <p class="text-xs text-gray-500 font-mono mt-2">Попробуйте другую дату или проверьте рацию</p>
-                </div>`;
+            mainContent.innerHTML = `<div id="status-display" class="text-center mt-20 fade-in"><i data-lucide="ghost" class="empty-state-icon mx-auto w-20 h-20 text-red-900/50"></i><p id="status-text" class="text-xl text-gray-500 mt-4 font-mono uppercase tracking-widest">${message}</p></div>`;
             lucide.createIcons();
+        }
+
+        function getTimeDifferenceText(timeStr) {
+            try {
+                const startTime = timeStr.split('-')[0].trim();
+                const [hours, minutes] = startTime.split(':').map(Number);
+                const now = new Date();
+                const shiftStart = new Date(selectedDateObj);
+                shiftStart.setHours(hours, minutes, 0, 0);
+
+                if (shiftStart < now) return "Активна";
+                const diffMs = shiftStart - now;
+                const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                
+                if (diffHrs > 24) return ""; 
+                if (diffHrs < 1) return "Скоро";
+                return `Через ${diffHrs} ч.`;
+            } catch (e) { return ""; }
+        }
+
+        function parseDuration(durationStr) {
+            const match = durationStr.match(/(\d+)/);
+            return match ? parseInt(match[0]) : 0;
         }
 
         function renderShiftCard(shiftData) {
@@ -431,91 +512,76 @@
             if (lastRenderedState === stateKey) return;
             lastRenderedState = stateKey;
 
-            // Simple parsing
-            let incomeFormatted = "---";
-            let duration = "0";
-            try {
-               duration = shiftData.duration.match(/\d+/)[0];
-               const income = parseInt(duration) * HOURLY_RATE;
-               incomeFormatted = `${income} ₽`;
-            } catch(e) {}
+            const timeDiffText = getTimeDifferenceText(shiftData.time);
+            const hoursDuration = parseDuration(shiftData.duration || "0");
+            const estimatedIncome = hoursDuration * HOURLY_RATE;
+            const incomeFormatted = estimatedIncome > 0 ? `≈ ${estimatedIncome.toLocaleString('ru-RU')} ₽` : "Расчет...";
 
             mainContent.innerHTML = `
-            <div class="w-full fade-in mt-2 relative">
-                <article class="m3-card p-0 overflow-hidden group">
-                    <div class="absolute inset-0 z-0">
-                        <img src="https://images.unsplash.com/photo-1605806616949-1e87b487bc2a?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-700" alt="bg">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
-                    </div>
+            <div class="w-full max-w-[400px] fade-in mt-2">
+                <div class="flex justify-between items-end mb-3 px-1">
+                    <h2 class="text-xl st-font text-white st-glow-text">Ближайшая смена</h2>
+                    ${timeDiffText ? `
+                    <div class="flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-mono font-bold animate-pulse" style="color: #ff0909; background-color: rgba(20,0,0,0.8); border-color: #ff0909;">
+                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                        <span>${timeDiffText}</span>
+                    </div>` : ''}
+                </div>
 
-                    <div class="relative z-10 p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h2 class="text-xs font-bold text-red-500 uppercase tracking-widest mb-1 border-l-2 border-red-500 pl-2">Next Mission</h2>
-                                <div class="text-3xl font-black text-white font-mono glitch-text" style="text-shadow: 0 0 10px rgba(255,0,0,0.5);">${shiftData.time}</div>
-                                <div class="text-sm text-gray-400 font-mono mt-1">${selectedDateObj.toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'})}</div>
+                <article class="m3-card p-6 mb-4 relative">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex flex-col">
+                            <div class="text-3xl font-bold text-white tracking-tight flex items-center gap-2 font-mono" style="text-shadow: 0 0 5px red;">
+                                ${shiftData.time}
                             </div>
-                            <div class="bg-red-900/30 border border-red-600/50 px-3 py-2 rounded text-center backdrop-blur-sm">
-                                <span class="block text-xl font-bold text-white leading-none">${duration}</span>
-                                <span class="text-[9px] uppercase text-red-400 font-bold">Часов</span>
+                            <div class="text-sm text-gray-400 font-mono mt-1 uppercase">
+                                ${selectedDateObj.toLocaleDateString('ru-RU', {day: 'numeric', month: 'short'})}
                             </div>
                         </div>
 
-                        <div class="h-px w-full bg-red-900/50 my-4"></div>
+                        <div class="glass-pill px-3 py-1.5 rounded flex flex-col items-center justify-center min-w-[60px]">
+                            <span class="text-lg font-bold text-red-100 leading-none">${hoursDuration || '-'}</span>
+                            <span class="text-[10px] uppercase text-red-400 font-bold tracking-wider">часов</span>
+                        </div>
+                    </div>
 
+                    <div class="h-px w-full bg-gradient-to-r from-transparent via-red-600 to-transparent mb-6 opacity-50"></div>
+
+                    <div class="space-y-4">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <div class="p-2 bg-gray-800/50 rounded-lg border border-gray-700">
-                                    <i data-lucide="banknote" class="w-5 h-5 text-green-400"></i>
+                                <div class="p-2.5 rounded border border-red-900 bg-red-900/10">
+                                    <i data-lucide="wallet" class="w-5 h-5" style="color: #ff0909;"></i>
                                 </div>
-                                <div>
-                                    <div class="text-[10px] text-gray-500 uppercase">Расчетный доход</div>
-                                    <div class="text-xl font-bold text-green-400 font-mono">≈ ${incomeFormatted}</div>
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-gray-500 font-mono uppercase tracking-wide">Награда</span>
+                                    <span class="text-2xl font-bold text-white tracking-tight">${incomeFormatted}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="text-right">
+                                <div class="flex items-center justify-end gap-1.5 text-xs font-mono mb-0.5 text-red-500">
+                                    <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                                    <span>RATE</span>
+                                </div>
+                                <div class="text-sm text-gray-400 font-mono">
+                                    ${HOURLY_RATE} ₽ / h
                                 </div>
                             </div>
                         </div>
                     </div>
                 </article>
 
-                <div class="mt-4 flex gap-2 items-center justify-center opacity-60">
-                    <i data-lucide="radio" class="w-4 h-4 text-red-600 animate-pulse"></i>
-                    <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Канал зашифрован</span>
-                </div>
+                <button class="w-full btn-card-action h-12 rounded flex items-center justify-center gap-2 font-bold text-white group relative overflow-hidden">
+                    <span class="relative z-10">Подробнее</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 relative z-10 transition-transform group-hover:translate-x-1"></i>
+                </button>
             </div>`;
             
             lucide.createIcons();
         }
 
-        // --- CALENDAR LOGIC ---
-        function initCalendar() {
-            calendarContainer.innerHTML = '';
-            const today = new Date();
-            for (let i = 0; i < 14; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                const item = document.createElement('div');
-                
-                const isSelected = date.toDateString() === selectedDateObj.toDateString();
-                
-                item.className = `calendar-item flex flex-col items-center justify-center p-2 cursor-pointer flex-shrink-0 w-14 h-16 ${isSelected ? 'selected-border' : ''}`;
-                
-                item.innerHTML = `
-                    <span class="text-[10px] font-mono uppercase ${isSelected ? 'text-red-400' : 'text-gray-500'}">${['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()]}</span>
-                    <span class="text-xl font-bold font-serif ${isSelected ? 'text-white drop-shadow-[0_0_5px_red]' : 'text-gray-400'}">${date.getDate()}</span>
-                `;
-                
-                item.addEventListener('click', () => {
-                    if (selectedDateObj.toDateString() === date.toDateString()) return;
-                    selectedDateObj = date;
-                    initCalendar(); // Re-render to update classes
-                    renderSkeletons();
-                    fetchShiftForDate(date, true);
-                });
-                calendarContainer.appendChild(item);
-            }
-        }
-
-        // --- AUTH & NETWORK ---
+        // --- AUTH LOGIC (UNCHANGED) ---
         function triggerAuthError() {
             if (isAuthErrorVisible) return;
             isAuthErrorVisible = true;
@@ -525,12 +591,20 @@
             localStorage.removeItem('authToken');
         }
 
+        authLoginBtn.addEventListener('click', () => {
+             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
+             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
+        });
+
         async function checkUserAuthentication(isSilent = false) {
             if (!isSilent) showLoading();
             const email = localStorage.getItem('userEmail');
             const token = localStorage.getItem('authToken');
             
-            if (!email || !token) { triggerAuthError(); return false; }
+            if (!email || !token) { 
+                triggerAuthError(); 
+                return false; 
+            }
 
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -539,14 +613,21 @@
                     body: JSON.stringify({ auth: true, email: email, token: token })
                 });
                 const data = await response.json();
+                
                 if (data.status === 'success' && data.auth_ok === false) {
-                    triggerAuthError(); return false;
+                    triggerAuthError();
+                    return false;
                 }
                 return true;
-            } catch (error) { return true; } 
-            finally { if (!isSilent) hideLoading(); }
+            } catch (error) { 
+                console.warn("Auth check network error", error);
+                return true; 
+            } finally { 
+                if (!isSilent) hideLoading(); 
+            }
         }
 
+        // --- DATA FETCHING (UNCHANGED) ---
         async function fetchShiftForDate(dateObj, isSilent = false) {
             if (isAuthErrorVisible) return;
             if (!isSilent) showLoading();
@@ -561,10 +642,10 @@
                 if (data.status === 'success' && data.shift && data.shift.found) { 
                     renderShiftCard(data.shift.data); 
                 } else { 
-                    renderEmptyState("NO SHIFTS DETECTED"); 
+                    renderEmptyState("Нет смен"); 
                 }
             } catch (e) { 
-                if(!isSilent) renderEmptyState("CONNECTION LOST"); 
+                if(!isSilent) renderEmptyState("Ошибка связи"); 
             } finally { 
                 if (!isSilent) hideLoading(); 
             }
@@ -578,7 +659,8 @@
                 return await response.json();
             } catch (error) { return null; }
         }
-
+        
+        // --- BUTTON ACTIONS (UNCHANGED) ---
         async function updateShiftStatus(newStatus) {
             const userEmail = localStorage.getItem('userEmail');
             try {
@@ -589,7 +671,7 @@
                 });
                 const data = await response.json();
                 return data.status === 'success';
-            } catch (error) { createNotification('error', 'Ошибка сигнала'); return false; }
+            } catch (error) { createNotification('error', 'Сбой связи с Изнанкой'); return false; }
         }
 
         function updateButtons(data) {
@@ -597,46 +679,75 @@
             const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
             if (data.canStart !== undefined) canStartSlot = data.canStart;
             isSlotActive = (status === 'Open');
+            const statusTextEl = document.getElementById('status-text');
             
             if (isSlotActive) {
-                if (mainActionButton.textContent !== 'ПЕРЕЙТИ К ЗАДАЧАМ' && !isProcessingAction) {
-                    mainActionButton.innerHTML = 'ПЕРЕЙТИ К ЗАДАЧАМ';
-                    mainActionButton.classList.remove('opacity-50');
+                if(statusTextEl && statusTextEl.textContent !== "Смена активна") {
+                    statusTextEl.textContent = "Смена активна";
+                    statusTextEl.classList.remove('text-gray-500');
+                    statusTextEl.classList.add('text-red-500');
+                    statusTextEl.classList.add('st-glow-text');
+                }
+                if (mainActionButton.textContent !== 'Перейти к задачам' && !isProcessingAction) {
+                    mainActionButton.innerHTML = 'Перейти к задачам';
                     mainActionButton.disabled = false;
                 }
                 endShiftButton.style.display = 'flex';
             } else {
-                if (mainActionButton.textContent !== 'НАЧАТЬ СМЕНУ' && !isProcessingAction) { 
-                    mainActionButton.innerHTML = 'НАЧАТЬ СМЕНУ'; 
+                if (mainActionButton.textContent !== 'Начать смену' && !isProcessingAction) { 
+                    mainActionButton.innerHTML = 'Начать смену'; 
                 }
-                if (!isProcessingAction) mainActionButton.disabled = !canStartSlot;
+                if (!isProcessingAction) {
+                    mainActionButton.disabled = !canStartSlot;
+                }
                 endShiftButton.style.display = 'none';
             }
         }
 
-        // --- LISTENERS ---
-        document.getElementById('profile-button').addEventListener('click', () => { if(!isAuthErrorVisible) window.location.href = ACCOUNT_URL; });
-        document.getElementById('nav-home').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        // --- CALENDAR INIT ---
+        function initCalendar() {
+            calendarContainer.innerHTML = '';
+            const today = new Date();
+            for (let i = 0; i < 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const item = document.createElement('div');
+                item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded cursor-pointer flex-shrink-0 w-14`;
+                if (date.toDateString() === selectedDateObj.toDateString()) {
+                    item.classList.add('selected-border');
+                    item.style.color = '#ff0909';
+                } else { item.style.color = '#888'; }
+                
+                const dayName = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()];
+                item.innerHTML = `<span class="text-[10px] uppercase font-bold font-mono">${dayName}</span><span class="text-lg font-black font-serif">${date.getDate()}</span>`;
+                
+                item.addEventListener('click', () => {
+                    if (selectedDateObj.toDateString() === date.toDateString()) return;
+                    document.querySelectorAll('.calendar-item').forEach(el => { el.classList.remove('selected-border'); el.style.color = '#888'; });
+                    item.classList.add('selected-border');
+                    item.style.color = '#ff0909';
+                    selectedDateObj = date;
+                    renderSkeletons();
+                    fetchShiftForDate(date, true);
+                });
+                calendarContainer.appendChild(item);
+            }
+        }
+
+        // --- EVENT LISTENERS ---
         
-        // Intro Sheet Logic
-        document.getElementById('close-intro-btn').addEventListener('click', () => {
-             introSheet.classList.remove('open');
-        });
-
-        authLoginBtn.addEventListener('click', () => {
-             authLoginBtn.textContent = 'CONNECTING...';
-             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
-        });
-
         mainActionButton.addEventListener('click', async () => {
             if (isProcessingAction) return;
             isProcessingAction = true;
-            mainActionButton.innerHTML = '<div class="spinner-red w-6 h-6 border-2"></div>';
+            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             mainActionButton.disabled = true;
 
             try {
                 const isAuth = await checkUserAuthentication(true);
-                if (!isAuth) { isProcessingAction = false; return; }
+                if (!isAuth) {
+                    isProcessingAction = false;
+                    return; 
+                }
 
                 const freshData = await fetchStatusLogic(true);
                 
@@ -644,7 +755,7 @@
                     if (freshData && freshData.shiftStatus === 'Open') {
                         window.location.href = TASKS_URL;
                     } else {
-                        createNotification('error', 'Смена закрыта на сервере');
+                        createNotification('error', 'Портал закрыт: Смена не активна');
                         updateButtons(freshData); 
                         isProcessingAction = false;
                     }
@@ -652,21 +763,22 @@
                     if (freshData && freshData.canStart) {
                          const success = await updateShiftStatus('Open');
                          if (success) {
-                             createNotification('success', 'Смена начата');
+                             createNotification('success', 'Портал открыт!');
                              updateButtons({ shiftStatus: 'Open', canStart: false });
                          } else {
-                             createNotification('error', 'Сбой активации');
+                             createNotification('error', 'Не удалось открыть портал');
                              const retryData = await fetchStatusLogic(true); 
                              updateButtons(retryData);
                          }
                     } else {
-                         createNotification('error', 'Рано начинать смену');
+                         createNotification('error', 'Временная аномалия: Нет смены');
                          updateButtons(freshData);
                     }
                     isProcessingAction = false;
                 }
             } catch (e) {
-                createNotification('error', 'Нет связи');
+                console.error(e);
+                createNotification('error', 'Ошибка соединения');
                 isProcessingAction = false;
                 updateButtons({ shiftStatus: isSlotActive ? 'Open' : 'Closed', canStart: canStartSlot });
             }
@@ -678,7 +790,7 @@
         confirmEndShiftBtn.addEventListener('click', async () => {
             bottomSheet.classList.remove('open');
             endShiftButton.style.display = 'none';
-            mainActionButton.innerHTML = '<div class="spinner-red w-6 h-6 border-2"></div>';
+            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             mainActionButton.disabled = true;
             isProcessingAction = true;
             
@@ -686,7 +798,7 @@
             isProcessingAction = false;
             
             if (success) { 
-                createNotification('success', 'Конец связи'); 
+                createNotification('success', 'Смена завершена'); 
                 updateButtons({ shiftStatus: 'Closed', canStart: false }); 
                 const realData = await fetchStatusLogic(true); 
                 updateButtons(realData); 
@@ -695,17 +807,18 @@
             }
         });
 
-        // --- INIT ---
+        // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            initCalendar();
+            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
             renderSkeletons();
+            initCalendar();
             
-            // Show intro sheet with delay
+            // Trigger Intro Sheet
             setTimeout(() => {
-                if(!isAuthErrorVisible) introSheet.classList.add('open');
-            }, 1000);
-
+                introSheet.classList.add('open');
+            }, 500);
+            
             const authOk = await checkUserAuthentication(false);
             
             if (authOk) {
@@ -718,12 +831,17 @@
                     const stillAuth = await checkUserAuthentication(true); 
                     if (stillAuth) {
                         const statusData = await fetchStatusLogic(true);
+                        if (statusData && statusData.shiftStatus === 'Open' && !isSlotActive) {
+                             createNotification('success', 'Активность обнаружена на другом устройстве');
+                        }
                         if (!isProcessingAction) updateButtons(statusData);
                         fetchShiftForDate(selectedDateObj, true);
                     }
                 }, REFRESH_INTERVAL);
             }
         });
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
 </html>
