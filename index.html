@@ -2,846 +2,627 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stranger Things 5 - Finale Schedule</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DarkCenter | Stranger Things 5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     
     <style>
-        /* Подключаем шрифты: Benguiat-like (Merriweather) и Monospace (Courier Prime) */
-        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Merriweather:wght@300;700;900&display=swap');
-        
         :root {
-            /* ST5 Palette */
-            --primary-color: #ff0909; /* Neon Red */
-            --primary-glow: #ff090980;
-            --bg-color: #050505;
-            --surface-color: #141414;
-            --text-color: #e3e3e3;
-            --accent-dark: #3a0000;
+            --st-red: #ff0909;
+            --dc-blue: #0044ff;
+            --bg-black: #050505;
+            --google-gray: #dadce0;
+            --input-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none; /* Защита от выделения для "приложения" */
         }
 
         body {
-            font-family: 'Courier Prime', monospace; /* Retro terminal style */
-            background-color: var(--bg-color);
-            background-image: 
-                radial-gradient(circle at 50% 0%, #220000 0%, transparent 60%),
-                repeating-linear-gradient(0deg, transparent, transparent 2px, #ff000005 3px); /* Scanlines */
-            color: var(--text-color);
+            background-color: var(--bg-black);
+            font-family: 'Roboto', sans-serif;
             height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            -webkit-user-select: none; 
-            user-select: none; 
+            overflow: hidden; /* Полноэкранный режим без скролла */
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* Эффект виньетки (затемнение по краям) */
-        body::after {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        /* Заголовки в стиле Stranger Things */
-        h1, h2, .st-font {
-            font-family: 'Merriweather', serif;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-        }
-        
-        .st-glow-text {
-            color: #fff;
-            text-shadow: 
-                0 0 5px var(--primary-color),
-                0 0 10px var(--primary-color);
-        }
-
-        .screen-container {
+        /* --- BACKGROUND EFFECTS (Изнанка) --- */
+        .upside-down-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            position: relative;
-            overflow-y: auto;
-            padding-bottom: 110px;
-            z-index: 10;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1a0000 0%, #000000 100%);
+            overflow: hidden;
         }
 
-        .screen-container::-webkit-scrollbar { display: none; }
-        .screen-container { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .header-style {
-            border-bottom: 1px solid var(--primary-color);
-            background: linear-gradient(180deg, rgba(20,0,0,0.9) 0%, rgba(5,5,5,0.8) 100%);
-            box-shadow: 0 4px 30px rgba(255, 9, 9, 0.15);
-            backdrop-filter: blur(5px);
-            position: relative;
-            z-index: 30;
+        /* Лозы (Ветки) */
+        .vines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><path d="M10,10 Q50,100 90,50 T180,100" fill="none" stroke="%23220a0a" stroke-width="2"/></svg>');
+            opacity: 0.6;
+            pointer-events: none;
         }
 
-        /* --- NAVIGATION --- */
-        .nav-bar {
-            position: fixed;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 32px);
-            max-width: 500px;
-            height: 70px; 
-            background-color: rgba(20, 20, 20, 0.95);
-            border: 1px solid #333;
-            border-bottom: 2px solid var(--primary-color);
-            border-radius: 16px;
+        /* Красные молнии */
+        .lightning {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.15);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes flash {
+            0% { opacity: 0; }
+            2% { opacity: 0.8; }
+            4% { opacity: 0; }
+            6% { opacity: 0.4; }
+            18% { opacity: 0; }
+            100% { opacity: 0; }
+        }
+
+        .lightning.active {
+            animation: flash 4s infinite random;
+        }
+
+        /* Споры (Частицы в воздухе) */
+        .spores {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px);
+            background-size: 550px 550px;
+            background-position: 0 0;
+            opacity: 0.3;
+            animation: moveSpores 60s linear infinite;
+        }
+
+        @keyframes moveSpores {
+            from { background-position: 0 0; }
+            to { background-position: 1000px 1000px; }
+        }
+
+        /* --- INTRO SCREEN (Netflix Style) --- */
+        #intro-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            padding: 0 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-            z-index: 50;
-            box-sizing: border-box;
+            z-index: 999;
+            transition: opacity 1s ease-out;
         }
 
-        .nav-item {
+        .intro-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transform: scale(0.8);
+            animation: zoomLogo 3s forwards;
+        }
+
+        .dc-logo {
+            font-size: 34px; /* Чуть больше 24, чтобы было читаемо на Full HD */
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, var(--dc-blue) 0%, var(--st-red) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .google-logo-intro {
+            width: 30px;
+            height: 30px;
+            background: white; /* Placeholder for G logo SVG */
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 45px;
-            height: 45px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #666;
+            box-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
 
-        .nav-item.active {
-            background-color: rgba(255, 9, 9, 0.15);
-            color: var(--primary-color);
-            box-shadow: 0 0 15px rgba(255, 9, 9, 0.2);
-            border: 1px solid rgba(255, 9, 9, 0.3);
+        @keyframes zoomLogo {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
         }
-        
-        .nav-item:active { transform: scale(0.95); }
 
-        /* --- CALENDAR --- */
-        .calendar-item { 
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-            border: 1px solid #333; 
-            background: #111;
-            margin-right: 8px;
-        }
-        .calendar-item.selected-border { 
-            border: 1px solid var(--primary-color); 
-            background-color: rgba(255, 9, 9, 0.1);
-            box-shadow: 0 0 10px rgba(255, 9, 9, 0.2);
-        }
-        .calendar-item:active { transform: scale(0.95); }
-        
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* --- IMAGES GALLERY --- */
-        .st-gallery {
-            display: flex;
-            overflow-x: auto;
-            gap: 12px;
-            padding: 10px 0;
-            margin-bottom: 20px;
-        }
-        .st-img-card {
-            min-width: 140px;
-            height: 90px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #333;
-            position: relative;
-            flex-shrink: 0;
-            transition: transform 0.3s;
-        }
-        .st-img-card img {
+        /* --- MAIN APP INTERFACE --- */
+        #app-container {
+            opacity: 0;
+            transition: opacity 2s ease-in;
+            z-index: 10;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.8;
-            filter: sepia(30%) contrast(1.2);
-        }
-        .st-img-card:hover { transform: scale(1.05); z-index: 20; border-color: var(--primary-color); }
-        
-        /* --- CARDS --- */
-        .m3-card {
-            background: rgba(20, 20, 20, 0.8);
-            border: 1px solid #444; 
-            border-top: 2px solid var(--primary-color);
-            border-radius: 4px; /* Более угловатый ретро стиль */
+            max-width: 450px;
+            padding: 20px;
+            text-align: center;
             position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(12px);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.8);
         }
 
-        .m3-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at top right, rgba(255, 9, 9, 0.1), transparent 40%);
-            pointer-events: none;
-        }
-        
-        /* Glass pill for duration */
-        .glass-pill {
-            background: rgba(255, 9, 9, 0.1);
-            border: 1px solid rgba(255, 9, 9, 0.4);
-            color: #fff;
-            font-family: 'Courier Prime', monospace;
+        /* Stranger Things Title */
+        .st-title {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 3rem;
+            color: transparent;
+            -webkit-text-stroke: 1.5px var(--st-red);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: -2px;
+            position: relative;
+            text-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
         }
 
-        /* RED BUTTONS */
-        #main-action-button, .btn-card-action {
-            background-color: #aa0000; /* Darker red base */
-            background-image: linear-gradient(180deg, #d40000 0%, #8a0000 100%);
+        .st-title span {
+            display: block;
+            font-size: 1.2rem;
+            letter-spacing: 5px;
+            -webkit-text-stroke: 0;
+            color: var(--st-red);
+            text-shadow: 0 0 10px var(--st-red);
+            margin-top: -10px;
+        }
+
+        .corp-name {
+            font-size: 0.8rem;
+            color: #aaa;
+            letter-spacing: 3px;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* --- GOOGLE STYLE FORMS --- */
+        .form-group {
+            position: relative;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--input-bg);
+            border: 1px solid #444;
+            border-radius: 4px;
             color: white;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: var(--st-red);
+            box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+        }
+
+        .form-label {
+            position: absolute;
+            left: 15px;
+            top: 14px;
+            color: #888;
+            font-size: 16px;
+            pointer-events: none;
+            transition: 0.2s ease all;
+            background-color: transparent;
+            padding: 0 5px;
+        }
+
+        /* Логика плавающей метки */
+        .form-input:focus ~ .form-label,
+        .form-input:not(:placeholder-shown) ~ .form-label {
+            top: -10px;
+            font-size: 12px;
+            color: var(--st-red);
+            background-color: #050505; /* Чтобы перекрыть линию рамки */
+        }
+
+        /* Кнопка */
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #a00000, #ff0000);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border: 1px solid #ff4444;
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
-            transition: all 0.3s ease;
-            text-shadow: 1px 1px 2px black;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
         }
-        #main-action-button:active, .btn-card-action:active {
+
+        .btn-submit:hover {
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+        
+        .btn-submit:active {
             transform: scale(0.98);
-            box-shadow: 0 0 5px rgba(255, 0, 0, 0.6);
         }
-        #main-action-button:disabled {
+
+        .btn-submit:disabled {
             background: #333;
-            border-color: #555;
-            color: #888;
+            color: #777;
+            cursor: not-allowed;
             box-shadow: none;
         }
 
-        .close-shift-button {
-            background-color: #1a1a1a; 
-            border: 1px solid var(--primary-color); 
-            border-radius: 6px; 
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(255, 9, 9, 0.2);
-        }
-        .close-shift-button::before { background-color: var(--primary-color); }
-        .close-shift-button::after { border: 2px solid var(--primary-color); border-top-color: transparent; }
-
-        /* --- BOTTOM SHEETS --- */
-        .bottom-sheet-overlay {
-            visibility: hidden; opacity: 0;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-            z-index: 100;
-        }
-        .bottom-sheet-content { 
-            transform: translateY(100%); 
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            border-top: 3px solid var(--primary-color);
-            background: #111;
-        }
-        .bottom-sheet-overlay.open { visibility: visible; opacity: 1; }
-        .bottom-sheet-overlay.open .bottom-sheet-content { transform: translateY(0); }
-
-        /* Intro Sheet Specifics */
-        .intro-text {
-            font-family: 'Merriweather', serif;
-            line-height: 1.6;
-            text-shadow: 0 0 2px black;
+        .hidden {
+            display: none;
         }
 
-        .auth-blocker { background-color: rgba(0,0,0,0.98); }
-
-        /* --- LOADERS --- */
-        @keyframes rotate { 100% { transform: rotate(360deg); } }
-        @keyframes dash { 0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124px; } }
-
-        .spinner { width: 60px; height: 60px; animation: rotate 2s linear infinite; filter: drop-shadow(0 0 8px var(--primary-color)); }
-        .path { stroke: var(--primary-color); stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
-        
-        .spinner-mini { width: 24px; height: 24px; animation: rotate 2s linear infinite; }
-        .path-mini { stroke: #FFFFFF; stroke-linecap: round; stroke-width: 4; stroke-dasharray: 1, 150; animation: dash 1.5s ease-in-out infinite; }
-
-        #loadingOverlay {
-            background-color: #000; 
-            opacity: 0; visibility: hidden; pointer-events: none; 
-            transition: opacity 0.4s;
+        /* --- ГИРЛЯНДЫ (Светящиеся точки сверху) --- */
+        .lights {
+            position: absolute;
+            top: -10px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            pointer-events: none;
+            z-index: 5;
         }
-        #loadingOverlay.visible { opacity: 1; visibility: visible; pointer-events: auto; }
+        .light {
+            width: 10px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            animation: flicker 2s infinite alternate;
+            box-shadow: 0 5px 20px rgba(255,255,255,1);
+        }
+        .light:nth-child(odd) { background: cyan; box-shadow: 0 5px 20px cyan; animation-delay: 0.5s; }
+        .light:nth-child(even) { background: magenta; box-shadow: 0 5px 20px magenta; animation-delay: 1s; }
+        .light:nth-child(3n) { background: yellow; box-shadow: 0 5px 20px yellow; }
 
-        .skeleton-shimmer { background-color: #1A1A1A; border: 1px solid #333; }
-        .skeleton-shimmer::after {
-            background-image: linear-gradient(90deg, rgba(255, 9, 9, 0) 0, rgba(255, 9, 9, 0.05) 50%, rgba(255, 9, 9, 0) 100%);
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* --- TARGET SITE IFRAME (Вместо модалки) --- */
+        #target-frame-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #target-frame-container.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #target-frame-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
         }
 
     </style>
 </head>
-<body class="text-white">
+<body>
 
-    <div id="loadingOverlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center">
-        <svg class="spinner" viewBox="0 0 50 50">
-            <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
-        </svg>
-        <p class="mt-4 font-mono text-red-500 text-sm animate-pulse tracking-widest">CONNECTING TO HAWKINS...</p>
+    <div id="intro-screen">
+        <div class="intro-logo-container">
+            <div class="dc-logo">DarkCenter</div>
+            <div class="google-logo-intro">
+                <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.715H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.159 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                </svg>
+            </div>
+        </div>
     </div>
 
-    <div id="notification-area"></div>
-
-    <div class="screen-container">
-        <header class="w-full header-style sticky top-0">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div class="flex justify-between items-center h-10 mb-4">
-                    <h1 class="text-xl st-glow-text leading-tight" id="screen-title" style="max-width: 70%;">
-                        С финалом Stranger Things 5!
-                    </h1>
-                    <button id="profile-button" class="flex items-center justify-center p-1 rounded-full border hover:bg-red-900/30 transition-colors" style="border-color: var(--primary-color); box-shadow: 0 0 8px var(--primary-color);">
-                        <i data-lucide="circle-user" class="w-6 h-6" style="color: var(--primary-color);"></i>
-                    </button>
-                </div>
-                
-                <div id="calendar-strip" class="flex overflow-x-scroll space-x-2 pb-2 -mx-4 px-4 scrollbar-hide"></div>
-                
-                <div id="shift-action-container" class="w-full mt-4 flex">
-                    <div id="end-shift-button" class="close-shift-button w-[50px] mr-3 flex-shrink-0" style="display: none;"></div>
-                    <button id="main-action-button" class="w-full h-[50px] rounded-md font-bold text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                         <span class="btn-text">Загрузка...</span>
-                    </button>
-                </div>
-            </div>
-        </header>
+    <div class="upside-down-bg">
+        <div class="vines"></div>
+        <div class="spores"></div>
+        <div class="lightning" id="lightning"></div>
         
-        <main class="flex flex-col items-center justify-start pt-4 px-4 w-full" id="main-content">
-            </main>
+        <div class="lights">
+            <div class="light"></div><div class="light"></div><div class="light"></div>
+            <div class="light"></div><div class="light"></div><div class="light"></div>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <div class="corp-name">DarkCenter Corporation</div>
         
-        <div class="px-4 mt-6 w-full max-w-[400px] mx-auto">
-            <h3 class="text-red-600 text-xs font-bold uppercase tracking-widest mb-2 border-b border-red-900/50 pb-1">Archive Footage</h3>
-            <div class="st-gallery scrollbar-hide">
-                <div class="st-img-card"><img src="https://drive.google.com/uc?export=view&id=1p25703Ko2w66nwIfLyK4UZfJlRYzQRKW" alt="ST Scene 1"></div>
-                <div class="st-img-card"><img src="https://drive.google.com/uc?export=view&id=1dc43sZJAnb8_PN2fLR2POGLbikREv89m" alt="ST Scene 2"></div>
-                <div class="st-img-card"><img src="https://drive.google.com/uc?export=view&id=1P9PQqblMkXbiRxxxr8DNJnjbXakydF_0" alt="ST Scene 3"></div>
-                <div class="st-img-card"><img src="https://drive.google.com/uc?export=view&id=12dt1v3HOHEGDgKIrLrVgYtkK1hodHHUw" alt="ST Scene 4"></div>
+        <h1 class="st-title">
+            Stranger<br>Things
+            <span>FAREWELL TO THE LEGEND</span>
+        </h1>
+
+        <form id="login-form" onsubmit="handleEmailSubmit(event)">
+            <div class="form-group">
+                <input type="email" id="email" class="form-input" placeholder=" " required>
+                <label for="email" class="form-label">Gmail</label>
             </div>
+            <button type="submit" class="btn-submit">Войти через ITC Platform</button>
+        </form>
+
+        <form id="code-form" class="hidden" onsubmit="handleCodeSubmit(event)">
+            <p style="margin-bottom: 20px; font-size: 0.9rem; color: #ccc;">Код отправлен на <span id="user-email-display" style="color: var(--st-red)"></span></p>
+            <div class="form-group">
+                <input type="text" id="code" class="form-input" placeholder=" " required autocomplete="off" maxlength="6" inputmode="numeric">
+                <label for="code" class="form-label">Код подтверждения (G-)</label>
+            </div>
+            <button type="submit" class="btn-submit">Подтвердить вход</button>
+        </form>
+        
+        <div style="margin-top: 20px; font-size: 12px; color: #555;">
+            &copy; 2026 DarkCenter. Hawkins Lab Protocol.
         </div>
     </div>
 
-    <nav class="nav-bar" id="main-nav">
-        <div class="nav-item active" id="nav-home"><i data-lucide="home"></i></div>
-        <a href="https://u8902054545-design.github.io/DarkCenter-Cloud-Slot-Schedule/" class="nav-item" id="nav-schedule"><i data-lucide="calendar-days"></i></a>
-        <a href="https://u8902054545-design.github.io/cloud-center/" class="nav-item" id="nav-cloud"><i data-lucide="map-pin"></i></a>
-        <a href="https://u8902054545-design.github.io/payments-darkcenter" class="nav-item" id="nav-payments"><i data-lucide="credit-card"></i></a>
-        <a href="https://u8902054545-design.github.io/education-darkcenter" class="nav-item" id="nav-education"><i data-lucide="graduation-cap"></i></a>
-        <a href="https://u8902054545-design.github.io/chats-darkcenter" class="nav-item" id="nav-chats"><i data-lucide="message-square-more"></i></a>
-    </nav>
-    
-    <div id="intro-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/80 z-[80] flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md p-6 rounded-t-2xl shadow-2xl mb-4 sm:mb-0 relative overflow-hidden" style="background: #100505; border-color: #ff0000;">
-            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-red-900/20 to-transparent pointer-events-none"></div>
-            
-            <div class="relative z-10 text-center">
-                <h2 class="text-3xl st-font text-red-600 mb-4 st-glow-text">Конец Истории</h2>
-                <div class="intro-text text-gray-300 text-sm mb-6 space-y-3">
-                    <p>Мы прошли долгий путь от подвала Майка до эпицентра Изнанки.</p>
-                    <p>Слезы наворачиваются на глаза, когда мы понимаем: это действительно финал. Легенда, изменившая наши жизни, прощается с нами.</p>
-                    <p class="font-bold text-white italic">"Друзья не лгут."</p>
-                </div>
-                <button id="close-intro-btn" class="w-full text-center text-white font-bold py-3 rounded-md uppercase tracking-wider transition-all" style="background-color: var(--primary-color); box-shadow: 0 0 15px var(--primary-color);">
-                    Продолжить работу
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="bottom-sheet" class="bottom-sheet-overlay fixed inset-0 bg-black/80 z-[90] flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md bg-[#1F1F1F] text-white p-6 rounded-t-2xl shadow-xl mb-4 sm:mb-0">
-            <div class="text-center mb-4">
-                <h2 class="text-2xl st-font text-white mb-2">Завершить смену?</h2>
-                <p class="text-gray-400 text-sm font-mono">Внимание: Убедитесь, что все порталы закрыты и задачи выполнены.</p>
-            </div>
-            <div class="flex flex-col space-y-3">
-                <button id="confirm-end-shift-btn" class="w-full text-center text-white font-bold py-4 rounded-md uppercase" style="background-color: var(--primary-color);">Завершить</button>
-                <button id="cancel-end-shift-btn" class="w-full text-center font-bold py-4 rounded-md uppercase" style="border: 1px solid var(--primary-color); color: var(--primary-color); background-color: transparent;">Не завершать</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="auth-error-sheet" class="bottom-sheet-overlay auth-blocker fixed inset-0 z-[999] flex justify-center items-end">
-        <div class="bottom-sheet-content w-full max-w-md text-white p-8 rounded-t-3xl border-t border-red-600 shadow-[0_-10px_50px_rgba(255,0,0,0.2)] bg-[#0a0a0a]">
-            <div class="flex flex-col items-center text-center mb-8">
-                <div class="w-24 h-24 rounded-full flex items-center justify-center mb-6 animate-pulse" style="background-color: rgba(147, 0, 10, 0.3); border: 2px solid #ff0000;">
-                    <i data-lucide="triangle-alert" class="w-12 h-12 text-red-500"></i>
-                </div>
-                <h2 class="text-2xl st-font text-red-500 mb-3 tracking-tight st-glow-text">ДОСТУП ЗАПРЕЩЕН</h2>
-                <p class="text-gray-400 text-base leading-relaxed font-mono">Системе не удалось подтвердить вашу личность. Вход в Изнанку заблокирован.</p>
-            </div>
-            <button id="auth-login-btn" class="w-full text-center font-bold py-4 rounded-full shadow-lg hover:brightness-110 active:scale-95 transition-all bg-red-900 text-white border border-red-500 uppercase tracking-widest">
-                Войти в аккаунт
-            </button>
-        </div>
-    </div>
+    <div id="target-frame-container"></div>
 
     <script>
-        // Ссылки (БЕЗ ИЗМЕНЕНИЙ)
-        const TASKS_URL = 'https://u8902054545-design.github.io/DarkCenter-Cloud-Tasks/';
-        const ACCOUNT_URL = 'https://u8902054545-design.github.io/account-darkcenter/';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIFsMCw7PfiQ0fRJYtCP51I5rHJowJzgeW0z7yO5t5zSeO44hAor1ie0CELtVVxEM6sg/exec';
-        const LOGOUT_URL = 'https://u8902054545-design.github.io/Auth-ITC-Platform/'; 
-        
-        // Настройки
-        const REFRESH_INTERVAL = 3000;
-        const BUTTON_SPINNER_SVG = `<svg class="spinner-mini" viewBox="0 0 50 50"><circle class="path-mini" cx="25" cy="25" r="20" fill="none"></circle></svg>`;
-        const HOURLY_RATE = 366; 
+        // --- CONFIGURATION ---
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0uenNIXAbEI1ZqBLhTK06omyIMa3JquZ5Dil08MrY_jLsRCCff3W1PKQ6XgPM84td/exec";
+        const REQUIRED_ANDROID_VERSION = 14;
+        const VERSION_ERROR_MESSAGE = "Версия Android твоего устройства не поддерживается";
 
-        // Состояние
-        let isSlotActive = false;
-        let canStartSlot = false;
-        let selectedDateObj = new Date();
-        let lastRenderedState = null; 
-        let isAuthErrorVisible = false;
-        let isProcessingAction = false; 
+        // Keys for localStorage
+        const isLoggedInKey = 'isLoggedIn';
+        const userLinkKey = 'userLink';
+        const sessionExpiresKey = 'sessionExpires';
+        const userEmailKey = 'userEmail';
+        const authTokenKey = 'authToken';
 
-        // Элементы
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const mainActionButton = document.getElementById('main-action-button');
-        const endShiftButton = document.getElementById('end-shift-button');
-        const bottomSheet = document.getElementById('bottom-sheet');
-        const authErrorSheet = document.getElementById('auth-error-sheet');
-        const confirmEndShiftBtn = document.getElementById('confirm-end-shift-btn');
-        const cancelEndShiftBtn = document.getElementById('cancel-end-shift-btn');
-        const authLoginBtn = document.getElementById('auth-login-btn');
-        const calendarContainer = document.getElementById('calendar-strip');
-        const mainContent = document.getElementById('main-content');
-        
-        // NEW: Intro Elements
-        const introSheet = document.getElementById('intro-sheet');
-        const closeIntroBtn = document.getElementById('close-intro-btn');
+        let currentEmail = "";
 
-        // Навигация
-        document.getElementById('profile-button').addEventListener('click', () => { if(!isAuthErrorVisible) window.location.href = ACCOUNT_URL; });
-        document.getElementById('nav-home').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        // --- 1. INTRO SEQUENCE & INITIALIZATION ---
+        window.addEventListener('load', async () => {
+            const intro = document.getElementById('intro-screen');
+            const app = document.getElementById('app-container');
+            const lightning = document.getElementById('lightning');
 
-        // Intro Logic
-        closeIntroBtn.addEventListener('click', () => {
-            introSheet.classList.remove('open');
+            // Проверка авторизации во время анимации
+            const hasActiveSession = await checkStoredSession();
+
+            // Ждем завершения анимации логотипа (3сек)
+            setTimeout(() => {
+                intro.style.opacity = '0';
+                setTimeout(() => {
+                    intro.style.display = 'none';
+                    if (!hasActiveSession) {
+                        app.style.opacity = '1';
+                    }
+                    // Включаем молнии
+                    lightning.classList.add('active');
+                }, 1000);
+            }, 2500);
         });
 
-        function showLoading() { loadingOverlay.classList.add('visible'); }
-        function hideLoading() { loadingOverlay.classList.remove('visible'); }
-
-        function createNotification(type, message) {
-            const area = document.getElementById('notification-area');
-            const note = document.createElement('div');
-            const isSuccess = type === 'success';
-            // Styled notifications for ST theme
-            note.className = `max-w-xs w-full mx-4 mt-4 p-4 ${isSuccess ? 'bg-[#111] ring-1 ring-red-600' : 'bg-[#300] ring-1 ring-red-800'} text-white rounded-md shadow-2xl transition-all duration-500 opacity-0 -translate-y-10 pointer-events-auto flex items-center justify-between z-[110]`;
-            note.innerHTML = `<div class="flex items-center"><div class="${isSuccess ? 'text-red-500' : 'text-red-300'} mr-3"><i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i></div><div><p class="font-bold text-xs font-mono uppercase">${isSuccess ? 'УСПЕХ' : 'ОШИБКА'}</p><p class="text-[10px] opacity-80 font-mono">${message}</p></div></div>`;
-            area.appendChild(note);
-            lucide.createIcons();
-            setTimeout(() => { note.classList.remove('opacity-0', '-translate-y-10'); }, 10);
-            setTimeout(() => { note.classList.add('opacity-0', '-translate-y-10'); setTimeout(() => note.remove(), 500); }, 3500);
-        }
-
-        function formatDateForServer(date) {
-            const d = date.getDate().toString().padStart(2, '0');
-            const m = (date.getMonth() + 1).toString().padStart(2, '0');
-            const y = date.getFullYear();
-            return `${d}.${m}.${y}`;
-        }
-
-        // --- RENDER LOGIC (UPDATED STYLES) ---
-
-        function renderSkeletons() {
-            lastRenderedState = "skeleton";
-            let html = `
-            <div class="w-full flex flex-col space-y-2 fade-in mt-2 max-w-[400px]">
-                <div class="flex justify-between items-end px-1">
-                    <div class="w-32 h-6 skeleton-block skeleton-shimmer"></div>
-                    <div class="w-20 h-6 rounded-full skeleton-block skeleton-shimmer"></div>
-                </div>
-                <div class="w-full m3-card p-6 h-[220px] flex flex-col justify-between skeleton-shimmer border border-red-900/30">
-                     <div class="flex justify-between">
-                         <div class="w-40 h-8 skeleton-block bg-[#2A2A2A]"></div>
-                         <div class="w-16 h-12 rounded-xl skeleton-block bg-[#2A2A2A]"></div>
-                     </div>
-                     <div class="w-full h-px bg-[#2A2A2A] my-4"></div>
-                     <div class="flex justify-between items-center">
-                         <div class="w-24 h-10 skeleton-block bg-[#2A2A2A]"></div>
-                         <div class="w-20 h-8 skeleton-block bg-[#2A2A2A]"></div>
-                     </div>
-                </div>
-                <div class="w-full h-12 rounded-xl skeleton-block skeleton-shimmer mt-2"></div>
-            </div>`;
-            mainContent.innerHTML = html;
-        }
-
-        function renderEmptyState(message = "Смены не обнаружены") {
-            const stateKey = `empty-${message}`;
-            if (lastRenderedState === stateKey) return;
-            lastRenderedState = stateKey;
-            mainContent.innerHTML = `<div id="status-display" class="text-center mt-20 fade-in"><i data-lucide="ghost" class="empty-state-icon mx-auto w-20 h-20 text-red-900/50"></i><p id="status-text" class="text-xl text-gray-500 mt-4 font-mono uppercase tracking-widest">${message}</p></div>`;
-            lucide.createIcons();
-        }
-
-        function getTimeDifferenceText(timeStr) {
-            try {
-                const startTime = timeStr.split('-')[0].trim();
-                const [hours, minutes] = startTime.split(':').map(Number);
-                const now = new Date();
-                const shiftStart = new Date(selectedDateObj);
-                shiftStart.setHours(hours, minutes, 0, 0);
-
-                if (shiftStart < now) return "Активна";
-                const diffMs = shiftStart - now;
-                const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-                
-                if (diffHrs > 24) return ""; 
-                if (diffHrs < 1) return "Скоро";
-                return `Через ${diffHrs} ч.`;
-            } catch (e) { return ""; }
-        }
-
-        function parseDuration(durationStr) {
-            const match = durationStr.match(/(\d+)/);
-            return match ? parseInt(match[0]) : 0;
-        }
-
-        function renderShiftCard(shiftData) {
-            const stateKey = `card-${shiftData.time}-${shiftData.duration}`;
-            if (lastRenderedState === stateKey) return;
-            lastRenderedState = stateKey;
-
-            const timeDiffText = getTimeDifferenceText(shiftData.time);
-            const hoursDuration = parseDuration(shiftData.duration || "0");
-            const estimatedIncome = hoursDuration * HOURLY_RATE;
-            const incomeFormatted = estimatedIncome > 0 ? `≈ ${estimatedIncome.toLocaleString('ru-RU')} ₽` : "Расчет...";
-
-            mainContent.innerHTML = `
-            <div class="w-full max-w-[400px] fade-in mt-2">
-                <div class="flex justify-between items-end mb-3 px-1">
-                    <h2 class="text-xl st-font text-white st-glow-text">Ближайшая смена</h2>
-                    ${timeDiffText ? `
-                    <div class="flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-mono font-bold animate-pulse" style="color: #ff0909; background-color: rgba(20,0,0,0.8); border-color: #ff0909;">
-                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
-                        <span>${timeDiffText}</span>
-                    </div>` : ''}
-                </div>
-
-                <article class="m3-card p-6 mb-4 relative">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex flex-col">
-                            <div class="text-3xl font-bold text-white tracking-tight flex items-center gap-2 font-mono" style="text-shadow: 0 0 5px red;">
-                                ${shiftData.time}
-                            </div>
-                            <div class="text-sm text-gray-400 font-mono mt-1 uppercase">
-                                ${selectedDateObj.toLocaleDateString('ru-RU', {day: 'numeric', month: 'short'})}
-                            </div>
-                        </div>
-
-                        <div class="glass-pill px-3 py-1.5 rounded flex flex-col items-center justify-center min-w-[60px]">
-                            <span class="text-lg font-bold text-red-100 leading-none">${hoursDuration || '-'}</span>
-                            <span class="text-[10px] uppercase text-red-400 font-bold tracking-wider">часов</span>
-                        </div>
-                    </div>
-
-                    <div class="h-px w-full bg-gradient-to-r from-transparent via-red-600 to-transparent mb-6 opacity-50"></div>
-
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="p-2.5 rounded border border-red-900 bg-red-900/10">
-                                    <i data-lucide="wallet" class="w-5 h-5" style="color: #ff0909;"></i>
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-xs text-gray-500 font-mono uppercase tracking-wide">Награда</span>
-                                    <span class="text-2xl font-bold text-white tracking-tight">${incomeFormatted}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="text-right">
-                                <div class="flex items-center justify-end gap-1.5 text-xs font-mono mb-0.5 text-red-500">
-                                    <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-                                    <span>RATE</span>
-                                </div>
-                                <div class="text-sm text-gray-400 font-mono">
-                                    ${HOURLY_RATE} ₽ / h
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-
-                <button class="w-full btn-card-action h-12 rounded flex items-center justify-center gap-2 font-bold text-white group relative overflow-hidden">
-                    <span class="relative z-10">Подробнее</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 relative z-10 transition-transform group-hover:translate-x-1"></i>
-                </button>
-            </div>`;
-            
-            lucide.createIcons();
-        }
-
-        // --- AUTH LOGIC (UNCHANGED) ---
-        function triggerAuthError() {
-            if (isAuthErrorVisible) return;
-            isAuthErrorVisible = true;
-            hideLoading();
-            authErrorSheet.classList.add('open'); 
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('authToken');
-        }
-
-        authLoginBtn.addEventListener('click', () => {
-             authLoginBtn.innerHTML = BUTTON_SPINNER_SVG;
-             setTimeout(() => { window.location.href = LOGOUT_URL; }, 500);
-        });
-
-        async function checkUserAuthentication(isSilent = false) {
-            if (!isSilent) showLoading();
-            const email = localStorage.getItem('userEmail');
-            const token = localStorage.getItem('authToken');
-            
-            if (!email || !token) { 
-                triggerAuthError(); 
-                return false; 
+        // --- 2. LIGHTNING EFFECT CONTROL ---
+        const lightningEl = document.getElementById('lightning');
+        setInterval(() => {
+            if(Math.random() > 0.7) {
+                lightningEl.style.animationDuration = (Math.random() * 2 + 0.5) + 's';
             }
+        }, 3000);
 
+        // --- 3. HELPER FUNCTIONS ---
+
+        function checkAndroidVersion() {
+            if (!window.Telegram || !window.Telegram.WebApp) return false;
+            const platform = window.Telegram.WebApp.platform;
+            if (platform !== 'android') return false;
+
+            const userAgent = window.navigator.userAgent;
+            let androidVersion = 0;
+            const match = userAgent.match(/Android\s+([0-9\.]+)/);
+            if (match && match[1]) {
+                androidVersion = parseInt(match[1].split('.')[0], 10);
+            }
+            
+            if (androidVersion === 0 || androidVersion < REQUIRED_ANDROID_VERSION) {
+                if (window.Telegram.WebApp.showAlert) {
+                    window.Telegram.WebApp.showAlert(VERSION_ERROR_MESSAGE);
+                } else {
+                    alert(VERSION_ERROR_MESSAGE);
+                }
+                return true; 
+            }
+            return false; 
+        }
+
+        function showAlert(message) {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
+                window.Telegram.WebApp.showAlert(message);
+            } else {
+                alert(message);
+            }
+        }
+
+        async function checkStoredSession() {
+            const isLoggedIn = localStorage.getItem(isLoggedInKey);
+            const sessionExpires = localStorage.getItem(sessionExpiresKey);
+            const storedEmail = localStorage.getItem(userEmailKey);
+            const storedAuthToken = localStorage.getItem(authTokenKey);
+            const currentTime = new Date().getTime();
+
+            if (isLoggedIn === 'true' && sessionExpires && parseInt(sessionExpires, 10) > currentTime && storedEmail && storedAuthToken) {
+                // Показываем загрузку, пока проверяем токен
+                return await verifyStoredToken(storedEmail, storedAuthToken);
+            } else {
+                localStorage.removeItem(isLoggedInKey);
+                localStorage.removeItem(userLinkKey);
+                localStorage.removeItem(sessionExpiresKey);
+                localStorage.removeItem(userEmailKey);
+                localStorage.removeItem(authTokenKey);
+                return false;
+            }
+        }
+
+        function loadTargetSite(url) {
+            const targetContainer = document.getElementById('target-frame-container');
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            targetContainer.innerHTML = '';
+            targetContainer.appendChild(iframe);
+
+            iframe.onload = () => {
+                targetContainer.classList.add('visible');
+                // Плавно скрываем интерфейс приложения
+                document.getElementById('app-container').style.opacity = '0';
+            };
+            
+            iframe.onerror = () => {
+                window.location.href = url;
+            };
+        }
+
+        // --- 4. API LOGIC ---
+
+        async function verifyStoredToken(email, token) {
             try {
+                const formData = new URLSearchParams();
+                formData.append('email', email);
+                formData.append('auth_token', token);
+                formData.append('check_token', 'true'); 
+                
                 const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'cors', cache: 'no-cache',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ auth: true, email: email, token: token })
+                    method: 'POST',
+                    body: formData,
                 });
+
                 const data = await response.json();
                 
-                if (data.status === 'success' && data.auth_ok === false) {
-                    triggerAuthError();
+                if (data.success) {
+                    loadTargetSite(data.redirect_link);
+                    return true;
+                } else {
                     return false;
                 }
-                return true;
-            } catch (error) { 
-                console.warn("Auth check network error", error);
-                return true; 
-            } finally { 
-                if (!isSilent) hideLoading(); 
+            } catch (error) {
+                return false;
             }
         }
 
-        // --- DATA FETCHING (UNCHANGED) ---
-        async function fetchShiftForDate(dateObj, isSilent = false) {
-            if (isAuthErrorVisible) return;
-            if (!isSilent) showLoading();
-            
-            const userEmail = localStorage.getItem('userEmail');
-            const dateStr = formatDateForServer(dateObj);
+        async function handleEmailSubmit(e) {
+            e.preventDefault();
+            if (checkAndroidVersion()) return;
+
+            const emailInput = document.getElementById('email');
+            const email = emailInput.value.trim();
+            const btn = e.target.querySelector('button');
+            const originalText = "Войти через ITC Platform";
+
+            btn.innerText = "Связь с Изнанкой...";
+            btn.disabled = true;
+
             try {
-                const url = `${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}&date=${encodeURIComponent(dateStr)}`;
-                const response = await fetch(url);
+                const formData = new URLSearchParams();
+                formData.append('email', email);
+                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData });
                 const data = await response.json();
                 
-                if (data.status === 'success' && data.shift && data.shift.found) { 
-                    renderShiftCard(data.shift.data); 
-                } else { 
-                    renderEmptyState("Нет смен"); 
-                }
-            } catch (e) { 
-                if(!isSilent) renderEmptyState("Ошибка связи"); 
-            } finally { 
-                if (!isSilent) hideLoading(); 
-            }
-        }
-
-        async function fetchStatusLogic(isSilent = false) {
-            if (isAuthErrorVisible) return null;
-            const userEmail = localStorage.getItem('userEmail');
-            try {
-                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(userEmail)}`);
-                return await response.json();
-            } catch (error) { return null; }
-        }
-        
-        // --- BUTTON ACTIONS (UNCHANGED) ---
-        async function updateShiftStatus(newStatus) {
-            const userEmail = localStorage.getItem('userEmail');
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'cors', cache: 'no-cache',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ newStatus: newStatus, userEmail: userEmail })
-                });
-                const data = await response.json();
-                return data.status === 'success';
-            } catch (error) { createNotification('error', 'Сбой связи с Изнанкой'); return false; }
-        }
-
-        function updateButtons(data) {
-            if (!data) return;
-            const status = data.shiftStatus || (isSlotActive ? 'Open' : 'Closed'); 
-            if (data.canStart !== undefined) canStartSlot = data.canStart;
-            isSlotActive = (status === 'Open');
-            const statusTextEl = document.getElementById('status-text');
-            
-            if (isSlotActive) {
-                if(statusTextEl && statusTextEl.textContent !== "Смена активна") {
-                    statusTextEl.textContent = "Смена активна";
-                    statusTextEl.classList.remove('text-gray-500');
-                    statusTextEl.classList.add('text-red-500');
-                    statusTextEl.classList.add('st-glow-text');
-                }
-                if (mainActionButton.textContent !== 'Перейти к задачам' && !isProcessingAction) {
-                    mainActionButton.innerHTML = 'Перейти к задачам';
-                    mainActionButton.disabled = false;
-                }
-                endShiftButton.style.display = 'flex';
-            } else {
-                if (mainActionButton.textContent !== 'Начать смену' && !isProcessingAction) { 
-                    mainActionButton.innerHTML = 'Начать смену'; 
-                }
-                if (!isProcessingAction) {
-                    mainActionButton.disabled = !canStartSlot;
-                }
-                endShiftButton.style.display = 'none';
-            }
-        }
-
-        // --- CALENDAR INIT ---
-        function initCalendar() {
-            calendarContainer.innerHTML = '';
-            const today = new Date();
-            for (let i = 0; i < 14; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                const item = document.createElement('div');
-                item.className = `calendar-item flex flex-col items-center justify-center p-2 rounded cursor-pointer flex-shrink-0 w-14`;
-                if (date.toDateString() === selectedDateObj.toDateString()) {
-                    item.classList.add('selected-border');
-                    item.style.color = '#ff0909';
-                } else { item.style.color = '#888'; }
-                
-                const dayName = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][date.getDay()];
-                item.innerHTML = `<span class="text-[10px] uppercase font-bold font-mono">${dayName}</span><span class="text-lg font-black font-serif">${date.getDate()}</span>`;
-                
-                item.addEventListener('click', () => {
-                    if (selectedDateObj.toDateString() === date.toDateString()) return;
-                    document.querySelectorAll('.calendar-item').forEach(el => { el.classList.remove('selected-border'); el.style.color = '#888'; });
-                    item.classList.add('selected-border');
-                    item.style.color = '#ff0909';
-                    selectedDateObj = date;
-                    renderSkeletons();
-                    fetchShiftForDate(date, true);
-                });
-                calendarContainer.appendChild(item);
-            }
-        }
-
-        // --- EVENT LISTENERS ---
-        
-        mainActionButton.addEventListener('click', async () => {
-            if (isProcessingAction) return;
-            isProcessingAction = true;
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-            mainActionButton.disabled = true;
-
-            try {
-                const isAuth = await checkUserAuthentication(true);
-                if (!isAuth) {
-                    isProcessingAction = false;
-                    return; 
-                }
-
-                const freshData = await fetchStatusLogic(true);
-                
-                if (isSlotActive) {
-                    if (freshData && freshData.shiftStatus === 'Open') {
-                        window.location.href = TASKS_URL;
-                    } else {
-                        createNotification('error', 'Портал закрыт: Смена не активна');
-                        updateButtons(freshData); 
-                        isProcessingAction = false;
-                    }
+                if (data.success) {
+                    currentEmail = email;
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('code-form').classList.remove('hidden');
+                    document.getElementById('user-email-display').innerText = email;
+                    document.getElementById('code-form').style.animation = "fadeIn 0.5s";
                 } else {
-                    if (freshData && freshData.canStart) {
-                         const success = await updateShiftStatus('Open');
-                         if (success) {
-                             createNotification('success', 'Портал открыт!');
-                             updateButtons({ shiftStatus: 'Open', canStart: false });
-                         } else {
-                             createNotification('error', 'Не удалось открыть портал');
-                             const retryData = await fetchStatusLogic(true); 
-                             updateButtons(retryData);
-                         }
-                    } else {
-                         createNotification('error', 'Временная аномалия: Нет смены');
-                         updateButtons(freshData);
-                    }
-                    isProcessingAction = false;
+                    showAlert(data.message || "Ошибка соединения");
+                    btn.innerText = originalText;
+                    btn.disabled = false;
                 }
-            } catch (e) {
-                console.error(e);
-                createNotification('error', 'Ошибка соединения');
-                isProcessingAction = false;
-                updateButtons({ shiftStatus: isSlotActive ? 'Open' : 'Closed', canStart: canStartSlot });
+            } catch (error) {
+                showAlert("Не удалось подключиться к серверу.");
+                btn.innerText = originalText;
+                btn.disabled = false;
             }
-        });
+        }
 
-        endShiftButton.addEventListener('click', () => bottomSheet.classList.add('open'));
-        cancelEndShiftBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
+        async function handleCodeSubmit(e) {
+            e.preventDefault();
+            if (checkAndroidVersion()) return;
 
-        confirmEndShiftBtn.addEventListener('click', async () => {
-            bottomSheet.classList.remove('open');
-            endShiftButton.style.display = 'none';
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-            mainActionButton.disabled = true;
-            isProcessingAction = true;
+            const codeInput = document.getElementById('code');
+            const code = codeInput.value.trim();
             
-            const success = await updateShiftStatus('Closed');
-            isProcessingAction = false;
+            const btn = e.target.querySelector('button');
+            const originalText = "Подтвердить вход";
             
-            if (success) { 
-                createNotification('success', 'Смена завершена'); 
-                updateButtons({ shiftStatus: 'Closed', canStart: false }); 
-                const realData = await fetchStatusLogic(true); 
-                updateButtons(realData); 
-            } else { 
-                updateButtons({ shiftStatus: 'Open' }); 
+            btn.innerText = "Проверка...";
+            btn.disabled = true;
+
+            try {
+                const formData = new URLSearchParams();
+                formData.append('email', currentEmail);
+                formData.append('code', code);
+                
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const sessionDurationHours = data.token_expiry_hours || 24; 
+                    const sessionDurationMs = sessionDurationHours * 60 * 60 * 1000;
+                    const expirationTime = new Date().getTime() + sessionDurationMs;
+                    
+                    localStorage.setItem(isLoggedInKey, 'true');
+                    localStorage.setItem(userLinkKey, data.redirect_link); 
+                    localStorage.setItem(sessionExpiresKey, expirationTime.toString());
+                    localStorage.setItem(userEmailKey, currentEmail);
+                    localStorage.setItem(authTokenKey, data.auth_token);
+
+                    btn.innerText = "Доступ разрешен";
+                    setTimeout(() => {
+                        loadTargetSite(data.redirect_link);
+                    }, 500);
+                } else {
+                    showAlert(data.message || "Неверный код");
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    codeInput.value = '';
+                }
+            } catch (error) {
+                showAlert("Ошибка соединения с сервером.");
+                btn.innerText = originalText;
+                btn.disabled = false;
             }
-        });
+        }
 
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            lucide.createIcons();
-            mainActionButton.innerHTML = BUTTON_SPINNER_SVG;
-            renderSkeletons();
-            initCalendar();
-            
-            // Trigger Intro Sheet
-            setTimeout(() => {
-                introSheet.classList.add('open');
-            }, 500);
-            
-            const authOk = await checkUserAuthentication(false);
-            
-            if (authOk) {
-                const p1 = fetchShiftForDate(selectedDateObj, false); 
-                const p2 = fetchStatusLogic(true).then(data => updateButtons(data));
-                await Promise.all([p1, p2]);
-
-                setInterval(async () => {
-                    if (isAuthErrorVisible) return;
-                    const stillAuth = await checkUserAuthentication(true); 
-                    if (stillAuth) {
-                        const statusData = await fetchStatusLogic(true);
-                        if (statusData && statusData.shiftStatus === 'Open' && !isSlotActive) {
-                             createNotification('success', 'Активность обнаружена на другом устройстве');
-                        }
-                        if (!isProcessingAction) updateButtons(statusData);
-                        fetchShiftForDate(selectedDateObj, true);
-                    }
-                }, REFRESH_INTERVAL);
-            }
-        });
-
-        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-</html>
+    </html>
