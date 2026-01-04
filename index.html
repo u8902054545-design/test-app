@@ -3,626 +3,523 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DarkCenter | Stranger Things 5</title>
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <title>QI Gateway | Access Point</title>
     
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
         :root {
-            --st-red: #ff0909;
-            --dc-blue: #0044ff;
-            --bg-black: #050505;
-            --google-gray: #dadce0;
-            --input-bg: rgba(255, 255, 255, 0.05);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none; /* Защита от выделения для "приложения" */
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-bg: rgba(20, 20, 20, 0.6);
+            --primary-accent: #6366f1;
         }
 
         body {
-            background-color: var(--bg-black);
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Outfit', sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Dynamic Background */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
             height: 100vh;
-            overflow: hidden; /* Полноэкранный режим без скролла */
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* --- BACKGROUND EFFECTS (Изнанка) --- */
-        .upside-down-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
             z-index: -1;
-            background: radial-gradient(circle at center, #1a0000 0%, #000000 100%);
-            overflow: hidden;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.4), transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.15), transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.2), transparent 50%);
+            filter: blur(60px);
+            transition: filter 1s ease, transform 0.5s ease;
+            will-change: filter, transform;
         }
 
-        /* Лозы (Ветки) */
-        .vines {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><path d="M10,10 Q50,100 90,50 T180,100" fill="none" stroke="%23220a0a" stroke-width="2"/></svg>');
-            opacity: 0.6;
-            pointer-events: none;
+        body.scrolled .ambient-bg {
+            filter: blur(80px) hue-rotate(45deg);
         }
 
-        /* Красные молнии */
-        .lightning {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 0, 0, 0.15);
-            opacity: 0;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        @keyframes flash {
-            0% { opacity: 0; }
-            2% { opacity: 0.8; }
-            4% { opacity: 0; }
-            6% { opacity: 0.4; }
-            18% { opacity: 0; }
-            100% { opacity: 0; }
-        }
-
-        .lightning.active {
-            animation: flash 4s infinite random;
-        }
-
-        /* Споры (Частицы в воздухе) */
-        .spores {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px);
-            background-size: 550px 550px;
-            background-position: 0 0;
-            opacity: 0.3;
-            animation: moveSpores 60s linear infinite;
-        }
-
-        @keyframes moveSpores {
-            from { background-position: 0 0; }
-            to { background-position: 1000px 1000px; }
-        }
-
-        /* --- INTRO SCREEN (Netflix Style) --- */
-        #intro-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-            transition: opacity 1s ease-out;
-        }
-
-        .intro-logo-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transform: scale(0.8);
-            animation: zoomLogo 3s forwards;
-        }
-
-        .dc-logo {
-            font-size: 34px; /* Чуть больше 24, чтобы было читаемо на Full HD */
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            background: linear-gradient(90deg, var(--dc-blue) 0%, var(--st-red) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-family: 'Roboto', sans-serif;
-        }
-
-        .google-logo-intro {
-            width: 30px;
-            height: 30px;
-            background: white; /* Placeholder for G logo SVG */
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 10px rgba(255,255,255,0.2);
-        }
-
-        @keyframes zoomLogo {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-
-        /* --- MAIN APP INTERFACE --- */
-        #app-container {
-            opacity: 0;
-            transition: opacity 2s ease-in;
-            z-index: 10;
-            width: 100%;
-            max-width: 450px;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-        }
-
-        /* Stranger Things Title */
-        .st-title {
-            font-family: 'Libre Baskerville', serif;
-            font-size: 3rem;
-            color: transparent;
-            -webkit-text-stroke: 1.5px var(--st-red);
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            letter-spacing: -2px;
-            position: relative;
-            text-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
-        }
-
-        .st-title span {
-            display: block;
-            font-size: 1.2rem;
-            letter-spacing: 5px;
-            -webkit-text-stroke: 0;
-            color: var(--st-red);
-            text-shadow: 0 0 10px var(--st-red);
-            margin-top: -10px;
-        }
-
-        .corp-name {
-            font-size: 0.8rem;
-            color: #aaa;
-            letter-spacing: 3px;
-            margin-bottom: 40px;
-            text-transform: uppercase;
-            opacity: 0.8;
-        }
-
-        /* --- GOOGLE STYLE FORMS --- */
-        .form-group {
-            position: relative;
-            margin-bottom: 25px;
-            text-align: left;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 15px;
-            background: var(--input-bg);
-            border: 1px solid #444;
-            border-radius: 4px;
-            color: white;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        .form-input:focus {
-            border-color: var(--st-red);
-            box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
-        }
-
-        .form-label {
-            position: absolute;
-            left: 15px;
-            top: 14px;
-            color: #888;
-            font-size: 16px;
-            pointer-events: none;
-            transition: 0.2s ease all;
-            background-color: transparent;
-            padding: 0 5px;
-        }
-
-        /* Логика плавающей метки */
-        .form-input:focus ~ .form-label,
-        .form-input:not(:placeholder-shown) ~ .form-label {
-            top: -10px;
-            font-size: 12px;
-            color: var(--st-red);
-            background-color: #050505; /* Чтобы перекрыть линию рамки */
-        }
-
-        /* Кнопка */
-        .btn-submit {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(45deg, #a00000, #ff0000);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: transform 0.2s, box-shadow 0.2s;
+        /* Glassmorphism Base */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             overflow: hidden;
         }
 
-        .btn-submit:hover {
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -50%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transform: skewX(-25deg);
+            transition: 0.5s;
+            pointer-events: none;
+        }
+
+        .glass-panel:hover::before {
+            left: 150%;
+            transition: 0.7s;
+        }
+
+        /* 3D Tilt Wrapper */
+        .tilt-wrapper {
+            perspective: 1000px;
+            transform-style: preserve-3d;
         }
         
-        .btn-submit:active {
-            transform: scale(0.98);
+        .tilt-card {
+            transform-style: preserve-3d;
+            transform: translateZ(0);
+            transition: transform 0.1s ease-out;
         }
 
-        .btn-submit:disabled {
-            background: #333;
-            color: #777;
-            cursor: not-allowed;
-            box-shadow: none;
+        .tilt-content {
+            transform: translateZ(30px);
         }
 
-        .hidden {
-            display: none;
+        /* Genesis Drop Specifics */
+        .genesis-card {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8)), 
+                        url('https://images.unsplash.com/photo-1535498730771-e735b998cd64?q=80&w=2560&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            position: relative;
         }
-
-        /* --- ГИРЛЯНДЫ (Светящиеся точки сверху) --- */
-        .lights {
+        
+        .genesis-card::after {
+            content: '';
             position: absolute;
-            top: -10px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
+            inset: 0;
+            border-radius: 24px;
+            padding: 1px;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.6), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
             pointer-events: none;
-            z-index: 5;
-        }
-        .light {
-            width: 10px;
-            height: 20px;
-            border-radius: 50%;
-            background: #fff;
-            animation: flicker 2s infinite alternate;
-            box-shadow: 0 5px 20px rgba(255,255,255,1);
-        }
-        .light:nth-child(odd) { background: cyan; box-shadow: 0 5px 20px cyan; animation-delay: 0.5s; }
-        .light:nth-child(even) { background: magenta; box-shadow: 0 5px 20px magenta; animation-delay: 1s; }
-        .light:nth-child(3n) { background: yellow; box-shadow: 0 5px 20px yellow; }
-
-        @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
         }
 
-        /* --- TARGET SITE IFRAME (Вместо модалки) --- */
-        #target-frame-container {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #000;
-            z-index: 2000;
+        .icon-shadow {
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+
+        .badge-soon {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Custom Input Styles */
+        .auth-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .auth-input:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(168, 85, 247, 0.5); /* Purple tint for DarkCenter */
+            outline: none;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+        }
+
+        /* Modal Transitions */
+        .modal-backdrop {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 1s ease-in-out;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            transition: opacity 0.3s ease;
         }
-
-        #target-frame-container.visible {
+        .modal-backdrop.active {
             opacity: 1;
             pointer-events: auto;
         }
-
-        #target-frame-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        
+        .modal-content {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-backdrop.active .modal-content {
+            opacity: 1;
+            transform: scale(1) translateY(0);
         }
 
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        
+        /* Loader */
+        .loader {
+            border: 2px solid rgba(255,255,255,0.1);
+            border-left-color: #a855f7;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body>
+<body class="antialiased selection:bg-indigo-500 selection:text-white">
 
-    <div id="intro-screen">
-        <div class="intro-logo-container">
-            <div class="dc-logo">DarkCenter</div>
-            <div class="google-logo-intro">
-                <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.715H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-                    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.159 6.656 3.58 9 3.58z" fill="#EA4335"/>
-                </svg>
+    <!-- Ambient Background -->
+    <div class="ambient-bg" id="ambientBg"></div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col items-center">
+        
+        <!-- Header -->
+        <header class="w-full flex flex-col items-center mb-12 animate-fade-in-down">
+            <div class="flex items-center space-x-3 mb-2">
+                <div class="p-2 bg-white/5 rounded-xl border border-white/10 backdrop-blur-md">
+                    <i data-lucide="cpu" class="w-6 h-6 text-indigo-400"></i>
+                </div>
+                <h1 class="text-3xl font-bold tracking-tight text-white">QI Gateway</h1>
             </div>
-        </div>
+            <p class="text-white/40 text-sm font-light tracking-widest uppercase">Единая точка доступа к экосистеме ITC</p>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="w-full max-w-5xl space-y-8">
+
+            <!-- 1. Genesis Drop (Flagship) -->
+            <div class="tilt-wrapper w-full h-auto cursor-pointer group">
+                <div class="tilt-card glass-panel genesis-card p-8 md:p-12 min-h-[350px] flex flex-col justify-end items-start transition-shadow hover:shadow-[0_0_40px_rgba(100,200,255,0.2)]">
+                    <div class="tilt-content w-full relative z-20">
+                        <div class="absolute top-0 right-0 md:-top-32 md:-right-8 opacity-40 blur-3xl rounded-full w-64 h-64 bg-cyan-500/30 animate-pulse"></div>
+                        
+                        <div class="flex items-center space-x-3 mb-4">
+                            <span class="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold tracking-wider uppercase backdrop-blur-md">
+                                Флагман
+                            </span>
+                            <span class="text-white/60 text-xs uppercase tracking-widest border-l border-white/20 pl-3">
+                                Powered by ITC Platform
+                            </span>
+                        </div>
+
+                        <h2 class="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight drop-shadow-lg">
+                            Genesis Drop
+                        </h2>
+                        
+                        <p class="text-base md:text-lg text-gray-200 mb-2 max-w-2xl font-light leading-relaxed drop-shadow-md">
+                            Высокотехнологичная модель генерации кинематографичных видео в разрешении <span class="text-cyan-400 font-medium">8K</span>.
+                        </p>
+                        <p class="text-sm md:text-base text-gray-300 mb-8 max-w-2xl font-light opacity-90 leading-relaxed">
+                            Создавайте полотна длительностью до 5 минут с функцией непрерывного продолжения. Именно эта технология вдохнула жизнь в визуальный ряд сериала <span class="italic text-white">«On the Other Side»</span>.
+                        </p>
+
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button class="px-8 py-3 bg-white text-black text-sm font-semibold rounded-xl hover:bg-gray-100 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center justify-center gap-2">
+                                <i data-lucide="play-circle" class="w-4 h-4"></i>
+                                Запросить доступ
+                            </button>
+                            <button class="px-8 py-3 bg-black/40 border border-white/10 text-white text-sm font-medium rounded-xl hover:bg-black/60 backdrop-blur-md transition-all flex items-center justify-center gap-2">
+                                Подробнее
+                                <i data-lucide="arrow-right" class="w-4 h-4 text-white/50"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- 2. ITC DevOps -->
+                <div class="tilt-wrapper cursor-pointer h-full">
+                    <div class="tilt-card glass-panel p-6 h-full hover:border-indigo-500/30 transition-colors group">
+                        <div class="tilt-content flex flex-col h-full">
+                            <div class="flex justify-between items-start mb-5">
+                                <div class="p-3 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 border border-indigo-500/20 group-hover:border-indigo-500/50 transition-colors icon-shadow">
+                                    <i data-lucide="code-2" class="w-6 h-6 text-indigo-400"></i>
+                                </div>
+                                <i data-lucide="external-link" class="w-4 h-4 text-white/20 group-hover:text-white/60 transition-colors"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-white mb-2">ITC DevOps</h3>
+                            <p class="text-sm text-gray-400 font-light leading-relaxed mb-4 flex-grow">
+                                Полный цикл разработки для Android, iOS и Chrome. Автоматизированные пайплайны.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Cloud Chat AI -->
+                <div class="tilt-wrapper cursor-pointer h-full">
+                    <div class="tilt-card glass-panel p-6 h-full hover:border-emerald-500/30 transition-colors group">
+                        <div class="tilt-content flex flex-col h-full">
+                            <div class="flex justify-between items-start mb-5">
+                                <div class="p-3 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/20 group-hover:border-emerald-500/50 transition-colors icon-shadow">
+                                    <i data-lucide="bot" class="w-6 h-6 text-emerald-400"></i>
+                                </div>
+                                <i data-lucide="sparkles" class="w-4 h-4 text-yellow-400/50"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-white mb-2">Cloud Chat AI</h3>
+                            <p class="text-sm text-gray-400 font-light leading-relaxed mb-4 flex-grow">
+                                Языковая модель с режимом глубокого мышления.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. DarkCenter (CLICKABLE FOR MODAL) -->
+                <div class="tilt-wrapper cursor-pointer h-full" id="darkCenterBtn">
+                    <div class="tilt-card glass-panel p-6 h-full hover:border-purple-500/30 transition-colors group relative overflow-hidden">
+                        <!-- Active glow effect for visual feedback -->
+                        <div class="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        
+                        <div class="tilt-content flex flex-col h-full relative z-10">
+                            <div class="flex justify-between items-start mb-5">
+                                <div class="p-3 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 border border-purple-500/20 group-hover:border-purple-500/50 transition-colors icon-shadow">
+                                    <i data-lucide="zap" class="w-6 h-6 text-purple-400"></i>
+                                </div>
+                                <span class="text-xs text-purple-300 bg-purple-500/10 border border-purple-500/20 px-2 py-1 rounded">Login Req.</span>
+                            </div>
+                            <h3 class="text-xl font-semibold text-white mb-2">DarkCenter</h3>
+                            <p class="text-sm text-gray-400 font-light leading-relaxed mb-4 flex-grow">
+                                Мост между облачной автоматизацией и разработкой. Сверхбыстрое развёртывание.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. ITC TV -->
+                <div class="tilt-wrapper cursor-pointer h-full">
+                    <div class="tilt-card glass-panel p-6 h-full opacity-80 hover:opacity-100 transition-opacity group border-dashed border-white/10">
+                        <div class="tilt-content flex flex-col h-full">
+                            <div class="flex justify-between items-start mb-5">
+                                <div class="p-3 rounded-2xl bg-white/5 border border-white/10 icon-shadow">
+                                    <i data-lucide="tv" class="w-6 h-6 text-white/60"></i>
+                                </div>
+                                <span class="badge-soon">Скоро</span>
+                            </div>
+                            <h3 class="text-xl font-semibold text-white/70 mb-2">ITC TV</h3>
+                            <p class="text-sm text-gray-500 font-light leading-relaxed mb-4 flex-grow">
+                                Стриминговая платформа.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="w-full text-center py-8 mt-12 border-t border-white/5">
+                <p class="text-white/20 text-xs">© 2024 ITC Platform. QI Gateway Interface. All systems operational.</p>
+            </footer>
+
+        </main>
     </div>
 
-    <div class="upside-down-bg">
-        <div class="vines"></div>
-        <div class="spores"></div>
-        <div class="lightning" id="lightning"></div>
+    <!-- Modal Backdrop -->
+    <div id="authModal" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center px-4">
+        <!-- Dark Overlay -->
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
         
-        <div class="lights">
-            <div class="light"></div><div class="light"></div><div class="light"></div>
-            <div class="light"></div><div class="light"></div><div class="light"></div>
+        <!-- Modal Content -->
+        <div class="modal-content relative w-full max-w-md bg-[#121212] border border-purple-500/20 rounded-3xl p-8 shadow-[0_0_50px_rgba(168,85,247,0.15)] overflow-hidden">
+            
+            <!-- Decorative Glow -->
+            <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-purple-600/10 blur-3xl pointer-events-none"></div>
+
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                        <i data-lucide="zap" class="w-5 h-5 text-purple-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">DarkCenter</h3>
+                        <p class="text-xs text-white/40 uppercase tracking-widest">Авторизация</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-white/30 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Form Stage 1: Email -->
+            <div id="stageEmail" class="relative z-10 transition-all duration-300">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-2 ml-1">Gmail Address</label>
+                        <div class="relative">
+                            <i data-lucide="mail" class="absolute left-4 top-3.5 w-5 h-5 text-gray-500"></i>
+                            <input type="email" id="emailInput" placeholder="name@gmail.com" 
+                                class="auth-input w-full pl-12 pr-4 py-3 rounded-xl text-sm placeholder-gray-600 focus:placeholder-gray-500">
+                        </div>
+                    </div>
+                    
+                    <button onclick="sendCode()" id="sendBtn" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-900/20 flex justify-center items-center gap-2 group">
+                        <span>Получить код</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Stage 2: Code -->
+            <div id="stageCode" class="relative z-10 hidden transition-all duration-300">
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-500/10 text-purple-400 mb-3 border border-purple-500/20">
+                        <i data-lucide="lock" class="w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-white font-medium">Введите код</h4>
+                    <p class="text-sm text-gray-400 mt-1">Код отправлен на <span id="displayEmail" class="text-white">...</span></p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between gap-2">
+                        <!-- Simulated Code Inputs -->
+                        <input type="text" maxlength="1" class="auth-input w-12 h-14 text-center text-xl font-bold rounded-lg" onkeyup="moveFocus(this, 'code2')">
+                        <input type="text" maxlength="1" id="code2" class="auth-input w-12 h-14 text-center text-xl font-bold rounded-lg" onkeyup="moveFocus(this, 'code3')">
+                        <input type="text" maxlength="1" id="code3" class="auth-input w-12 h-14 text-center text-xl font-bold rounded-lg" onkeyup="moveFocus(this, 'code4')">
+                        <input type="text" maxlength="1" id="code4" class="auth-input w-12 h-14 text-center text-xl font-bold rounded-lg" onkeyup="verifyCode()">
+                    </div>
+
+                    <p class="text-center text-xs text-gray-500 mt-4 cursor-pointer hover:text-purple-400 transition-colors">Отправить код повторно</p>
+                </div>
+            </div>
+
         </div>
     </div>
-
-    <div id="app-container">
-        <div class="corp-name">DarkCenter Corporation</div>
-        
-        <h1 class="st-title">
-            Stranger<br>Things
-            <span>FAREWELL TO THE LEGEND</span>
-        </h1>
-
-        <form id="login-form" onsubmit="handleEmailSubmit(event)">
-            <div class="form-group">
-                <input type="email" id="email" class="form-input" placeholder=" " required>
-                <label for="email" class="form-label">Gmail</label>
-            </div>
-            <button type="submit" class="btn-submit">Войти через ITC Platform</button>
-        </form>
-
-        <form id="code-form" class="hidden" onsubmit="handleCodeSubmit(event)">
-            <p style="margin-bottom: 20px; font-size: 0.9rem; color: #ccc;">Код отправлен на <span id="user-email-display" style="color: var(--st-red)"></span></p>
-            <div class="form-group">
-                <input type="text" id="code" class="form-input" placeholder=" " required autocomplete="off" maxlength="6" inputmode="numeric">
-                <label for="code" class="form-label">Код подтверждения (G-)</label>
-            </div>
-            <button type="submit" class="btn-submit">Подтвердить вход</button>
-        </form>
-        
-        <div style="margin-top: 20px; font-size: 12px; color: #555;">
-            &copy; 2026 DarkCenter. Hawkins Lab Protocol.
-        </div>
-    </div>
-
-    <div id="target-frame-container"></div>
 
     <script>
-        // --- CONFIGURATION ---
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0uenNIXAbEI1ZqBLhTK06omyIMa3JquZ5Dil08MrY_jLsRCCff3W1PKQ6XgPM84td/exec";
-        const REQUIRED_ANDROID_VERSION = 14;
-        const VERSION_ERROR_MESSAGE = "Версия Android твоего устройства не поддерживается";
+        // Initialize Icons
+        lucide.createIcons();
 
-        // Keys for localStorage
-        const isLoggedInKey = 'isLoggedIn';
-        const userLinkKey = 'userLink';
-        const sessionExpiresKey = 'sessionExpires';
-        const userEmailKey = 'userEmail';
-        const authTokenKey = 'authToken';
-
-        let currentEmail = "";
-
-        // --- 1. INTRO SEQUENCE & INITIALIZATION ---
-        window.addEventListener('load', async () => {
-            const intro = document.getElementById('intro-screen');
-            const app = document.getElementById('app-container');
-            const lightning = document.getElementById('lightning');
-
-            // Проверка авторизации во время анимации
-            const hasActiveSession = await checkStoredSession();
-
-            // Ждем завершения анимации логотипа (3сек)
-            setTimeout(() => {
-                intro.style.opacity = '0';
-                setTimeout(() => {
-                    intro.style.display = 'none';
-                    if (!hasActiveSession) {
-                        app.style.opacity = '1';
-                    }
-                    // Включаем молнии
-                    lightning.classList.add('active');
-                }, 1000);
-            }, 2500);
+        // 3D Tilt Logic
+        const tiltWrappers = document.querySelectorAll('.tilt-wrapper');
+        tiltWrappers.forEach(wrapper => {
+            const card = wrapper.querySelector('.tilt-card');
+            wrapper.addEventListener('mousemove', (e) => {
+                const rect = wrapper.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -5;
+                const rotateY = ((x - centerX) / centerX) * 5;
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+            wrapper.addEventListener('mouseleave', () => {
+                card.style.transform = `rotateX(0) rotateY(0)`;
+            });
         });
 
-        // --- 2. LIGHTNING EFFECT CONTROL ---
-        const lightningEl = document.getElementById('lightning');
-        setInterval(() => {
-            if(Math.random() > 0.7) {
-                lightningEl.style.animationDuration = (Math.random() * 2 + 0.5) + 's';
-            }
-        }, 3000);
+        // Background Parallax
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            document.body.classList.toggle('scrolled', scrollY > 50);
+            document.getElementById('ambientBg').style.transform = `translateY(${scrollY * 0.1}px)`;
+        });
 
-        // --- 3. HELPER FUNCTIONS ---
+        // --- MODAL LOGIC ---
+        const modal = document.getElementById('authModal');
+        const darkCenterBtn = document.getElementById('darkCenterBtn');
+        const emailInput = document.getElementById('emailInput');
+        const stageEmail = document.getElementById('stageEmail');
+        const stageCode = document.getElementById('stageCode');
+        const sendBtn = document.getElementById('sendBtn');
 
-        function checkAndroidVersion() {
-            if (!window.Telegram || !window.Telegram.WebApp) return false;
-            const platform = window.Telegram.WebApp.platform;
-            if (platform !== 'android') return false;
+        // Open Modal
+        darkCenterBtn.addEventListener('click', () => {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            emailInput.focus();
+        });
 
-            const userAgent = window.navigator.userAgent;
-            let androidVersion = 0;
-            const match = userAgent.match(/Android\s+([0-9\.]+)/);
-            if (match && match[1]) {
-                androidVersion = parseInt(match[1].split('.')[0], 10);
-            }
-            
-            if (androidVersion === 0 || androidVersion < REQUIRED_ANDROID_VERSION) {
-                if (window.Telegram.WebApp.showAlert) {
-                    window.Telegram.WebApp.showAlert(VERSION_ERROR_MESSAGE);
-                } else {
-                    alert(VERSION_ERROR_MESSAGE);
-                }
-                return true; 
-            }
-            return false; 
+        // Close Modal
+        function closeModal() {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                document.body.style.overflow = ''; // Restore scrolling
+                // Reset form state after animation
+                setTimeout(resetForm, 300);
+            }, 300);
         }
 
-        function showAlert(message) {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                window.Telegram.WebApp.showAlert(message);
-            } else {
-                alert(message);
+        // Send Code Simulation
+        function sendCode() {
+            if(!emailInput.value) {
+                emailInput.classList.add('border-red-500');
+                setTimeout(() => emailInput.classList.remove('border-red-500'), 1000);
+                return;
             }
-        }
 
-        async function checkStoredSession() {
-            const isLoggedIn = localStorage.getItem(isLoggedInKey);
-            const sessionExpires = localStorage.getItem(sessionExpiresKey);
-            const storedEmail = localStorage.getItem(userEmailKey);
-            const storedAuthToken = localStorage.getItem(authTokenKey);
-            const currentTime = new Date().getTime();
+            // Loading State
+            const originalText = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<div class="loader"></div>';
+            sendBtn.disabled = true;
 
-            if (isLoggedIn === 'true' && sessionExpires && parseInt(sessionExpires, 10) > currentTime && storedEmail && storedAuthToken) {
-                // Показываем загрузку, пока проверяем токен
-                return await verifyStoredToken(storedEmail, storedAuthToken);
-            } else {
-                localStorage.removeItem(isLoggedInKey);
-                localStorage.removeItem(userLinkKey);
-                localStorage.removeItem(sessionExpiresKey);
-                localStorage.removeItem(userEmailKey);
-                localStorage.removeItem(authTokenKey);
-                return false;
-            }
-        }
-
-        function loadTargetSite(url) {
-            const targetContainer = document.getElementById('target-frame-container');
-            const iframe = document.createElement('iframe');
-            iframe.src = url;
-            targetContainer.innerHTML = '';
-            targetContainer.appendChild(iframe);
-
-            iframe.onload = () => {
-                targetContainer.classList.add('visible');
-                // Плавно скрываем интерфейс приложения
-                document.getElementById('app-container').style.opacity = '0';
-            };
-            
-            iframe.onerror = () => {
-                window.location.href = url;
-            };
-        }
-
-        // --- 4. API LOGIC ---
-
-        async function verifyStoredToken(email, token) {
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', email);
-                formData.append('auth_token', token);
-                formData.append('check_token', 'true'); 
+            setTimeout(() => {
+                // Switch to Code Stage
+                document.getElementById('displayEmail').innerText = emailInput.value;
+                stageEmail.classList.add('hidden');
+                stageCode.classList.remove('hidden');
                 
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData,
-                });
+                // Focus first digit
+                const firstDigit = stageCode.querySelector('input');
+                if(firstDigit) firstDigit.focus();
 
-                const data = await response.json();
-                
-                if (data.success) {
-                    loadTargetSite(data.redirect_link);
-                    return true;
-                } else {
-                    return false;
-                }
-            } catch (error) {
-                return false;
+            }, 1000); // Simulate network delay
+        }
+
+        // Auto focus mover for code inputs
+        function moveFocus(current, nextFieldID) {
+            if (current.value.length >= 1) {
+                document.getElementById(nextFieldID).focus();
             }
         }
 
-        async function handleEmailSubmit(e) {
-            e.preventDefault();
-            if (checkAndroidVersion()) return;
-
-            const emailInput = document.getElementById('email');
-            const email = emailInput.value.trim();
-            const btn = e.target.querySelector('button');
-            const originalText = "Войти через ITC Platform";
-
-            btn.innerText = "Связь с Изнанкой...";
-            btn.disabled = true;
-
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', email);
-                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData });
-                const data = await response.json();
-                
-                if (data.success) {
-                    currentEmail = email;
-                    document.getElementById('login-form').classList.add('hidden');
-                    document.getElementById('code-form').classList.remove('hidden');
-                    document.getElementById('user-email-display').innerText = email;
-                    document.getElementById('code-form').style.animation = "fadeIn 0.5s";
-                } else {
-                    showAlert(data.message || "Ошибка соединения");
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                }
-            } catch (error) {
-                showAlert("Не удалось подключиться к серверу.");
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
+        function verifyCode() {
+            // Logic to verify... close modal on success
+            setTimeout(() => {
+                closeModal();
+                // Optional: Show success toast
+            }, 500);
         }
 
-        async function handleCodeSubmit(e) {
-            e.preventDefault();
-            if (checkAndroidVersion()) return;
-
-            const codeInput = document.getElementById('code');
-            const code = codeInput.value.trim();
+        function resetForm() {
+            stageCode.classList.add('hidden');
+            stageEmail.classList.remove('hidden');
+            emailInput.value = '';
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<span>Получить код</span><i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>';
+            lucide.createIcons();
             
-            const btn = e.target.querySelector('button');
-            const originalText = "Подтвердить вход";
-            
-            btn.innerText = "Проверка...";
-            btn.disabled = true;
-
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', currentEmail);
-                formData.append('code', code);
-                
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData,
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    const sessionDurationHours = data.token_expiry_hours || 24; 
-                    const sessionDurationMs = sessionDurationHours * 60 * 60 * 1000;
-                    const expirationTime = new Date().getTime() + sessionDurationMs;
-                    
-                    localStorage.setItem(isLoggedInKey, 'true');
-                    localStorage.setItem(userLinkKey, data.redirect_link); 
-                    localStorage.setItem(sessionExpiresKey, expirationTime.toString());
-                    localStorage.setItem(userEmailKey, currentEmail);
-                    localStorage.setItem(authTokenKey, data.auth_token);
-
-                    btn.innerText = "Доступ разрешен";
-                    setTimeout(() => {
-                        loadTargetSite(data.redirect_link);
-                    }, 500);
-                } else {
-                    showAlert(data.message || "Неверный код");
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    codeInput.value = '';
-                }
-            } catch (error) {
-                showAlert("Ошибка соединения с сервером.");
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
+            // Reset code inputs
+            const codeInputs = stageCode.querySelectorAll('input');
+            codeInputs.forEach(input => input.value = '');
         }
 
     </script>
 </body>
-    </html>
+                    </html>
